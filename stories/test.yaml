@@ -1,0 +1,41 @@
+meta:
+  id: test
+  createdAt: 2026-09-15T16:35:50.138Z
+  updatedAt: 2026-09-15T16:35:50.138Z
+slides:
+  - background: Test Lab
+  - speaker: Tester
+    dialogue: Hello, studio.
+  - dialogue: Let's keep going.
+  - dialogue: This is a test.
+media:
+  - type: image
+    name: Test Lab
+    prompt:
+      Description: A small white test chamber with a single red status light and a
+        blank wall of monitors.
+    createdAt: 2026-09-15T16:35:52.607Z
+  - type: image
+    name: Test Console
+    prompt:
+      Description: A close-up of a terminal on a desk in the test chamber, cursor blinking.
+    createdAt: 2026-09-15T16:35:56.585Z
+cards:
+  - name: Style
+    attributes:
+      Brushwork: Clean vector-like edges with a little grain
+      Palette: White, black, and one sharp red accent
+      Style: Flat editorial illustration
+      Texture: Matte paper, slight ink bleed
+    createdAt: 2026-09-15T16:35:50.138Z
+    updatedAt: 2026-09-15T16:35:50.138Z
+  - name: Tester
+    cover: Tester
+    attributes:
+      Info:
+        Name: Tester
+        Role: MCP probe
+      Notes:
+        Purpose: Exercise Image, Dialogue, Card, and Slide ops
+    createdAt: 2026-09-15T16:35:52.428Z
+    updatedAt: 2026-09-15T16:35:52.428Z

@@ -1,0 +1,76 @@
+meta:
+  id: bell-labs
+  createdAt: 2026-09-15T14:24:29.991Z
+  updatedAt: 2026-09-15T14:24:29.991Z
+slides:
+  - background: Bell Labs Building
+  - speaker: Sim
+    dialogue: Murray Hill, New Jersey
+  - dialogue: "1969"
+  - background: Bell Labs Interior
+  - dialogue: Welcome to Bell Labs.
+  - dialogue: Where the future is being built, one transistor at a time.
+  - background: Dennis Ritchie
+  - speaker: Dennis Ritchie
+    dialogue: Ah, a visitor!
+  - dialogue: Would you like to see what we're working on?
+media:
+  - type: image
+    name: Bell Labs Building
+    prompt:
+      Description: A striking mid-century modern building with clean geometric lines
+        and large glass windows. The exterior features a mix of concrete, steel,
+        and glass, with the iconic Bell Labs logo prominently displayed. The
+        building sits in a well-maintained campus setting with manicured lawns
+        and walking paths.
+    createdAt: 2026-09-15T14:24:29.991Z
+    key: /media/bell-labs/bell-labs-building.jpg
+  - type: image
+    name: Bell Labs Interior
+    prompt:
+      Description: A mid-century modern research laboratory with clean lines and
+        minimalist design. Large windows let in natural light, illuminating rows
+        of vintage computers and oscilloscopes. Scientists in white lab coats
+        work at long tables covered in schematics and equipment.
+    createdAt: 2026-09-15T14:24:35.229Z
+    key: /media/bell-labs/bell-labs-interior.jpg
+  - type: image
+    name: Dennis Ritchie
+    prompt:
+      Description: A young computer scientist with short dark hair and glasses,
+        wearing a white lab coat over a button-down shirt and tie. He's standing
+        at a terminal, typing on a keyboard, surrounded by stacks of paper and
+        technical manuals. The background shows the clean, modern Bell Labs
+        interior.
+    createdAt: 2026-09-15T14:24:40.045Z
+    key: /media/bell-labs/dennis-ritchie.jpg
+cards:
+  - name: Style
+    attributes:
+      Style: Digital Painting Concept Art
+      Texture: Painterly surface with visible brushstrokes
+      Palette: Balanced natural colors with gentle contrast
+      Brushwork: Loose but readable strokes with soft blended edges
+    createdAt: 2026-09-15T14:24:29.991Z
+    updatedAt: 2026-09-15T14:24:29.991Z
+  - name: Dennis Ritchie
+    cover: Dennis Ritchie
+    attributes:
+      Info:
+        Name: Dennis MacAlistair Ritchie
+        Role: Computer Scientist
+        Affiliation: Bell Labs
+        Education: Harvard University
+      Accomplishments:
+        Key:
+          - Created the C programming language
+          - Co-developed the Unix operating system
+          - Co-authored "The C Programming Language" (K&R)
+        Awards:
+          - Turing Award (1983)
+          - National Medal of Technology (1999)
+          - Japan Prize (2011)
+      Legacy:
+        Impact: Foundational figure in modern software and operating system design
+    createdAt: 2026-09-15T16:04:08.487Z
+    updatedAt: 2026-09-15T16:04:08.487Z

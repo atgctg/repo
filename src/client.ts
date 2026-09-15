@@ -1,6 +1,8 @@
 import type { Card, MediaAsset, Slide, Story } from './types'
 import { resolveSlides } from './slides'
 
+let cacheBuster = Date.now()
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -19,18 +21,31 @@ function canGenerate(asset?: MediaAsset): boolean {
   return Boolean(asset && asset.type === 'image' && !asset.key && asset.prompt && Object.keys(asset.prompt).length > 0)
 }
 
+function canPromptImage(asset?: MediaAsset): boolean {
+  return Boolean(asset && asset.type === 'image' && asset.prompt && Object.keys(asset.prompt).length > 0)
+}
+
 function renderGenerateBtn(storyId: string, asset?: MediaAsset): string {
   if (!canGenerate(asset) || !asset) return ''
   return `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
 }
 
 function getDialogueSizeClass(text: string): string {
-  const len = text.length
+  const clean = text.replace(/\*/g, '').trim()
+  const len = clean.length
   if (len <= 25) return 'dialogue-xl'
   if (len <= 50) return 'dialogue-lg'
   if (len <= 90) return 'dialogue-md'
   if (len <= 140) return 'dialogue-sm'
   return 'dialogue-xs'
+}
+
+function formatDialogue(text: string): string {
+  const escaped = escapeHtml(text)
+  return escaped
+    .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
 }
 
 function renderSlide(slide: Slide, media: Story['media'], storyId: string): string {
@@ -39,15 +54,15 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
 
   const mediaAsset = findImage(media, slide.background)
   const hasImage = Boolean(mediaAsset?.key)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}" alt="" />` : ''
+  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}?v=${cacheBuster}" alt="" />` : ''
 
   const dialogueHtml = hasDialogue
-    ? `<div class="dialogue ${getDialogueSizeClass(slide.dialogue!)}">${escapeHtml(slide.dialogue!)}</div>`
+    ? `<div class="dialogue ${getDialogueSizeClass(slide.dialogue!)}">${formatDialogue(slide.dialogue!)}</div>`
     : ''
 
-  const initial = hasSpeaker ? escapeHtml(slide.speaker!.trim()[0] ?? '') : ''
+  const initial = hasSpeaker ? escapeHtml(slide.speaker!.trim()[0]?.toUpperCase() ?? '') : ''
   const speakerHtml = hasSpeaker
-    ? `<div class="speaker"><span class="avatar">${initial}</span><span>${escapeHtml(slide.speaker!)}</span></div>`
+    ? `<div class="speaker"><span class="avatar"><span class="avatar-letter">${initial}</span></span><span>${escapeHtml(slide.speaker!)}</span></div>`
     : ''
 
   const bgOnlyHtml =
@@ -87,7 +102,7 @@ function formatAttrValue(value: unknown): string {
 function renderCard(card: Card, media: Story['media'], storyId: string): string {
   const mediaAsset = findImage(media, card.cover)
   const hasImage = Boolean(mediaAsset?.key)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}" alt="" />` : ''
+  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}?v=${cacheBuster}" alt="" />` : ''
 
   const attrs = Object.entries(card.attributes ?? {})
   const attrsHtml = attrs
@@ -115,7 +130,7 @@ function renderCard(card: Card, media: Story['media'], storyId: string): string 
 
 function renderMedia(asset: MediaAsset, storyId: string): string {
   const hasImage = asset.type === 'image' && Boolean(asset.key)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(asset.key!)}" alt="" />` : ''
+  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(asset.key!)}?v=${cacheBuster}" alt="" />` : ''
 
   const attrs = Object.entries(asset.prompt ?? {})
   const attrsHtml = attrs
@@ -131,6 +146,11 @@ function renderMedia(asset: MediaAsset, storyId: string): string {
 
   const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 
+  const canPrompt = canPromptImage(asset)
+  const btnHtml = canPrompt
+    ? `<button type="button" class="gen-btn ${hasImage ? 'regen-btn' : ''}" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">${hasImage ? 'Regenerate' : 'Generate'}</button>`
+    : ''
+
   return `
     <div class="${cardClasses}">
       ${imgBgHtml}
@@ -142,7 +162,7 @@ function renderMedia(asset: MediaAsset, storyId: string): string {
         </div>
         ${attrsHtml}
       </div>
-      ${renderGenerateBtn(storyId, asset)}
+      ${btnHtml}
     </div>
   `
 }
@@ -365,6 +385,7 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
       throw new Error(body.error ?? `Generate failed (${res.status})`)
     }
     console.error('img gen ok', { storyId, name, ms: Math.round(performance.now() - started) })
+    cacheBuster = Date.now()
     lastPayload = ''
     await refresh()
   } catch (error) {

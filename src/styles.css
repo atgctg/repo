@@ -196,8 +196,7 @@ a {
 .card.has-image .card-attr-key,
 .card.has-image .card-attr-value,
 .card.has-image .dialogue,
-.card.has-image .speaker,
-.card.has-image .avatar {
+.card.has-image .speaker {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
@@ -234,6 +233,18 @@ a {
   line-height: 1.2;
   cursor: pointer;
   max-width: calc(100% - 32px);
+}
+
+.gen-btn.regen-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.card:hover .gen-btn.regen-btn,
+.gen-btn.regen-btn:disabled {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .gen-btn:disabled {
@@ -297,6 +308,14 @@ a {
   z-index: 2;
 }
 
+.dialogue em {
+  font-style: italic;
+}
+
+.dialogue strong {
+  font-weight: 700;
+}
+
 .dialogue-xl {
   font-size: 26px;
   line-height: 1.25;
@@ -340,11 +359,19 @@ a {
   border-radius: 50%;
   background: var(--avatar-bg);
   color: var(--card-text);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   text-align: center;
   flex-shrink: 0;
+  text-shadow: none;
+}
+
+.avatar-letter {
+  display: block;
+  line-height: 1;
+  transform: translate(0px, -1px);
 }

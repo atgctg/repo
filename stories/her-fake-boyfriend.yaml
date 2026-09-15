@@ -1,0 +1,128 @@
+meta:
+  id: her-fake-boyfriend
+  createdAt: 2026-09-15T21:31:43.922Z
+  updatedAt: 2026-09-15T21:31:43.922Z
+slides:
+  - background: Tenno Sushi
+  - background: Keiko's Question
+  - speaker: Keiko
+    dialogue: So, Yuki... when are we finally meeting him?
+  - background: Yuki Spots You
+  - speaker: Yuki
+    dialogue: "*Her chopsticks stop halfway to her plate.*"
+  - dialogue: "*Her eyes dart frantically around the restaurant until they lock onto
+      you passing by.*"
+  - background: Haruma's Tease
+  - speaker: Haruma
+    dialogue: Your boyfriend. The one who has apparently been keeping our daughter
+      in America.
+  - dialogue: "*He chuckles, taking another slow drink of his beer.*"
+  - background: The Arm Grab
+  - speaker: Yuki
+    dialogue: "*Her hand shoots out, catching your sleeve.*"
+  - background: POV There You Are
+  - dialogue: There you are! Mom, Dad... this is my boyfriend!
+  - background: Whispering In Your Ear
+  - dialogue: "*She leans right into your ear.*"
+  - dialogue: Please. Pretend you're my boyfriend.
+  - dialogue: I told them we've been together for eight months.
+  - background: Parents Staring
+media:
+  - type: image
+    name: Tenno Sushi
+    key: /media/her-fake-boyfriend/tenno-sushi.jpg
+    prompt:
+      Description: Establishing night exterior shot of a cozy Japanese restaurant in
+        Little Tokyo. Traditional wooden facade with a cloth noren curtain and
+        warm glowing paper lanterns clearly displaying the words 'Tenno Sushi'
+        on the sign. Soft anime aesthetic, warm evening glow, subtle street
+        reflections.
+    createdAt: 2026-09-15T21:31:49.403Z
+  - type: image
+    name: Keiko's Question
+    key: /media/her-fake-boyfriend/keiko-s-question.jpg
+    prompt:
+      Description: Close-up of Keiko Sakurai at the sushi booth. A 43-year-old
+        Japanese mother with a short wavy chestnut brown bob hair and no
+        glasses, wearing a peach cardigan over a cream top. She leans forward
+        across the wooden sushi table, resting her chin on her folded hands with
+        a sweet, curious, intrusive smile. Soft anime aesthetic, warm lantern
+        light.
+    createdAt: 2026-09-15T21:31:57.333Z
+  - type: image
+    name: Haruma's Tease
+    key: /media/her-fake-boyfriend/haruma-s-tease.jpg
+    prompt:
+      Description: Medium shot of Haruma Sakurai at the sushi booth. A 48-year-old
+        Japanese father with short salt-and-pepper gray hair and thin
+        rectangular wire-rim glasses, wearing a navy blue collared shirt. He
+        holds a glass of beer with an amused, teasing smirk at the wooden sushi
+        restaurant table. Soft anime aesthetic, cozy restaurant interior with
+        lanterns.
+    createdAt: 2026-09-15T21:32:07.308Z
+  - type: image
+    name: Yuki Spots You
+    key: /media/her-fake-boyfriend/yuki-spots-you.jpg
+    prompt:
+      Description: Yuki Sakurai sitting in the booth, a 22-year-old girl with long
+        dark brown hair tied with a prominent large white ribbon, wearing a
+        cream sweater. Her chopsticks freeze mid-air over her sushi plate, eyes
+        wide with rising panic, cheeks flushed red. She nervously glances toward
+        the restaurant aisle and suddenly locks eyes with the viewer. Soft anime
+        aesthetic.
+    createdAt: 2026-09-15T21:32:16.285Z
+  - type: image
+    name: The Arm Grab
+    key: /media/her-fake-boyfriend/the-arm-grab.jpg
+    prompt:
+      Description: First-person POV action shot. Yuki, a 22-year-old girl with long
+        dark brown hair, a large white ribbon, and cream sweater sleeves, lunges
+        out from the restaurant booth and tightly clutches the viewer's jacket
+        sleeve with both hands. Close-up on her small hands gripping your arm
+        tightly. High urgency, desperate expression looking up. Soft anime
+        aesthetic.
+    createdAt: 2026-09-15T21:32:25.593Z
+  - type: image
+    name: POV There You Are
+    key: /media/her-fake-boyfriend/pov-there-you-are.jpg
+    prompt:
+      Description: First-person POV shot looking directly into the camera lens,
+        breaking the fourth wall. Yuki Sakurai, with long dark brown hair and a
+        large white ribbon, flushed pink cheeks, looks straight up into your
+        eyes with a bright, tight, desperately forced smile while clinging to
+        your arm. In the softly blurred background, her parents in the booth
+        look shocked. Soft anime aesthetic.
+    createdAt: 2026-09-15T21:32:35.760Z
+  - type: image
+    name: Whispering In Your Ear
+    key: /media/her-fake-boyfriend/whispering-in-your-ear.jpg
+    prompt:
+      Description: Extreme close-up first-person POV shot. Yuki Sakurai with long dark
+        brown hair and a large white ribbon leans right next to the viewer's
+        ear, cupping one hand beside her lips to whisper secretly. Intense,
+        panicked, flushed expression, hushed urgency. In the distant background,
+        her parents in the booth are blurred and completely out of earshot. Soft
+        anime aesthetic.
+    createdAt: 2026-09-15T21:32:45.302Z
+  - type: image
+    name: Parents Staring
+    key: /media/her-fake-boyfriend/parents-staring.jpg
+    prompt:
+      Description: Medium shot from beside the viewer. Haruma (short salt-and-pepper
+        gray hair, wire glasses, navy shirt) and Keiko (short wavy chestnut bob,
+        peach cardigan) sit frozen in the wooden booth, staring in stunned
+        silence directly at you. Haruma has his beer glass halted mid-air;
+        Keiko's eyes are wide in shock. In the foreground, Yuki's hand still
+        clutches your arm. Soft anime aesthetic.
+    createdAt: 2026-09-15T21:32:56.834Z
+cards:
+  - name: Style
+    attributes:
+      Aesthetic: Expressive 2D anime character art, clean lineart, soft cel shading,
+        cinematic framing
+      Palette: Warm amber lantern light, honey wood, cozy restaurant tones, soft
+        evening glow
+      Style: Soft anime aesthetic, 2D anime illustration
+      Texture: Gentle anime lighting, soft depth of field, warm atmosphere
+    createdAt: 2026-09-15T21:31:43.922Z
+    updatedAt: 2026-09-15T21:31:43.922Z

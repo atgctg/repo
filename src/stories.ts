@@ -1,4 +1,5 @@
 import { parse, stringify } from 'yaml'
+import { mergeAttributes } from './attributes'
 import { generateStoryImage, mediaDiskPath } from './generate'
 import { resolveSlides, sparsifySlides } from './slides'
 import type { Card, MediaAsset, Slide, Story, StorySummary } from './types'
@@ -206,7 +207,7 @@ export async function setCard(
   storyId: string,
   params: {
     name: string
-    cover?: string
+    cover?: string | null
     attributes?: Record<string, unknown>
   },
 ): Promise<Story> {
@@ -216,10 +217,16 @@ export async function setCard(
   const existingIdx = story.cards.findIndex((c) => c.name.toLowerCase() === params.name.toLowerCase())
   const existing = existingIdx >= 0 ? story.cards[existingIdx] : undefined
 
+  const cover = params.cover === undefined ? existing?.cover : (params.cover ?? undefined)
+  const attributes =
+    params.attributes === undefined
+      ? (existing?.attributes ?? {})
+      : mergeAttributes(existing?.attributes ?? {}, params.attributes)
+
   const card: Card = {
     name: params.name,
-    cover: params.cover ?? existing?.cover,
-    attributes: params.attributes ?? existing?.attributes ?? {},
+    cover,
+    attributes,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   }

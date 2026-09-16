@@ -1,3 +1,5 @@
+import { stringify } from 'yaml'
+import { isPlainObject } from '../attributes'
 import type { Card, MediaAsset, Slide, Story, StorySummary } from '../types'
 import { resolveSlides } from '../slides'
 
@@ -32,6 +34,13 @@ function canGenerate(asset?: MediaAsset): boolean {
 function canPromptImage(asset?: MediaAsset): boolean {
   return Boolean(asset && asset.type === 'image' && asset.prompt && Object.keys(asset.prompt).length > 0)
 }
+
+function formatPromptYaml(prompt?: Record<string, unknown>): string {
+  if (!prompt || Object.keys(prompt).length === 0) return ''
+  return stringify(prompt, { indent: 2 }).trim()
+}
+
+const REFRESH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
 
 function renderGenerateBtn(storyId: string, asset?: MediaAsset): string {
   if (!canGenerate(asset) || !asset) return ''
@@ -73,9 +82,9 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
     ? `<div class="speaker"><span class="avatar"><span class="avatar-letter">${initial}</span></span><span>${escapeHtml(slide.speaker!)}</span></div>`
     : ''
 
-  const bgOnlyHtml =
+  const titleHtml =
     !hasDialogue && !hasSpeaker && slide.background
-      ? `<div class="bg-title">${escapeHtml(slide.background)}</div>`
+      ? `<div class="card-title">${escapeHtml(slide.background)}</div>`
       : ''
 
   const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
@@ -83,7 +92,7 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
   return `
     <div class="${cardClasses}">
       ${imgBgHtml}
-      ${bgOnlyHtml}
+      ${titleHtml}
       ${dialogueHtml}
       ${speakerHtml}
       ${!hasDialogue && !hasSpeaker ? renderGenerateBtn(storyId, mediaAsset) : ''}
@@ -91,46 +100,71 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
   `
 }
 
-function formatAttrValue(value: unknown): string {
-  if (value == null) return ''
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-    return String(value)
+function hideAttrLabel(label: string): boolean {
+  return label === '' || /^\d+$/.test(label)
+}
+
+function attrEntries(value: unknown): [string, unknown][] | null {
+  if (isPlainObject(value)) return Object.entries(value)
+  if (Array.isArray(value)) return value.map((item, i) => [String(i), item])
+  return null
+}
+
+function sortAttrEntries(entries: [string, unknown][]): [string, unknown][] {
+  return [...entries].sort(([, a], [, b]) => {
+    const aGroup = isPlainObject(a) || Array.isArray(a)
+    const bGroup = isPlainObject(b) || Array.isArray(b)
+    if (aGroup === bGroup) return 0
+    return aGroup ? 1 : -1
+  })
+}
+
+function renderAttrTile(label: string, value: unknown): string {
+  const valueStr = Array.isArray(value) ? value.map(String).join(' ') : String(value ?? '')
+  const wide = valueStr.length > 42
+  const showLabel = !hideAttrLabel(label)
+  return `<div class="attr-tile${wide ? ' attr-wide' : ''}">${
+    showLabel ? `<div class="attr-key">${escapeHtml(label)}</div>` : ''
+  }<div class="attr-val">${escapeHtml(valueStr)}</div></div>`
+}
+
+function renderAttrNode(label: string, value: unknown, level: number): string {
+  const entries = attrEntries(value)
+  if (!entries || entries.length === 0) {
+    if (isPlainObject(value) || Array.isArray(value)) return ''
+    return renderAttrTile(label, value)
   }
-  if (Array.isArray(value)) {
-    return value.map((item) => (typeof item === 'string' ? item : JSON.stringify(item))).join(', ')
-  }
-  if (typeof value === 'object') {
-    return Object.entries(value as Record<string, unknown>)
-      .map(([key, nested]) => `${key}: ${formatAttrValue(nested)}`)
-      .join('\n')
-  }
-  return ''
+
+  const kids = sortAttrEntries(entries)
+    .map(([key, child]) => renderAttrNode(key, child, level + 1))
+    .join('')
+  const showLabel = !hideAttrLabel(label)
+
+  if (level === 0) return kids
+
+  return `<div class="attr-section">${
+    showLabel ? `<div class="attr-label">${escapeHtml(label)}</div>` : ''
+  }<div class="attr-row">${kids}</div></div>`
+}
+
+function renderCardAttrs(attributes: Record<string, unknown>): string {
+  const inner = renderAttrNode('', attributes, 0)
+  if (!inner) return ''
+  return `<div class="card-attrs">${inner}</div>`
 }
 
 function renderCard(card: Card, media: Story['media'], storyId: string): string {
   const mediaAsset = findImage(media, card.cover)
   const hasImage = Boolean(mediaAsset?.key)
   const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}?v=${cacheBuster}" alt="" />` : ''
-
-  const attrs = Object.entries(card.attributes ?? {})
-  const attrsHtml = attrs
-    .map(
-      ([key, value]) => `
-        <div class="card-attr">
-          <div class="card-attr-key">${escapeHtml(key)}</div>
-          <div class="card-attr-value">${escapeHtml(formatAttrValue(value))}</div>
-        </div>
-      `,
-    )
-    .join('')
-
+  const attrsHtml = renderCardAttrs(card.attributes ?? {})
   const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 
   return `
     <div class="${cardClasses}">
       ${imgBgHtml}
-      <div class="bg-title">${escapeHtml(card.name)}</div>
-      <div class="card-attrs">${attrsHtml}</div>
+      <div class="card-title">${escapeHtml(card.name)}</div>
+      ${attrsHtml}
       ${renderGenerateBtn(storyId, mediaAsset)}
     </div>
   `
@@ -139,37 +173,23 @@ function renderCard(card: Card, media: Story['media'], storyId: string): string 
 function renderMedia(asset: MediaAsset, storyId: string): string {
   const hasImage = asset.type === 'image' && Boolean(asset.key)
   const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(asset.key!)}?v=${cacheBuster}" alt="" />` : ''
+  const promptYaml = formatPromptYaml(asset.prompt)
+  const promptHtml = promptYaml ? `<pre class="card-prompt">${escapeHtml(promptYaml)}</pre>` : ''
 
-  const attrs = Object.entries(asset.prompt ?? {})
-  const attrsHtml = attrs
-    .map(
-      ([key, value]) => `
-        <div class="card-attr">
-          <div class="card-attr-key">${escapeHtml(key)}</div>
-          <div class="card-attr-value">${escapeHtml(formatAttrValue(value))}</div>
-        </div>
-      `,
-    )
-    .join('')
-
-  const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
+  const cardClasses = ['card', 'card-media', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 
   const canPrompt = canPromptImage(asset)
   const btnHtml = canPrompt
-    ? `<button type="button" class="gen-btn ${hasImage ? 'regen-btn' : ''}" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">${hasImage ? 'Regenerate' : 'Generate'}</button>`
+    ? hasImage
+      ? `<button type="button" class="gen-btn regen-btn regen-icon" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" aria-label="Regenerate" title="Regenerate">${REFRESH_ICON}</button>`
+      : `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
     : ''
 
   return `
     <div class="${cardClasses}">
       ${imgBgHtml}
-      <div class="bg-title">${escapeHtml(asset.name)}</div>
-      <div class="card-attrs">
-        <div class="card-attr">
-          <div class="card-attr-key">type</div>
-          <div class="card-attr-value">${escapeHtml(asset.type)}</div>
-        </div>
-        ${attrsHtml}
-      </div>
+      <div class="card-title">${escapeHtml(asset.name)}</div>
+      ${promptHtml}
       ${btnHtml}
     </div>
   `
@@ -208,7 +228,7 @@ function renderIndex(stories: Array<string | StorySummary>): void {
       return `
         <a href="/${encodeURIComponent(id)}" class="${cardClasses}">
           ${imgBgHtml}
-          <div class="bg-title">${escapeHtml(title)}</div>
+          <div class="card-title">${escapeHtml(title)}</div>
         </a>
       `
     })
@@ -405,7 +425,9 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
   if (generating.has(job)) return
   generating.add(job)
   button.disabled = true
-  button.textContent = 'Generating…'
+  const isIcon = button.classList.contains('regen-icon')
+  if (isIcon) button.classList.add('is-generating')
+  else button.textContent = 'Generating…'
   const started = performance.now()
   console.error('img gen start', { storyId, name })
   try {
@@ -426,7 +448,12 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
     const message = error instanceof Error ? error.message : String(error)
     console.error('img gen error', { storyId, name, ms: Math.round(performance.now() - started), error: message })
     button.disabled = false
-    button.textContent = message
+    if (isIcon) {
+      button.classList.remove('is-generating')
+      button.title = message
+    } else {
+      button.textContent = message
+    }
   } finally {
     generating.delete(job)
   }

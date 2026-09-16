@@ -3,10 +3,10 @@
   --bg: #fff;
   --text: #000;
   --muted: #737373;
-  --card: #ececec;
-  --card-text: #000;
-  --card-muted: #666;
-  --avatar-bg: rgba(0, 0, 0, 0.08);
+  --chip: #ececec;
+  --fg: #000;
+  --fg-muted: #666;
+  --tint: rgba(0, 0, 0, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,10 +15,10 @@
     --bg: #000;
     --text: #fff;
     --muted: #8e8e8e;
-    --card: #181818;
-    --card-text: #fff;
-    --card-muted: #888;
-    --avatar-bg: rgba(255, 255, 255, 0.16);
+    --chip: #181818;
+    --fg: #fff;
+    --fg-muted: #888;
+    --tint: rgba(255, 255, 255, 0.16);
   }
 }
 
@@ -75,13 +75,6 @@ header {
   line-height: 1.2;
 }
 
-.header-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
 .header-title {
   padding-block: 6px;
   line-height: 1.2;
@@ -105,7 +98,7 @@ header {
 
 @media (hover: hover) {
   .tab:hover {
-    background: var(--card);
+    background: var(--chip);
   }
 }
 
@@ -114,7 +107,7 @@ header {
 }
 
 .tab-active {
-  background: var(--card);
+  background: var(--chip);
   color: var(--text);
 }
 
@@ -171,11 +164,15 @@ a {
 .card {
   position: relative;
   aspect-ratio: 9 / 14;
-  background: var(--card);
+  background: transparent;
   border-radius: 12px;
   padding: 20px;
   overflow: hidden;
   display: block;
+}
+
+.card:not(.has-image) {
+  border: .5px dashed color-mix(in srgb, var(--muted) 35%, transparent);
 }
 
 a.card {
@@ -197,25 +194,28 @@ a.card:hover {
 }
 
 .card.has-image {
-  --card-text: #fff;
-  --card-muted: rgba(255, 255, 255, 0.7);
-  --avatar-bg: rgba(255, 255, 255, 0.22);
+  --fg: #fff;
+  --fg-muted: rgba(255, 255, 255, 0.7);
+  --tint: rgba(255, 255, 255, 0.22);
 }
 
-.card.has-image .bg-title,
-.card.has-image .card-attr-key,
-.card.has-image .card-attr-value,
+.card.has-image .card-title,
 .card.has-image .dialogue,
 .card.has-image .speaker {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.card.has-image .bg-title {
-  color: #fff;
-  font-weight: 600;
+.card.has-image:has(.card-attrs) .card-img {
+  filter: blur(18px);
+  transform: scale(1.12);
 }
 
-.card.has-image:has(.dialogue, .speaker)::after {
+.card:has(.card-attrs) .card-title {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.card.has-image:has(.dialogue, .speaker, .card-attrs)::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -223,8 +223,9 @@ a.card:hover {
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.5) 0%,
-    rgba(0, 0, 0, 0) 50%
+    rgba(0, 0, 0, 0.62) 0%,
+    rgba(0, 0, 0, 0.28) 55%,
+    rgba(0, 0, 0, 0.18) 100%
   );
 }
 
@@ -262,17 +263,98 @@ a.card:hover {
   cursor: wait;
 }
 
-.bg-title {
+.gen-btn.regen-icon {
+  left: auto;
+  right: 12px;
+  top: 12px;
+  transform: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 0;
+  color: #fff;
+}
+
+.gen-btn.regen-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gen-btn.regen-icon.is-generating,
+.gen-btn.regen-icon:disabled {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.gen-btn.regen-icon svg {
+  display: block;
+}
+
+.gen-btn.regen-icon.is-generating svg,
+.gen-btn.regen-icon:disabled svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.card-media .card-img {
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.card-media.has-image:hover .card-img {
+  filter: blur(10px);
+  transform: scale(1.06);
+}
+
+.card-media .card-prompt {
+  position: absolute;
+  top: 48px;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2;
+  margin: 0;
+  overflow: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--fg);
+  white-space: pre-wrap;
+  text-align: left;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.card-media .card-prompt::-webkit-scrollbar {
+  display: none;
+}
+
+.card-media:hover .card-prompt {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.card-title {
   position: absolute;
   top: 20px;
   left: 20px;
   right: 20px;
   text-align: center;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  color: var(--card-muted);
-  z-index: 1;
+  color: var(--fg);
+  z-index: 2;
 }
 
 .card-attrs {
@@ -280,27 +362,67 @@ a.card:hover {
   top: 48px;
   left: 20px;
   right: 20px;
-  bottom: 20px;
+  bottom: 16px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 18px;
   overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.card-attrs::-webkit-scrollbar {
+  display: none;
+}
+
+.attr-section {
+  flex: 1 1 100%;
+  min-width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  z-index: 1;
+  gap: 8px;
 }
 
-.card-attr-key {
-  font-size: 11px;
+.attr-label {
+  font-size: 13px;
   font-weight: 500;
-  color: var(--card-muted);
   letter-spacing: -0.01em;
-  margin-bottom: 2px;
+  color: var(--fg);
+  padding-left: 8px;
 }
 
-.card-attr-value {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--card-text);
-  white-space: pre-wrap;
+.attr-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attr-tile {
+  flex: 1 1 calc(50% - 3px);
+  min-width: calc(50% - 3px);
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--tint);
+}
+
+.attr-wide {
+  flex-basis: 100%;
+  min-width: 100%;
+}
+
+.attr-key {
+  font-size: 10px;
+  letter-spacing: -0.01em;
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+}
+
+.attr-val {
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--fg);
 }
 
 .dialogue {
@@ -311,7 +433,7 @@ a.card:hover {
   transform: translateY(50%);
   text-align: center;
   font-weight: 500;
-  color: var(--card-text);
+  color: var(--fg);
   white-space: pre-wrap;
   text-wrap: balance;
   letter-spacing: -0.015em;
@@ -359,7 +481,7 @@ a.card:hover {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--card-text);
+  color: var(--fg);
   z-index: 2;
   font-weight: 550;
 }
@@ -368,12 +490,11 @@ a.card:hover {
   width: 25px;
   height: 25px;
   border-radius: 50%;
-  background: var(--avatar-bg);
+  background: var(--tint);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  text-shadow: none;
   backdrop-filter: blur(4px);
 }
 
@@ -381,6 +502,6 @@ a.card:hover {
   display: block;
   font-family: monospace;
   font-size: 13px;
-  color: var(--card-text);
+  color: var(--fg);
   font-weight: 900;
 }

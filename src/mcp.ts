@@ -1,6 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/server'
 import { serveStdio } from '@modelcontextprotocol/server/stdio'
-import { stringify } from 'yaml'
 import { z } from 'zod'
 import { appendSlide, createImage, mutateScript, setCard } from './stories'
 
@@ -46,15 +45,11 @@ export function createServer(): McpServer {
       }),
     },
     async ({ storyId, name, prompt }) => {
-      await createImage(storyId, { name, prompt })
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `"${name}" generated`,
-          },
-        ],
+      const { asset } = await createImage(storyId, { name, prompt })
+      if (!asset.key) {
+        return { isError: true, content: [{ type: 'text', text: `"${name}" failed` }] }
       }
+      return { content: [{ type: 'text', text: `"${name}" generated` }] }
     },
   )
 

@@ -19,6 +19,12 @@ slides:
     speaker: Jesse
     dialogue: I'm not waiting anymore.
   - background: Studying Cloud Seeding
+  - background: Workshop Parts Spread
+  - background: Welding the Burner
+  - background: Rig in Truck Bed
+  - background: Waiting for Clouds
+  - background: Racing the Ridge
+  - background: First Ignition
 media:
   - type: image
     name: Arroyo Town Overlook
@@ -142,16 +148,184 @@ media:
       Shot:
         Type: Close-up
         Angle: Slight angle over shoulder looking straight at screen
-        Framing: Close-up focusing on open laptop screen displaying 'CLOUD SEEDING' diagram, hands resting on table near keyboard
+        Framing: Close-up focusing on open laptop screen displaying 'CLOUD SEEDING'
+          diagram, hands resting on table near keyboard
       Scene:
         Location: Jesse's workshop table
         Time: Night
         Lighting: Cool screen glow illuminating keyboard and workbench
-        Details: Glowing laptop display front and center, on screen is a clear diagram labeled 'CLOUD SEEDING' with silver iodide burner plumes rising into cloud base and atmospheric radar maps, keyboard lit softly, workshop tools on table beside it
+        Details: Glowing laptop display front and center, on screen is a clear diagram
+          labeled 'CLOUD SEEDING' with silver iodide burner plumes rising into
+          cloud base and atmospheric radar maps, keyboard lit softly, workshop
+          tools on table beside it
       Characters: none
-      Action: Laptop screen in sharp focus showing technical diagrams and clear text 'CLOUD SEEDING' with weather radar and chemical burner schematics, Jesse watching intently
+      Action: Laptop screen in sharp focus showing technical diagrams and clear text
+        'CLOUD SEEDING' with weather radar and chemical burner schematics, Jesse
+        watching intently
       Expression: none
     createdAt: 2026-09-16T12:19:58.189Z
+  - type: image
+    name: Workshop Parts Spread
+    key: /media/cloud-seeder/workshop-parts-spread.jpg
+    prompt:
+      Shot:
+        Type: Wide workbench still life
+        Angle: Slight high angle
+        Framing: Cluttered wooden workbench filling the frame with parts
+      Scene:
+        Location: Jesse Vance's dusty night workshop in Arroyo Valley
+        Time: Late night
+        Lighting: Warm hanging bulb and cool laptop glow
+        Details: Open laptop with a simple labeled diagram reading "CLOUD SEEDING",
+          propane tank, silver-iodide jug with handwritten tape, steel pipe,
+          bolts, welding mask
+      Characters:
+        Jesse Vance:
+          Style: Studio Ghibli anime, clean 2D cel lines
+          Age: "27"
+          Hair: Tousled dark brown hair under a canvas cap
+          Eyes: Determined amber anime eyes
+          Face: Dust smudge on cheek
+          Wardrobe: Faded blue work shirt over white t-shirt, round leather goggles around
+            neck
+      Action: Jesse hunched over the bench, sorting a propane burner, tanks, and
+        silver-iodide solution with grease-stained hands
+      Expression: Obsessed focus, jaw tight
+    createdAt: 2026-09-16T13:08:25.816Z
+  - type: image
+    name: Welding the Burner
+    prompt:
+      Shot:
+        Type: Medium action shot
+        Angle: Eye-level workshop
+        Framing: Jesse at a steel workbench welding a propane burner stack, sparks
+          flying, parts covering the table
+      Scene:
+        Location: Jesse Vance dusty night workshop Arroyo Valley
+        Time: Late night
+        Lighting: Warm hanging bulb, bright welding sparks, cool window dark
+        Details: Steel pipe chimney, propane burner head, bolts, silver-iodide jug with
+          handwritten tape, grease, open laptop with cloud seeding diagram
+      Characters:
+        Jesse Vance:
+          Style: Studio Ghibli anime character, clean 2D cel lines, simple expressive face
+          Age: "27"
+          Hair: Tousled dark brown hair under canvas cap
+          Eyes: Determined amber anime eyes
+          Face: Dust smudge, welding goggles down over eyes
+          Wardrobe: Faded blue work shirt over white t-shirt, round leather goggles
+      Action: Jesse welding the DIY silver-iodide propane burner together at speed
+      Expression: Jaw clenched, obsessed focus
+    createdAt: 2026-09-16T13:10:36.712Z
+    key: /media/cloud-seeder/welding-the-burner.jpg
+  - type: image
+    name: Rig in Truck Bed
+    prompt:
+      Shot:
+        Type: Wide truck-bed shot
+        Angle: Slight high angle from behind the cab
+        Framing: Weathered pickup truck bed filling the frame with bolted DIY burner
+          stack, propane tanks strapped down
+      Scene:
+        Location: Workshop driveway at dawn Arroyo Valley
+        Time: Pale dry dawn
+        Lighting: Cool dusty morning light, long shadows
+        Details: Old faded blue pickup, steel chimney burner in the bed, orange propane
+          tanks, silver-iodide solution jug, ratchet straps, dusty orchard
+          behind
+      Characters:
+        Jesse Vance:
+          Style: Studio Ghibli anime character, clean 2D cel lines
+          Age: "27"
+          Hair: Tousled dark brown hair under canvas cap
+          Eyes: Determined amber anime eyes
+          Face: Dust smudge on cheek, sweat
+          Wardrobe: Faded blue work shirt over white t-shirt, round leather goggles around
+            neck
+      Action: Jesse cinching the last strap on the untested cloud-seeding rig in the
+        truck bed
+      Expression: Tired fierce grin
+    createdAt: 2026-09-16T13:10:41.198Z
+    key: /media/cloud-seeder/rig-in-truck-bed.jpg
+  - type: image
+    name: Waiting for Clouds
+    prompt:
+      Shot:
+        Type: Medium interior-exterior
+        Angle: From passenger side looking at Jesse in driver seat, sky huge
+        Framing: Jesse in cab of pickup, window down, dark moisture-heavy cloud front
+          filling the sky beyond the windshield
+      Scene:
+        Location: Dusty pullout on valley road Arroyo
+        Time: Late afternoon before the front
+        Lighting: Bruised purple storm light, dry gold dust
+        Details: Faded blue pickup, canvas cap on dash, weather radio, last summer cloud
+          bank rolling along the ridge line, parched fields
+      Characters:
+        Jesse Vance:
+          Style: Studio Ghibli anime character, clean 2D cel lines
+          Age: "27"
+          Hair: Tousled dark brown hair under canvas cap
+          Eyes: Determined amber anime eyes
+          Face: Dust smudge, tense
+          Wardrobe: Faded blue work shirt, leather goggles around neck
+      Action: Jesse gripping the wheel, staring at the approaching dark cloud base,
+        waiting for the right moment
+      Expression: Anxious hunger, ready to floor it
+    createdAt: 2026-09-16T13:10:45.278Z
+    key: /media/cloud-seeder/waiting-for-clouds.jpg
+  - type: image
+    name: Racing the Ridge
+    prompt:
+      Shot:
+        Type: Wide tracking shot
+        Angle: Low angle from roadside
+        Framing: Faded blue pickup kicking dust up a winding mountain dirt road, dark
+          cloud base overhead
+      Scene:
+        Location: Secluded upwind ridge road above Arroyo Valley
+        Time: Dusk storm approach
+        Lighting: Heavy overcast, last dry wind, dust plume gold against dark sky
+        Details: Switchback mountain dirt track, pines, DIY burner chimney sticking out
+          of truck bed, no other cars
+      Characters:
+        Jesse Vance:
+          Style: Studio Ghibli anime, small figure in cab
+          Age: "27"
+          Hair: Canvas cap
+          Wardrobe: Faded blue work shirt
+      Action: Jesse driving the untested rig full speed up the ridge as the cloud
+        base rolls in
+      Expression: none
+    createdAt: 2026-09-16T13:10:47.000Z
+    key: /media/cloud-seeder/racing-the-ridge.jpg
+  - type: image
+    name: First Ignition
+    prompt:
+      Shot:
+        Type: Wide dramatic ridge shot
+        Angle: Slight low angle looking up at truck and sky
+        Framing: Pickup parked on secluded ridge, burner flame roaring, chemical plume
+          rising into dark cloud base
+        Scene:
+          Location: Secluded upwind mountain ridge above Arroyo Valley
+          Time: Dusk, cloud base overhead
+          Lighting: Orange propane flame, dark storm ceiling, wind whipping dust
+          Details: Steel chimney stack in truck bed, silver-iodide smoke plume feeding
+            mountain updraft, gauges, propane tanks, no safety gear
+        Characters:
+          Jesse Vance:
+            Style: Studio Ghibli anime character, clean 2D cel lines
+            Age: "27"
+            Hair: Tousled dark brown hair under canvas cap
+            Eyes: Determined amber anime eyes
+            Face: Lit by flame, grease and dust
+            Wardrobe: Faded blue work shirt, leather goggles over eyes now
+        Action: Jesse ignites the DIY cloud seeder; flame and chemical plume hiss into
+          the updraft
+        Expression: Wild focused relief
+    createdAt: 2026-09-16T13:10:49.620Z
+    key: /media/cloud-seeder/first-ignition.jpg
 cards:
   - name: Style
     attributes:

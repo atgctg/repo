@@ -59,7 +59,7 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   padding: 24px;
   min-height: 100vh;
   container-type: inline-size;
@@ -175,6 +175,16 @@ a {
   border-radius: 12px;
   padding: 20px;
   overflow: hidden;
+  display: block;
+}
+
+a.card {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+a.card:hover {
+  opacity: 0.92;
 }
 
 .card-img {
@@ -351,27 +361,26 @@ a {
   font-size: 12px;
   color: var(--card-text);
   z-index: 2;
+  font-weight: 550;
 }
 
 .avatar {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   background: var(--avatar-bg);
-  color: var(--card-text);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
-  text-align: center;
   flex-shrink: 0;
   text-shadow: none;
+  backdrop-filter: blur(4px);
 }
 
 .avatar-letter {
   display: block;
-  line-height: 1;
-  transform: translate(0px, -1px);
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--card-text);
+  font-weight: 900;
 }

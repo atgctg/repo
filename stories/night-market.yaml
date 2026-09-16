@@ -1,7 +1,7 @@
-meta:
-  id: night-market
-  createdAt: 2026-09-15T20:50:00.000Z
-  updatedAt: 2026-09-15T20:50:00.000Z
+id: night-market
+title: Night Market
+createdAt: 2026-09-15T20:50:00.000Z
+updatedAt: 2026-09-15T20:50:00.000Z
 slides:
   - background: Market Gate
   - speaker: Vendor

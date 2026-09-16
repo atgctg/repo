@@ -1,7 +1,7 @@
-meta:
-  id: bell-labs
-  createdAt: 2026-09-15T14:24:29.991Z
-  updatedAt: 2026-09-15T14:24:29.991Z
+id: bell-labs
+title: Bell Labs
+createdAt: 2026-09-15T14:24:29.991Z
+updatedAt: 2026-09-15T14:24:29.991Z
 slides:
   - background: Bell Labs Building
   - speaker: Sim

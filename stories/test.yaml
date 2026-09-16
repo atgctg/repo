@@ -1,7 +1,7 @@
-meta:
-  id: test
-  createdAt: 2026-09-15T16:35:50.138Z
-  updatedAt: 2026-09-15T16:35:50.138Z
+id: test
+title: Test
+createdAt: 2026-09-15T16:35:50.138Z
+updatedAt: 2026-09-15T16:35:50.138Z
 slides:
   - background: Test Lab
   - speaker: Tester

@@ -20,15 +20,18 @@ export type Slide = {
   dialogue?: string
 }
 
-export type StoryMeta = {
+export type Story = {
   id: string
+  title: string
   createdAt: string
   updatedAt: string
-}
-
-export type Story = {
-  meta: StoryMeta
   slides: Slide[]
   media: MediaAsset[]
   cards: Card[]
+}
+
+export type StorySummary = {
+  id: string
+  title: string
+  cover?: string
 }

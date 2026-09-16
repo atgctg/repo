@@ -1,7 +1,7 @@
 import { parse, stringify } from 'yaml'
-import { generateStoryImage } from './generate'
+import { generateStoryImage, mediaDiskPath } from './generate'
 import { resolveSlides, sparsifySlides } from './slides'
-import type { Card, MediaAsset, Slide, Story } from './types'
+import type { Card, MediaAsset, Slide, Story, StorySummary } from './types'
 
 const STORIES_DIR = `${import.meta.dir}/../stories`
 
@@ -13,24 +13,50 @@ function getStoryPath(id: string): string {
 function createEmptyStory(id: string): Story {
   const now = new Date().toISOString()
   return {
-    meta: {
-      id,
-      createdAt: now,
-      updatedAt: now,
-    },
+    id,
+    title: id,
+    createdAt: now,
+    updatedAt: now,
     slides: [],
     media: [],
     cards: [],
   }
 }
 
-export async function listStories(): Promise<string[]> {
-  const glob = new Bun.Glob('*.yaml')
-  const ids: string[] = []
-  for (const file of glob.scanSync(STORIES_DIR)) {
-    ids.push(file.replace(/\.yaml$/, ''))
+export async function getStoryCover(story: Story): Promise<string | undefined> {
+  for (const slide of story.slides) {
+    if (!slide.background) continue
+    const asset = story.media.find(
+      (m) => m.type === 'image' && m.name.toLowerCase() === slide.background!.toLowerCase() && Boolean(m.key),
+    )
+    if (asset?.key) {
+      if (asset.key.startsWith('/media/')) {
+        const diskPath = mediaDiskPath(story.id, asset.name)
+        if (await Bun.file(diskPath).exists()) {
+          return asset.key
+        }
+      } else {
+        return asset.key
+      }
+    }
   }
-  return ids.sort()
+  return undefined
+}
+
+export async function listStories(): Promise<StorySummary[]> {
+  const glob = new Bun.Glob('*.yaml')
+  const stories: StorySummary[] = []
+  for (const file of glob.scanSync(STORIES_DIR)) {
+    const id = file.replace(/\.yaml$/, '')
+    const story = await loadStory(id)
+    const cover = await getStoryCover(story)
+    stories.push({
+      id,
+      title: story.title || id,
+      ...(cover ? { cover } : {}),
+    })
+  }
+  return stories.sort((a, b) => a.title.localeCompare(b.title))
 }
 
 export async function storyExists(id: string): Promise<boolean> {
@@ -43,16 +69,31 @@ export async function loadStory(id: string): Promise<Story> {
     return createEmptyStory(id)
   }
   const content = await file.text()
-  const story = parse(content) as Story
-  story.cards ??= []
+  const raw = parse(content) as Record<string, unknown>
+  const meta = (raw.meta ?? {}) as Record<string, unknown>
+
+  const story: Story = {
+    id: (raw.id as string) ?? (meta.id as string) ?? id,
+    title: (raw.title as string) ?? (meta.title as string) ?? id,
+    createdAt: (raw.createdAt as string) ?? (meta.createdAt as string) ?? new Date().toISOString(),
+    updatedAt: (raw.updatedAt as string) ?? (meta.updatedAt as string) ?? new Date().toISOString(),
+    slides: (raw.slides as Slide[]) ?? [],
+    media: (raw.media as MediaAsset[]) ?? [],
+    cards: (raw.cards as Card[]) ?? [],
+  }
   return story
 }
 
 async function persistStory(story: Story): Promise<void> {
-  const path = getStoryPath(story.meta.id)
+  const path = getStoryPath(story.id)
   const toWrite: Story = {
-    ...story,
+    id: story.id,
+    title: story.title,
+    createdAt: story.createdAt,
+    updatedAt: story.updatedAt,
     slides: sparsifySlides(story.slides),
+    media: story.media,
+    cards: story.cards,
   }
   await Bun.write(path, stringify(toWrite, { indent: 2 }))
 }

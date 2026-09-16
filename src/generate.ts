@@ -172,7 +172,7 @@ export async function generateStoryImage(
   name: string,
   prompt: Record<string, unknown>,
 ): Promise<string> {
-  const storyId = story.meta.id
+  const storyId = story.id
   const started = performance.now()
   const yamlPrompt = promptWithStyle(story, prompt)
   console.error('img gen start', { storyId, name })

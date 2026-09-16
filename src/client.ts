@@ -1,4 +1,4 @@
-import type { Card, MediaAsset, Slide, Story } from './types'
+import type { Card, MediaAsset, Slide, Story, StorySummary } from './types'
 import { resolveSlides } from './slides'
 
 let cacheBuster = Date.now()
@@ -167,7 +167,7 @@ function renderMedia(asset: MediaAsset, storyId: string): string {
   `
 }
 
-function renderIndex(stories: string[]): void {
+function renderIndex(stories: Array<string | StorySummary>): void {
   document.title = 'Studio'
   const header = document.querySelector('header')
   const main = document.querySelector('main')
@@ -177,10 +177,34 @@ function renderIndex(stories: string[]): void {
     <span class="header-title">stories</span>
     <span class="tab-count">${stories.length}</span>
   `
-  main.className = 'list'
-  main.innerHTML = stories.length
-    ? stories.map((id) => `<a href="/${encodeURIComponent(id)}">${escapeHtml(id)}</a>`).join('\n')
-    : '<span class="muted">no stories</span>'
+
+  if (!stories.length) {
+    main.className = 'list'
+    main.innerHTML = '<span class="muted">no stories</span>'
+    return
+  }
+
+  main.className = 'grid'
+  main.innerHTML = stories
+    .map((item) => {
+      const id = typeof item === 'string' ? item : item.id
+      const title = typeof item === 'string' ? item : item.title || item.id
+      const cover = typeof item === 'string' ? undefined : item.cover
+      const hasImage = Boolean(cover)
+      const imgBgHtml = hasImage
+        ? `<img class="card-img" src="${escapeHtml(cover!)}?v=${cacheBuster}" alt="" />`
+        : ''
+
+      const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
+
+      return `
+        <a href="/${encodeURIComponent(id)}" class="${cardClasses}">
+          ${imgBgHtml}
+          <div class="bg-title">${escapeHtml(title)}</div>
+        </a>
+      `
+    })
+    .join('\n')
 }
 
 type StoryTab = 'slides' | 'cards' | 'media'
@@ -217,7 +241,7 @@ function renderTabs(story: Story, active: StoryTab): string {
   return `<nav class="tabs">${tabs
     .map((tab) => {
       const activeClass = tab === active ? ' tab-active' : ''
-      return `<a class="tab${activeClass}" href="${storyTabHref(story.meta.id, tab)}"><span class="tab-count">${tabCount(story, tab)}</span>${tabLabel(tab)}</a>`
+      return `<a class="tab${activeClass}" href="${storyTabHref(story.id, tab)}"><span class="tab-count">${tabCount(story, tab)}</span>${tabLabel(tab)}</a>`
     })
     .join('')}</nav>`
 }
@@ -238,7 +262,7 @@ function tabCount(story: Story, tab: StoryTab): number {
 }
 
 function renderStory(story: Story): void {
-  document.title = story.meta.id
+  document.title = story.title || story.id
   const header = document.querySelector('header')
   const main = document.querySelector('main')
   if (!header || !main) return
@@ -246,7 +270,7 @@ function renderStory(story: Story): void {
   const tab = getStoryTab()
 
   header.innerHTML = `
-    <a href="/" class="tab story-back"><span>←</span>${escapeHtml(story.meta.id)}</a>
+    <a href="/" class="tab story-back"><span>←</span>${escapeHtml(story.title || story.id)}</a>
     ${renderTabs(story, tab)}
   `
 
@@ -259,7 +283,7 @@ function renderStory(story: Story): void {
       }
       main.className = 'grid'
       main.innerHTML = resolveSlides(story.slides)
-        .map((s) => renderSlide(s, story.media, story.meta.id))
+        .map((s) => renderSlide(s, story.media, story.id))
         .join('\n')
       break
     }
@@ -270,7 +294,7 @@ function renderStory(story: Story): void {
         break
       }
       main.className = 'grid'
-      main.innerHTML = story.cards.map((c) => renderCard(c, story.media, story.meta.id)).join('\n')
+      main.innerHTML = story.cards.map((c) => renderCard(c, story.media, story.id)).join('\n')
       break
     }
     case 'media': {
@@ -280,7 +304,7 @@ function renderStory(story: Story): void {
         break
       }
       main.className = 'grid'
-      main.innerHTML = story.media.map((m) => renderMedia(m, story.meta.id)).join('\n')
+      main.innerHTML = story.media.map((m) => renderMedia(m, story.id)).join('\n')
       break
     }
     default: {
@@ -334,7 +358,9 @@ async function refresh(): Promise<void> {
   let payload: string
 
   if (!pathname) {
-    const stories = (await fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json())) as string[]
+    const stories = (await fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json())) as Array<
+      string | StorySummary
+    >
     if (currentRoute() !== route) return
     payload = JSON.stringify({ pathname, stories })
     if (payload === lastPayload) return

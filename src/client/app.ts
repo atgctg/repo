@@ -1,7 +1,6 @@
 import { stringify } from 'yaml'
 import { isPlainObject } from '../attributes'
 import type { Card, MediaAsset, Slide, Story, StorySummary } from '../types'
-import { resolveSlides } from '../slides'
 
 {
   const icon = document.createElement('link')
@@ -47,9 +46,27 @@ function renderGenerateBtn(storyId: string, asset?: MediaAsset): string {
   return `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
 }
 
-function getDialogueSizeClass(text: string): string {
-  const clean = text.replace(/\*/g, '').trim()
-  const len = clean.length
+function getDialogueLines(dialogue?: string | string[]): string[] {
+  if (!dialogue) return []
+  const rawList = Array.isArray(dialogue) ? dialogue : [dialogue]
+  return rawList
+    .flatMap((item) => String(item).split(/\n\n+/))
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+function getDialogueSizeClass(lines: string[]): string {
+  const totalClean = lines.map((l) => l.replace(/\*/g, '').trim())
+  const totalLen = totalClean.reduce((sum, l) => sum + l.length, 0)
+  const count = lines.length
+
+  if (count > 1) {
+    if (totalLen <= 60) return 'dialogue-md'
+    if (totalLen <= 120) return 'dialogue-sm'
+    return 'dialogue-xs'
+  }
+
+  const len = totalClean[0]?.length ?? 0
   if (len <= 25) return 'dialogue-xl'
   if (len <= 50) return 'dialogue-lg'
   if (len <= 90) return 'dialogue-md'
@@ -66,15 +83,29 @@ function formatDialogue(text: string): string {
 }
 
 function renderSlide(slide: Slide, media: Story['media'], storyId: string): string {
-  const hasDialogue = Boolean(slide.dialogue?.trim())
+  const lines = getDialogueLines(slide.dialogue)
+  const hasDialogue = lines.length > 0
   const hasSpeaker = Boolean(slide.speaker?.trim())
 
   const mediaAsset = findImage(media, slide.background)
   const hasImage = Boolean(mediaAsset?.key)
   const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}?v=${cacheBuster}" alt="" />` : ''
 
+  const totalLen = lines.reduce((sum, l) => sum + l.replace(/\*/g, '').trim().length, 0)
+  const isLeft = lines.length > 1 || totalLen > 120
+
+  const dialogueLinesHtml = lines
+    .map((l) => `<div class="dialogue-line">${formatDialogue(l)}</div>`)
+    .join('')
+
+  const classes = [
+    'dialogue',
+    getDialogueSizeClass(lines),
+    isLeft ? 'dialogue-left' : '',
+  ].filter(Boolean).join(' ')
+
   const dialogueHtml = hasDialogue
-    ? `<div class="dialogue ${getDialogueSizeClass(slide.dialogue!)}">${formatDialogue(slide.dialogue!)}</div>`
+    ? `<div class="${classes}">${dialogueLinesHtml}</div>`
     : ''
 
   const initial = hasSpeaker ? escapeHtml(slide.speaker!.trim()[0]?.toUpperCase() ?? '') : ''
@@ -277,11 +308,11 @@ function renderTabs(story: Story, active: StoryTab): string {
 function tabCount(story: Story, tab: StoryTab): number {
   switch (tab) {
     case 'slides':
-      return story.slides.length
+      return story.slides?.length ?? 0
     case 'cards':
-      return story.cards.length
+      return story.cards?.length ?? 0
     case 'media':
-      return story.media.length
+      return story.media?.length ?? 0
     default: {
       const _exhaustive: never = tab
       return _exhaustive
@@ -304,13 +335,13 @@ function renderStory(story: Story): void {
 
   switch (tab) {
     case 'slides': {
-      if (!story.slides.length) {
+      if (!story.slides?.length) {
         main.className = 'list'
         main.innerHTML = '<span class="muted">no slides</span>'
         break
       }
       main.className = 'grid'
-      main.innerHTML = resolveSlides(story.slides)
+      main.innerHTML = story.slides
         .map((s) => renderSlide(s, story.media, story.id))
         .join('\n')
       break

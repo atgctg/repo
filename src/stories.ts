@@ -1,7 +1,6 @@
 import { parse, stringify } from 'yaml'
 import { mergeAttributes } from './attributes'
 import { generateStoryImage, mediaDiskPath } from './generate'
-import { resolveSlides, sparsifySlides } from './slides'
 import type { Card, MediaAsset, Slide, Story, StorySummary } from './types'
 
 const STORIES_DIR = `${import.meta.dir}/../stories`
@@ -73,66 +72,32 @@ export async function loadStory(id: string): Promise<Story> {
   const raw = parse(content) as Record<string, unknown>
   const meta = (raw.meta ?? {}) as Record<string, unknown>
 
+  const rawSlides = (raw.slides as Slide[]) ?? []
+
   const story: Story = {
     id: (raw.id as string) ?? (meta.id as string) ?? id,
     title: (raw.title as string) ?? (meta.title as string) ?? id,
     createdAt: (raw.createdAt as string) ?? (meta.createdAt as string) ?? new Date().toISOString(),
     updatedAt: (raw.updatedAt as string) ?? (meta.updatedAt as string) ?? new Date().toISOString(),
-    slides: (raw.slides as Slide[]) ?? [],
+    slides: rawSlides,
     media: (raw.media as MediaAsset[]) ?? [],
     cards: (raw.cards as Card[]) ?? [],
   }
   return story
 }
 
-async function persistStory(story: Story): Promise<void> {
+export async function persistStory(story: Story): Promise<void> {
   const path = getStoryPath(story.id)
   const toWrite: Story = {
     id: story.id,
     title: story.title,
     createdAt: story.createdAt,
     updatedAt: story.updatedAt,
-    slides: sparsifySlides(story.slides),
+    slides: story.slides,
     media: story.media,
     cards: story.cards,
   }
   await Bun.write(path, stringify(toWrite, { indent: 2 }))
-}
-
-async function loadResolvedStory(id: string): Promise<Story> {
-  const story = await loadStory(id)
-  story.slides = resolveSlides(story.slides)
-  return story
-}
-
-export async function getCurrentBackground(storyId: string): Promise<string | undefined> {
-  const story = await loadResolvedStory(storyId)
-  return story.slides.at(-1)?.background
-}
-
-export async function addDialogue(
-  storyId: string,
-  params: {
-    speaker: string
-    text: string | string[]
-  },
-): Promise<{ story: Story; indices: number[] }> {
-  const story = await loadResolvedStory(storyId)
-  const background = story.slides.at(-1)?.background
-  const lines = Array.isArray(params.text) ? params.text : [params.text]
-  const indices: number[] = []
-
-  for (const line of lines) {
-    indices.push(story.slides.length)
-    story.slides.push({
-      speaker: params.speaker,
-      dialogue: line,
-      ...(background ? { background } : {}),
-    })
-  }
-
-  await persistStory(story)
-  return { story, indices }
 }
 
 export async function setImage(
@@ -141,52 +106,82 @@ export async function setImage(
     name: string
     prompt?: Record<string, unknown>
   },
-): Promise<{ story: Story; index: number }> {
-  const story = await loadResolvedStory(storyId)
+): Promise<{ story: Story; asset: MediaAsset }> {
+  const story = await loadStory(storyId)
   const now = new Date().toISOString()
 
-  if (params.prompt) {
-    const existingIndex = story.media.findIndex(
-      (m) => m.type === 'image' && m.name.toLowerCase() === params.name.toLowerCase(),
-    )
+  const assetIndex = story.media.findIndex(
+    (m) => m.type === 'image' && m.name.toLowerCase() === params.name.toLowerCase(),
+  )
 
-    const existing = existingIndex >= 0 ? story.media[existingIndex] : undefined
+  const existing = assetIndex >= 0 ? story.media[assetIndex] : undefined
 
-    const newAsset: MediaAsset = {
-      type: 'image',
-      name: params.name,
-      key: existing?.key,
-      prompt: params.prompt,
-      createdAt: existing?.createdAt ?? now,
-    }
-
-    if (existingIndex >= 0) {
-      story.media[existingIndex] = newAsset
-    } else {
-      story.media.push(newAsset)
-    }
+  const asset: MediaAsset = {
+    type: 'image',
+    name: params.name,
+    key: existing?.key,
+    prompt: params.prompt ?? existing?.prompt,
+    createdAt: existing?.createdAt ?? now,
   }
 
-  let index = story.slides.length - 1
-  const lastSlide = story.slides[index]
-  if (lastSlide && !lastSlide.background) {
-    lastSlide.background = params.name
+  if (assetIndex >= 0) {
+    story.media[assetIndex] = asset
   } else {
-    index = story.slides.length
-    story.slides.push({ background: params.name })
+    story.media.push(asset)
   }
-
   await persistStory(story)
 
-  const pending = story.media.find(
-    (item) => item.type === 'image' && item.name.toLowerCase() === params.name.toLowerCase(),
-  )
-  if (params.prompt && pending && !pending.key) {
-    pending.key = await generateStoryImage(story, pending.name, params.prompt)
+  if (params.prompt && !asset.key) {
+    asset.key = await generateStoryImage(story, asset.name, params.prompt)
     await persistStory(story)
   }
 
-  return { story, index }
+  return { story, asset }
+}
+
+export type AppendSlideParams = {
+  background?: string
+  speaker?: string
+  dialogue?: string | string[]
+  slides?: Slide[]
+}
+
+export async function appendSlide(
+  storyId: string,
+  params: AppendSlideParams,
+): Promise<{ story: Story; indices: number[] }> {
+  const story = await loadStory(storyId)
+  const startIndex = story.slides.length
+  const toAdd: Slide[] = []
+
+  if (params.slides && params.slides.length > 0) {
+    for (const s of params.slides) {
+      const background = s.background ?? params.background
+      const speaker = s.speaker ?? params.speaker
+      toAdd.push({
+        ...(background ? { background } : {}),
+        ...(speaker ? { speaker } : {}),
+        ...(s.dialogue !== undefined ? { dialogue: s.dialogue } : {}),
+      })
+    }
+  } else if (params.dialogue !== undefined) {
+    toAdd.push({
+      ...(params.background ? { background: params.background } : {}),
+      ...(params.speaker ? { speaker: params.speaker } : {}),
+      dialogue: params.dialogue,
+    })
+  } else if (params.background || params.speaker) {
+    toAdd.push({
+      ...(params.background ? { background: params.background } : {}),
+      ...(params.speaker ? { speaker: params.speaker } : {}),
+    })
+  }
+
+  story.slides.push(...toAdd)
+  await persistStory(story)
+
+  const indices = toAdd.map((_, i) => startIndex + i)
+  return { story, indices }
 }
 
 export async function generateMediaImage(
@@ -241,123 +236,87 @@ export async function setCard(
   return story
 }
 
-export type SlideQuery = {
-  index?: number | number[]
-  dialogue?: string
-  speaker?: string
-}
-
 export type NumberedSlide = Slide & { index: number }
 
-export type SlideOp =
-  | { op: 'get'; query?: SlideQuery }
-  | { op: 'delete'; query: SlideQuery }
-  | { op: 'edit'; query: SlideQuery; slide: Slide }
-  | { op: 'insert_before'; query: SlideQuery; slide: Slide }
-  | { op: 'insert_after'; query: SlideQuery; slide: Slide }
+export type ScriptOp = { storyId?: string } & (
+  | { op: 'read'; last?: number; offset?: number; limit?: number }
+  | { op: 'replace'; index: number; slide: Slide }
+  | { op: 'insert'; index: number; slide: Slide }
+  | { op: 'delete'; indices?: number | number[] }
+)
 
-export type SlideOpResult =
+export type ScriptOpResult =
   | { ok: true; story: Story; slides: NumberedSlide[] }
   | { ok: false; error: string }
 
-function queryHasSelector(query?: SlideQuery): boolean {
-  if (!query) return false
-  if (query.index !== undefined) return true
-  if (query.dialogue?.trim()) return true
-  if (query.speaker?.trim()) return true
-  return false
+function resolveIndex(index: number, length: number): number {
+  return index < 0 ? length + index : index
 }
 
-function findSlideIndices(slides: Slide[], query?: SlideQuery): number[] {
-  if (!queryHasSelector(query)) {
-    return slides.map((_, i) => i)
-  }
-
-  const q = query!
-
-  if (q.index !== undefined) {
-    const raw = Array.isArray(q.index) ? q.index : [q.index]
-    const matched: number[] = []
-    for (const n of raw) {
-      const idx = n < 0 ? slides.length + n : n
-      if (idx >= 0 && idx < slides.length && !matched.includes(idx)) {
-        matched.push(idx)
-      }
-    }
-    return matched.sort((a, b) => a - b)
-  }
-
-  const dialogue = q.dialogue?.trim().toLowerCase()
-  const speaker = q.speaker?.trim().toLowerCase()
-  const matches: number[] = []
-
-  for (let i = 0; i < slides.length; i++) {
-    const slide = slides[i]
-    if (!slide) continue
-    if (dialogue && !slide.dialogue?.toLowerCase().includes(dialogue)) continue
-    if (speaker && slide.speaker?.toLowerCase() !== speaker) continue
-    matches.push(i)
-  }
-
-  return matches
-}
-
-function withIndex(slides: Slide[], indices: number[]): NumberedSlide[] {
-  return indices.flatMap((index) => {
-    const slide = slides[index]
-    return slide ? [{ index, ...slide }] : []
-  })
-}
-
-export async function mutateSlide(storyId: string, params: SlideOp): Promise<SlideOpResult> {
-  const story = await loadResolvedStory(storyId)
-
-  if (params.op === 'get') {
-    const indices = findSlideIndices(story.slides, params.query)
-    return { ok: true, story, slides: withIndex(story.slides, indices) }
-  }
-
-  if (!queryHasSelector(params.query)) {
-    return { ok: false, error: `${params.op} requires query.index, query.dialogue, or query.speaker` }
-  }
-
-  const targetIndices = findSlideIndices(story.slides, params.query)
-  if (targetIndices.length === 0) {
-    return { ok: false, error: `No slides matched query: ${JSON.stringify(params.query)}` }
-  }
+export async function mutateScript(storyId: string, params: ScriptOp): Promise<ScriptOpResult> {
+  const story = await loadStory(storyId)
 
   switch (params.op) {
-    case 'delete': {
-      const slides = withIndex(story.slides, targetIndices)
-      for (const idx of [...targetIndices].sort((a, b) => b - a)) {
-        story.slides.splice(idx, 1)
+    case 'read': {
+      let start = 0
+      let end = story.slides.length
+
+      if (params.last !== undefined) {
+        start = Math.max(0, story.slides.length - params.last)
+      } else {
+        if (params.offset !== undefined) {
+          start = Math.max(0, resolveIndex(params.offset, story.slides.length))
+        }
+        if (params.limit !== undefined) {
+          end = Math.min(story.slides.length, start + params.limit)
+        }
       }
-      await persistStory(story)
+
+      const slides: NumberedSlide[] = []
+      for (let i = start; i < end; i++) {
+        const slide = story.slides[i]
+        if (slide) slides.push({ index: i, ...slide })
+      }
       return { ok: true, story, slides }
     }
-    case 'edit': {
-      for (const idx of targetIndices) {
-        story.slides[idx] = {
-          ...story.slides[idx],
-          ...params.slide,
-        }
+    case 'replace': {
+      const idx = resolveIndex(params.index, story.slides.length)
+      if (idx < 0 || idx >= story.slides.length) {
+        return { ok: false, error: `Index ${params.index} out of bounds (${story.slides.length} slides)` }
       }
+      story.slides[idx] = params.slide
       await persistStory(story)
-      return { ok: true, story, slides: withIndex(story.slides, targetIndices) }
+      return { ok: true, story, slides: [{ index: idx, ...params.slide }] }
     }
-    case 'insert_before':
-    case 'insert_after': {
-      if (targetIndices.length !== 1) {
-        return {
-          ok: false,
-          error: `${params.op} needs exactly one target, got ${targetIndices.length}: [${targetIndices.join(', ')}]`,
-        }
-      }
-      const targetIdx = targetIndices[0]!
-      const insertAt = params.op === 'insert_before' ? targetIdx : targetIdx + 1
-      story.slides.splice(insertAt, 0, params.slide)
+    case 'insert': {
+      const idx = resolveIndex(params.index, story.slides.length)
+      const clamped = Math.max(0, Math.min(story.slides.length, idx))
+      story.slides.splice(clamped, 0, params.slide)
       await persistStory(story)
-      return { ok: true, story, slides: withIndex(story.slides, [insertAt]) }
+      return { ok: true, story, slides: [{ index: clamped, ...params.slide }] }
+    }
+    case 'delete': {
+      if (params.indices === undefined) {
+        return { ok: false, error: 'delete requires indices' }
+      }
+      const rawIndices = Array.isArray(params.indices) ? params.indices : [params.indices]
+      const resolved = rawIndices
+        .map((n) => resolveIndex(n, story.slides.length))
+        .filter((n) => n >= 0 && n < story.slides.length)
+
+      const uniqueSortedDesc = Array.from(new Set(resolved)).sort((a, b) => b - a)
+      if (uniqueSortedDesc.length === 0) {
+        return { ok: false, error: `No valid indices to delete from [${rawIndices.join(', ')}]` }
+      }
+
+      const deleted: NumberedSlide[] = []
+      for (const idx of uniqueSortedDesc) {
+        const [removed] = story.slides.splice(idx, 1)
+        if (removed) deleted.push({ index: idx, ...removed })
+      }
+
+      await persistStory(story)
+      return { ok: true, story, slides: deleted.reverse() }
     }
     default: {
       const _exhaustive: never = params

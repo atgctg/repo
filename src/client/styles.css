@@ -431,13 +431,31 @@ a.card:hover {
   right: 20px;
   bottom: 20%;
   transform: translateY(50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
   text-align: center;
   font-weight: 500;
   color: var(--fg);
-  white-space: pre-wrap;
-  text-wrap: balance;
   letter-spacing: -0.015em;
   z-index: 2;
+}
+
+.dialogue-left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.dialogue-line {
+  margin: 0;
+  width: 100%;
+  white-space: pre-wrap;
+  text-wrap: balance;
+}
+
+.dialogue-left .dialogue-line {
+  text-align: left;
 }
 
 .dialogue em {

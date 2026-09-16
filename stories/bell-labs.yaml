@@ -4,16 +4,23 @@ createdAt: 2026-09-15T14:24:29.991Z
 updatedAt: 2026-09-15T14:24:29.991Z
 slides:
   - background: Bell Labs Building
-  - speaker: Sim
+    speaker: Sim
     dialogue: Murray Hill, New Jersey
-  - dialogue: "1969"
+  - background: Bell Labs Building
+    speaker: Sim
+    dialogue: "1969"
   - background: Bell Labs Interior
-  - dialogue: Welcome to Bell Labs.
-  - dialogue: Where the future is being built, one transistor at a time.
+    speaker: Sim
+    dialogue: Welcome to Bell Labs.
+  - background: Bell Labs Interior
+    speaker: Sim
+    dialogue: Where the future is being built, one transistor at a time.
   - background: Dennis Ritchie
-  - speaker: Dennis Ritchie
+    speaker: Dennis Ritchie
     dialogue: Ah, a visitor!
-  - dialogue: Would you like to see what we're working on?
+  - background: Dennis Ritchie
+    speaker: Dennis Ritchie
+    dialogue: Would you like to see what we're working on?
 media:
   - type: image
     name: Bell Labs Building

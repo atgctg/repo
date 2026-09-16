@@ -1,5 +1,7 @@
-- Use Bun over Node (including file system operations)
-- Do not write comments
+- Read files fully once from beginning to end, not many small partial reads.
+- Use Bun over Node (including file system operations).
+- Do not write comments.
+- Greenfield project, no backwards compatibility needed.
 
 # Creating Stories
 

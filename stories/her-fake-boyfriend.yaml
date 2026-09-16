@@ -5,28 +5,32 @@ updatedAt: 2026-09-16T07:05:00.000Z
 slides:
   - background: Tenno Sushi
   - background: Keiko's Question
-  - speaker: Keiko
+    speaker: Keiko
     dialogue: So, Yuki... when are we finally meeting him?
   - background: Yuki Spots You
-  - speaker: Yuki
+    speaker: Yuki
     dialogue: "*Chopsticks stop halfway to the plate.*"
   - background: Eyes Lock On You
-  - dialogue: "*Eyes dart frantically around the restaurant until they lock onto you
+    dialogue: "*Eyes dart frantically around the restaurant until they lock onto you
       passing by.*"
   - background: Haruma's Tease
-  - speaker: Haruma
+    speaker: Haruma
     dialogue: Your boyfriend. The one who has apparently been keeping our daughter
       in America.
-  - dialogue: "*Chuckles, takes another slow drink of his beer.*"
+  - background: Haruma's Tease
+    speaker: Haruma
+    dialogue: "*Chuckles, takes another slow drink of his beer.*"
   - background: The Arm Grab
-  - speaker: Yuki
+    speaker: Yuki
     dialogue: "*Hand shoots out, catching your sleeve.*"
   - background: POV There You Are
-  - dialogue: There you are! Mom, Dad... this is my boyfriend!
+    speaker: Yuki
+    dialogue: There you are! Mom, Dad... this is my boyfriend!
   - background: Whispering In Your Ear
-  - dialogue: Please. Pretend you're my boyfriend.
-  - dialogue: I told them we've been together for eight months.
-  - background: Parents Staring
+    speaker: Yuki
+    dialogue:
+      - "Please. Pretend you're my boyfriend."
+      - "I told them we've been together for eight months."
 media:
   - type: image
     name: Tenno Sushi

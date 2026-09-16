@@ -17,7 +17,7 @@ export type Card = {
 export type Slide = {
   background?: string
   speaker?: string
-  dialogue?: string
+  dialogue?: string | string[]
 }
 
 export type Story = {

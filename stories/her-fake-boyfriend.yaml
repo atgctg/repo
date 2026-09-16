@@ -46,9 +46,7 @@ media:
         Lighting: Warm paper lantern glow, wet street reflections
         Details: Traditional wooden facade, dark cloth noren curtain in the doorway,
           glowing paper lanterns, wooden sign clearly reading "Tenno Sushi"
-      Characters: none
       Action: Quiet night street outside a cozy sushi restaurant, no people in focus
-      Expression: none
     createdAt: 2026-09-15T21:31:49.403Z
   - type: image
     name: Keiko's Question
@@ -305,8 +303,6 @@ cards:
         evening glow
       Texture: Gentle lighting, soft depth of field, warm atmosphere
       Brushwork: Clean readable lines, not photoreal
-    createdAt: 2026-09-15T21:31:43.922Z
-    updatedAt: 2026-09-15T21:31:43.922Z
   - name: Yuki
     cover: Yuki Spots You
     attributes:
@@ -321,8 +317,6 @@ cards:
         Wear: Cream knit
       Vibe: Warm, panicky
       Lie: Fake bf, 8 months
-    createdAt: 2026-09-16T08:08:00.000Z
-    updatedAt: 2026-09-16T08:08:00.000Z
   - name: Keiko
     cover: Keiko's Question
     attributes:
@@ -337,8 +331,6 @@ cards:
         Wear: Pink cardigan
       Vibe: Sweet, nosy
       Want: Grandkids
-    createdAt: 2026-09-16T08:08:00.000Z
-    updatedAt: 2026-09-16T08:08:00.000Z
   - name: Haruma
     cover: Haruma's Tease
     attributes:
@@ -353,8 +345,6 @@ cards:
         Wear: Navy shirt
       Vibe: Easy, teasing
       Hold: Family, marriage
-    createdAt: 2026-09-16T08:08:00.000Z
-    updatedAt: 2026-09-16T08:08:00.000Z
   - name: Takeshi
     attributes:
       Info:
@@ -367,8 +357,6 @@ cards:
         Wear: Quiet luxury
       Vibe: Polite, sharp
       Aim: Expose the lie
-    createdAt: 2026-09-16T08:08:00.000Z
-    updatedAt: 2026-09-16T08:08:00.000Z
   - name: Summer
     attributes:
       Info:
@@ -382,5 +370,3 @@ cards:
         Wear: CA casual
       Vibe: Blunt, witty
       Knows: The lie is fake
-    createdAt: 2026-09-16T08:08:00.000Z
-    updatedAt: 2026-09-16T08:08:00.000Z

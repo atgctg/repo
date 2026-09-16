@@ -1,0 +1,183 @@
+id: cloud-seeder
+title: The Cloud Seeder
+createdAt: 2026-09-16T11:33:02.496Z
+updatedAt: 2026-09-16T11:33:02.496Z
+slides:
+  - background: Arroyo Town Overlook
+  - background: Arroyo Town Overlook
+    dialogue: Arroyo Town.
+  - background: Drought Town Square
+  - background: Cracked Orchard Canal
+  - background: Withered Branch
+  - background: Arroyo Town Overlook
+    speaker: Jesse
+    dialogue: Another rain cloud forecast to pass right over us.
+  - background: Jesse Vance
+    speaker: Jesse
+    dialogue: They're just sitting down there waiting to starve.
+  - background: Jesse Vance
+    speaker: Jesse
+    dialogue: I'm not waiting anymore.
+  - background: Studying Cloud Seeding
+media:
+  - type: image
+    name: Arroyo Town Overlook
+    key: /media/cloud-seeder/arroyo-town-overlook.jpg
+    prompt:
+      Shot:
+        Type: Wide scenic overlook
+        Angle: High-angle looking down from mountain ledge
+        Framing: Mountain ledge and pine branches in foreground, looking down over the
+          whole town nestled at the mountain base and spreading into the dry
+          valley
+      Scene:
+        Location: Rural valley town viewed from high mountain cliff
+        Time: Late afternoon
+        Lighting: Warm golden dry sunlight, soft atmospheric haze
+        Details: Small country town with clustered clay-tile and tin roofs right at the
+          mountain base, dry dusty streets, parched golden-yellow orchards and
+          dry fields beyond, sheer rocky mountain slopes descending straight
+          into town edge, moody bruised rain clouds gathering far on the horizon
+      Action: Peaceful yet tense vista of a drought-stricken valley town seen from
+        high above
+    createdAt: 2026-09-16T11:40:09.368Z
+  - type: image
+    name: Drought Town Square
+    key: /media/cloud-seeder/drought-town-square.jpg
+    prompt:
+      Shot:
+        Type: Wide street level
+        Angle: Eye-level looking down main street
+        Framing: Group of townspeople in shaded porches and street edge, heat ripples
+          over the road, steep mountain slopes rising right behind the rooftops
+      Scene:
+        Location: Arroyo town main square
+        Time: Midday heat
+        Lighting: Scorching overhead sun, harsh shadows on dusty dirt road
+        Details: Clay-tile and stone storefronts, dry dusty square, parched wooden water
+          trough completely empty, drooping wilted flower boxes
+      Characters:
+        Townspeople:
+          Style: Studio Ghibli style background characters, simple painted figures
+          Group: Elderly farmer wiping sweat with bandana, women with sun parasols,
+            shopkeeper leaning against doorframe
+          Attire: Faded linen shirts, work aprons, wide-brim straw hats
+      Action: Townspeople gathering in the dusty sunbaked town square, fanning
+        themselves under awnings and staring defeatists toward the distant sky
+    createdAt: 2026-09-16T12:01:39.187Z
+  - type: image
+    name: Cracked Orchard Canal
+    key: /media/cloud-seeder/cracked-orchard-canal.jpg
+    prompt:
+      Shot:
+        Type: Medium shot
+        Angle: Low angle along the dry canal
+        Framing: Deeply cracked dry silt bed in foreground, flanked by parched orchard
+          rows, mountains visible in background
+      Scene:
+        Location: Orchard border near town edge
+        Time: Afternoon
+        Lighting: Blinding dry sun, harsh contrast between shade and white-hot baked soil
+        Details: Dry concrete canal bed with deep cracked mud fissures, zero water,
+          brittle fallen leaves, dried skeletal fruit tree trunks with yellow
+          curled foliage
+      Characters: none
+      Action: Severe drought evident in dried-up irrigation ditch running past dying
+        fruit trees
+    createdAt: 2026-09-16T12:02:03.218Z
+  - type: image
+    name: Withered Branch
+    key: /media/cloud-seeder/withered-branch.jpg
+    prompt:
+      Shot:
+        Type: Extreme close-up
+        Angle: Eye-level macro
+        Framing: Macro focus on single drooping twig with shriveled fruit and dusty
+          spiderweb, parched yellow orchard bokeh behind
+      Scene:
+        Location: Family orchard branch
+        Time: Afternoon
+        Lighting: Harsh blazing afternoon sun, high key light on desiccated bark and
+          cracked fruit skin
+        Details: Single withered branch of a stone fruit tree, tiny shriveled peaches
+          with cracked skins, brittle dried curling brown leaves, bright
+          scorching sun filtering through, dry dusty orchard ground blurred
+          softly in background
+      Characters: none
+      Action: Extreme close-up of a dying fruit branch showing shriveled dry fruit and
+        brittle yellowed leaves
+    createdAt: 2026-09-16T12:03:09.966Z
+  - type: image
+    name: Jesse Vance
+    key: /media/cloud-seeder/jesse-vance.jpg
+    prompt:
+      Shot:
+        Type: Medium portrait
+        Angle: Slight low angle
+        Framing: Jesse from the waist up against the painted valley and sky, empty hands
+      Scene:
+        Location: Country orchard edge overlooking parched valley
+        Time: Late afternoon golden hour
+        Lighting: Soft warm sunlight, clear anime cel highlights
+        Details: Simple painted background of dry golden grasses and distant purple
+          mountain ridges
+      Characters:
+        Jesse Vance:
+          Style: Studio Ghibli anime character, clean 2D cel lines, simple expressive
+            face, no uncanny realism
+          Age: "27"
+          Hair: Tousled dark brown hair under a simple canvas cap
+          Eyes: Determined amber anime eyes
+          Face: Clean anime features, slight smudge of dust on cheek
+          Wardrobe: Faded blue work shirt over white t-shirt, round leather goggles
+            hanging around neck
+      Action: Standing outside with hands in pockets, looking upward at the teasing
+        overcast sky with quiet defiance
+      Expression: Quiet fierce resolve, determined slight scowl
+    createdAt: 2026-09-16T12:01:11.355Z
+  - type: image
+    name: Studying Cloud Seeding
+    key: /media/cloud-seeder/studying-cloud-seeding.jpg
+    prompt:
+      Shot:
+        Type: Close-up
+        Angle: Slight angle over shoulder looking straight at screen
+        Framing: Close-up focusing on open laptop screen displaying 'CLOUD SEEDING' diagram, hands resting on table near keyboard
+      Scene:
+        Location: Jesse's workshop table
+        Time: Night
+        Lighting: Cool screen glow illuminating keyboard and workbench
+        Details: Glowing laptop display front and center, on screen is a clear diagram labeled 'CLOUD SEEDING' with silver iodide burner plumes rising into cloud base and atmospheric radar maps, keyboard lit softly, workshop tools on table beside it
+      Characters: none
+      Action: Laptop screen in sharp focus showing technical diagrams and clear text 'CLOUD SEEDING' with weather radar and chemical burner schematics, Jesse watching intently
+      Expression: none
+    createdAt: 2026-09-16T12:19:58.189Z
+cards:
+  - name: Style
+    attributes:
+      Palette: Dry wheat ochre, dusty terracotta, sunbaked stone
+      Style: Studio Ghibli 2D animation style, hand-painted anime background, simple
+        clean shapes, minimal detail
+      Texture: Soft matte watercolor and cel shading, gentle outlines, no hyper-realism
+  - name: Jesse Vance
+    cover: Jesse Vance
+    attributes:
+      Drive: Force the clouds to break before the orchard dies
+      Vibe: Fierce, stubborn, obsessive
+      Age: 27
+      Build: 5'11 lean, wiry
+      Eyes: Sharp amber-hazel
+      Hair: Dark, messy, canvas cap
+      Origin: Arroyo Valley
+      Role: Machinist & grower
+      Wear: Faded denim, goggles
+  - name: Arroyo Valley
+    cover: Arroyo Town Overlook
+    attributes:
+      Canals: Bone-dry concrete channels, cracked white silt
+      Climate: Scorching summer heatwaves, dry wind shear
+      Condition: Year 3 of crippling drought, stone fruit trees dying
+      Geography: Vast arid agricultural basin ringed by steep rocky ridges
+      Terrain: Dust-choked orchards, parched topsoil, sunbaked fields
+      Threat: Last moisture-heavy cloud front arriving in 72 hours and skipping the
+        basin

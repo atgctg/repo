@@ -337,7 +337,7 @@ function renderStory(story: Story): void {
     case 'slides': {
       if (!story.slides?.length) {
         main.className = 'list'
-        main.innerHTML = '<span class="muted">no slides</span>'
+        main.innerHTML = '<span class="muted">No slides</span>'
         break
       }
       main.className = 'grid'

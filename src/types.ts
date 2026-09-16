@@ -10,8 +10,6 @@ export type Card = {
   name: string
   cover?: string
   attributes?: Record<string, unknown>
-  createdAt: string
-  updatedAt: string
 }
 
 export type Slide = {

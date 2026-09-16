@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/server'
 import { serveStdio } from '@modelcontextprotocol/server/stdio'
 import { stringify } from 'yaml'
 import { z } from 'zod'
-import { appendSlide, mutateScript, setCard, setImage } from './stories'
+import { appendSlide, createImage, mutateScript, setCard } from './stories'
 
 const FreeformObject = z.looseObject({}).meta({ additionalProperties: true })
 
@@ -30,35 +30,28 @@ export function createServer(): McpServer {
   })
 
   server.registerTool(
-    'Image',
+    'CreateImage',
     {
-      description:
-        'Save or generate an image asset for the story media library. '
-        + 'Reuses an existing image name if already created. '
-        + 'If prompt is provided, generates the image file when missing. '
-        + 'Prompts must be self-contained: the generator only sees this prompt plus the Style card (appended after). '
-        + 'Restate visual continuity every time. Give each entity distinct repeatable features. '
-        + 'Never write as before, earlier, same as last, previous, this image, or that background. '
-        + 'Put rendered text in quotation marks, e.g. clouds spelling "Hello". '
-        + 'Does not create or modify slides.',
+      description: 'Generate an background image for the story. To overwrite an existing image, use the same name.'
+       + 'Prompts must be self-contained: the generator only sees this prompt plus the Style card (appended after). '
+      + 'Give each entity distinct repeatable features. '
+      + 'Never write "as before", "earlier", "same as last", "previous", or "that background". '
+      + 'Put rendered text in quotation marks, e.g. clouds spelling "Hello". ',
       inputSchema: z.object({
         storyId,
-        name: z.string().describe(
-          'Image name. Reuse an existing name without regenerating.'
-        ),
-        prompt: FreeformObject.optional().describe(
-          'Self-contained structured prompt (Shot, Scene, Characters, Action, Expression). '
-          + 'Repeat wardrobe, hair, and faces in full. Max 3 nested levels.',
+        name: z.string().describe('Unique name'),
+        prompt: FreeformObject.describe(
+          'Structured prompt object. Max 3 nested levels.',
         ),
       }),
     },
     async ({ storyId, name, prompt }) => {
-      const { story } = await setImage(storyId, { name, prompt })
+      await createImage(storyId, { name, prompt })
       return {
         content: [
           {
             type: 'text',
-            text: `Image "${name}" saved (${story.media.length} media assets)`,
+            text: `"${name}" generated`,
           },
         ],
       }
@@ -183,8 +176,7 @@ export function createServer(): McpServer {
         'Create or patch a named card (characters, Style, etc.). Only create cards when asked. '
         + 'attributes is a patch merged into the existing card with this name: nested objects deep-merge, '
         + 'dotted keys set a path (Look.Wear), JSON null deletes a field. cover names an existing image; '
-        + 'null clears it. Default to short key-value pairs. Max 3 nested levels. '
-        + 'Returns the saved card.',
+        + 'null clears it. Default to short key-value pairs. Max 3 nested levels. ',
       inputSchema: z.object({
         storyId,
         name: z.string().describe(
@@ -204,20 +196,12 @@ export function createServer(): McpServer {
       }),
     },
     async ({ storyId, name, cover, attributes }) => {
-      const story = await setCard(storyId, { name, cover, attributes })
-      const card = story.cards.find((item) => item.name.toLowerCase() === name.toLowerCase())
+      await setCard(storyId, { name, cover, attributes })
       return {
         content: [
           {
             type: 'text',
-            text: stringify(
-              {
-                name: card?.name ?? name,
-                cover: card?.cover ?? null,
-                attributes: card?.attributes ?? {},
-              },
-              { indent: 2 },
-            ).trim(),
+            text: `${name} updated`,
           },
         ],
       }

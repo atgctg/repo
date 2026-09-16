@@ -70,16 +70,12 @@ export async function loadStory(id: string): Promise<Story> {
   }
   const content = await file.text()
   const raw = parse(content) as Record<string, unknown>
-  const meta = (raw.meta ?? {}) as Record<string, unknown>
-
-  const rawSlides = (raw.slides as Slide[]) ?? []
-
   const story: Story = {
-    id: (raw.id as string) ?? (meta.id as string) ?? id,
-    title: (raw.title as string) ?? (meta.title as string) ?? id,
-    createdAt: (raw.createdAt as string) ?? (meta.createdAt as string) ?? new Date().toISOString(),
-    updatedAt: (raw.updatedAt as string) ?? (meta.updatedAt as string) ?? new Date().toISOString(),
-    slides: rawSlides,
+    id: (raw.id as string) ?? id,
+    title: (raw.title as string) ?? id,
+    createdAt: (raw.createdAt as string) ?? new Date().toISOString(),
+    updatedAt: (raw.updatedAt as string) ?? new Date().toISOString(),
+    slides: (raw.slides as Slide[]) ?? [],
     media: (raw.media as MediaAsset[]) ?? [],
     cards: (raw.cards as Card[]) ?? [],
   }
@@ -100,11 +96,11 @@ export async function persistStory(story: Story): Promise<void> {
   await Bun.write(path, stringify(toWrite, { indent: 2 }))
 }
 
-export async function setImage(
+export async function createImage(
   storyId: string,
   params: {
     name: string
-    prompt?: Record<string, unknown>
+    prompt: Record<string, unknown>
   },
 ): Promise<{ story: Story; asset: MediaAsset }> {
   const story = await loadStory(storyId)
@@ -119,10 +115,11 @@ export async function setImage(
   const asset: MediaAsset = {
     type: 'image',
     name: params.name,
-    key: existing?.key,
-    prompt: params.prompt ?? existing?.prompt,
+    prompt: params.prompt,
     createdAt: existing?.createdAt ?? now,
   }
+
+  asset.key = await generateStoryImage(story, asset.name, params.prompt)
 
   if (assetIndex >= 0) {
     story.media[assetIndex] = asset
@@ -130,11 +127,6 @@ export async function setImage(
     story.media.push(asset)
   }
   await persistStory(story)
-
-  if (params.prompt && !asset.key) {
-    asset.key = await generateStoryImage(story, asset.name, params.prompt)
-    await persistStory(story)
-  }
 
   return { story, asset }
 }
@@ -207,7 +199,6 @@ export async function setCard(
   },
 ): Promise<Story> {
   const story = await loadStory(storyId)
-  const now = new Date().toISOString()
 
   const existingIdx = story.cards.findIndex((c) => c.name.toLowerCase() === params.name.toLowerCase())
   const existing = existingIdx >= 0 ? story.cards[existingIdx] : undefined
@@ -222,8 +213,6 @@ export async function setCard(
     name: params.name,
     cover,
     attributes,
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
   }
 
   if (existingIdx >= 0) {

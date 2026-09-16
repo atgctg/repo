@@ -1,9 +1,10 @@
 {
-  "mcpServers": {
-    "studio": {
-      "command": "bun",
-      "args": ["src/mcp.ts"],
-      "cwd": "/Users/ml/dev/studio"
+    "mcpServers": {
+      "studio": {
+        "command": "bun",
+        "args": ["src/mcp.ts"],
+        "cwd": "/Users/ml/dev/studio"
+      }
     }
   }
-}
+  

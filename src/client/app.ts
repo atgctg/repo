@@ -1,5 +1,13 @@
-import type { Card, MediaAsset, Slide, Story, StorySummary } from './types'
-import { resolveSlides } from './slides'
+import type { Card, MediaAsset, Slide, Story, StorySummary } from '../types'
+import { resolveSlides } from '../slides'
+
+{
+  const icon = document.createElement('link')
+  icon.rel = 'icon'
+  icon.type = 'image/x-icon'
+  icon.href = '/favicon.ico'
+  document.head.appendChild(icon)
+}
 
 let cacheBuster = Date.now()
 

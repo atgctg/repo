@@ -1,4 +1,4 @@
-import studio from './index.html'
+import studio from './client/index.html'
 import { mediaDiskPath, safeStoryId } from './generate'
 import { generateMediaImage, listStories, loadStory, storyExists } from './stories'
 
@@ -65,6 +65,7 @@ const server = Bun.serve({
         })
       },
     },
+    '/favicon.ico': Bun.file(`${import.meta.dir}/client/favicon.ico`),
     '/': studio,
     '/*': studio,
   },

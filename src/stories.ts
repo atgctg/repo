@@ -35,7 +35,9 @@ function createEmptyStory(id: string): Story {
   const now = new Date().toISOString()
   return {
     id,
-    title: id,
+    title: id
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase()),
     createdAt: now,
     updatedAt: now,
     slides: [],

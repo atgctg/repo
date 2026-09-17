@@ -223,10 +223,8 @@ a.card:hover {
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.62) 0%,
-    rgba(0, 0, 0, 0.28) 55%,
-    rgba(0, 0, 0, 0.18) 100%
-  );
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0) 60%);
 }
 
 .gen-btn {

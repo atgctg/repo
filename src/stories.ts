@@ -156,43 +156,20 @@ export type AppendSlideParams = {
   background?: string
   speaker?: string
   dialogue?: string | string[]
-  slides?: Slide[]
 }
 
 export async function appendSlide(
   storyId: string,
   params: AppendSlideParams,
-): Promise<{ story: Story; indices: number[] }> {
-  const toAdd: Slide[] = []
-
-  if (params.slides && params.slides.length > 0) {
-    for (const s of params.slides) {
-      const background = s.background ?? params.background
-      const speaker = s.speaker ?? params.speaker
-      toAdd.push({
-        ...(background ? { background } : {}),
-        ...(speaker ? { speaker } : {}),
-        ...(s.dialogue !== undefined ? { dialogue: s.dialogue } : {}),
-      })
-    }
-  } else if (params.dialogue !== undefined) {
-    toAdd.push({
-      ...(params.background ? { background: params.background } : {}),
-      ...(params.speaker ? { speaker: params.speaker } : {}),
-      dialogue: params.dialogue,
-    })
-  } else if (params.background || params.speaker) {
-    toAdd.push({
-      ...(params.background ? { background: params.background } : {}),
-      ...(params.speaker ? { speaker: params.speaker } : {}),
-    })
-  }
-
+): Promise<{ story: Story; index: number }> {
   return updateStory(storyId, (story) => {
-    const startIndex = story.slides.length
-    story.slides.push(...toAdd)
-    const indices = toAdd.map((_, i) => startIndex + i)
-    return { story, indices }
+    const index = story.slides.length
+    story.slides.push({
+      ...(params.background ? { background: params.background } : {}),
+      ...(params.speaker ? { speaker: params.speaker } : {}),
+      ...(params.dialogue !== undefined ? { dialogue: params.dialogue } : {}),
+    })
+    return { story, index }
   })
 }
 

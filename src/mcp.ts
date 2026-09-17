@@ -7,7 +7,7 @@ const FreeformObject = z.looseObject({}).meta({ additionalProperties: true })
 
 const SlideSchema = z.object({
   background: z.string().optional().describe(
-    'Background image name. Depicts the speaker or fits the scene.'
+    'Background image name from media'
   ),
   speaker: z.string().optional().describe(
     'Speaker character name or role'
@@ -57,45 +57,23 @@ export function createServer(): McpServer {
     'Slide',
     {
       description:
-        'Append one or more slides to the story. '
+        'Append a slide to the story. '
         + 'Specify background image, speaker, and dialogue line(s). '
         + 'If dialogue is an array of strings, lines are stacked on the slide. '
         + 'Default to short lines, max 70 characters; split longer speech at pauses into multiple lines. '
         + 'Prefer character speech over narration. Keep the speaker\'s voice. '
         + 'Can also append slides without dialogue (establishing shots or pauses).',
-      inputSchema: z.object({
+      inputSchema: SlideSchema.extend({
         storyId,
-        background: z.string().optional().describe(
-          'Background image name from media'
-        ),
-        speaker: z.string().optional().describe(
-          'Speaker character name or role'
-        ),
-        dialogue: z
-          .union([z.string(), z.array(z.string())])
-          .optional()
-          .describe(
-            'One line or array of lines. '
-            + 'Each line ideally well under 70 characters.'
-          ),
-        slides: z
-          .array(SlideSchema)
-          .optional()
-          .describe('Explicit array of slides to append'),
       }),
     },
-    async ({ storyId, background, speaker, dialogue, slides }) => {
-      const { indices, story } = await appendSlide(storyId, { background, speaker, dialogue, slides })
-      const range = indices.length === 0
-        ? '[]'
-        : indices.length === 1
-          ? `[${indices[0]}]`
-          : `[${indices[0]}-${indices[indices.length - 1]}]`
+    async ({ storyId, background, speaker, dialogue }) => {
+      const { index, story } = await appendSlide(storyId, { background, speaker, dialogue })
       return {
         content: [
           {
             type: 'text',
-            text: `${range} (${story.slides.length} slides)`,
+            text: `[${index}] (${story.slides.length} slides)`,
           },
         ],
       }

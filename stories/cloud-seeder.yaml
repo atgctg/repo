@@ -1,7 +1,7 @@
 id: cloud-seeder
 title: The Cloud Seeder
 createdAt: 2026-09-16T11:33:02.496Z
-updatedAt: 2026-09-16T11:33:02.496Z
+updatedAt: 2026-09-17T15:58:33.494Z
 slides:
   - background: Arroyo Town Overlook
   - background: Arroyo Town Overlook
@@ -26,9 +26,7 @@ slides:
   - background: Racing the Ridge
   - background: First Ignition
 media:
-  - type: image
-    name: Arroyo Town Overlook
-    key: /media/cloud-seeder/arroyo-town-overlook.jpg
+  - name: Arroyo Town Overlook
     prompt:
       Shot:
         Type: Wide scenic overlook
@@ -47,9 +45,7 @@ media:
       Action: Peaceful yet tense vista of a drought-stricken valley town seen from
         high above
     createdAt: 2026-09-16T11:40:09.368Z
-  - type: image
-    name: Drought Town Square
-    key: /media/cloud-seeder/drought-town-square.jpg
+  - name: Drought Town Square
     prompt:
       Shot:
         Type: Wide street level
@@ -71,9 +67,7 @@ media:
       Action: Townspeople gathering in the dusty sunbaked town square, fanning
         themselves under awnings and staring defeatists toward the distant sky
     createdAt: 2026-09-16T12:01:39.187Z
-  - type: image
-    name: Cracked Orchard Canal
-    key: /media/cloud-seeder/cracked-orchard-canal.jpg
+  - name: Cracked Orchard Canal
     prompt:
       Shot:
         Type: Medium shot
@@ -91,9 +85,7 @@ media:
       Action: Severe drought evident in dried-up irrigation ditch running past dying
         fruit trees
     createdAt: 2026-09-16T12:02:03.218Z
-  - type: image
-    name: Withered Branch
-    key: /media/cloud-seeder/withered-branch.jpg
+  - name: Withered Branch
     prompt:
       Shot:
         Type: Extreme close-up
@@ -113,9 +105,7 @@ media:
       Action: Extreme close-up of a dying fruit branch showing shriveled dry fruit and
         brittle yellowed leaves
     createdAt: 2026-09-16T12:03:09.966Z
-  - type: image
-    name: Jesse Vance
-    key: /media/cloud-seeder/jesse-vance.jpg
+  - name: Jesse Vance
     prompt:
       Shot:
         Type: Medium portrait
@@ -141,9 +131,7 @@ media:
         overcast sky with quiet defiance
       Expression: Quiet fierce resolve, determined slight scowl
     createdAt: 2026-09-16T12:01:11.355Z
-  - type: image
-    name: Studying Cloud Seeding
-    key: /media/cloud-seeder/studying-cloud-seeding.jpg
+  - name: Studying Cloud Seeding
     prompt:
       Shot:
         Type: Close-up
@@ -164,9 +152,7 @@ media:
         watching intently
       Expression: none
     createdAt: 2026-09-16T12:19:58.189Z
-  - type: image
-    name: Workshop Parts Spread
-    key: /media/cloud-seeder/workshop-parts-spread.jpg
+  - name: Workshop Parts Spread
     prompt:
       Shot:
         Type: Wide workbench still life
@@ -192,8 +178,7 @@ media:
         silver-iodide solution with grease-stained hands
       Expression: Obsessed focus, jaw tight
     createdAt: 2026-09-16T13:08:25.816Z
-  - type: image
-    name: Welding the Burner
+  - name: Welding the Burner
     prompt:
       Shot:
         Type: Medium action shot
@@ -217,9 +202,7 @@ media:
       Action: Jesse welding the DIY silver-iodide propane burner together at speed
       Expression: Jaw clenched, obsessed focus
     createdAt: 2026-09-16T13:10:36.712Z
-    key: /media/cloud-seeder/welding-the-burner.jpg
-  - type: image
-    name: Rig in Truck Bed
+  - name: Rig in Truck Bed
     prompt:
       Shot:
         Type: Wide truck-bed shot
@@ -246,9 +229,7 @@ media:
         truck bed
       Expression: Tired fierce grin
     createdAt: 2026-09-16T13:10:41.198Z
-    key: /media/cloud-seeder/rig-in-truck-bed.jpg
-  - type: image
-    name: Waiting for Clouds
+  - name: Waiting for Clouds
     prompt:
       Shot:
         Type: Medium interior-exterior
@@ -273,9 +254,7 @@ media:
         waiting for the right moment
       Expression: Anxious hunger, ready to floor it
     createdAt: 2026-09-16T13:10:45.278Z
-    key: /media/cloud-seeder/waiting-for-clouds.jpg
-  - type: image
-    name: Racing the Ridge
+  - name: Racing the Ridge
     prompt:
       Shot:
         Type: Wide tracking shot
@@ -294,13 +273,11 @@ media:
           Age: "27"
           Hair: Canvas cap
           Wardrobe: Faded blue work shirt
-      Action: Jesse driving the untested rig full speed up the ridge as the cloud
-        base rolls in
+      Action: Jesse driving the untested rig full speed up the ridge as the cloud base
+        rolls in
       Expression: none
     createdAt: 2026-09-16T13:10:47.000Z
-    key: /media/cloud-seeder/racing-the-ridge.jpg
-  - type: image
-    name: First Ignition
+  - name: First Ignition
     prompt:
       Shot:
         Type: Wide dramatic ridge shot
@@ -325,7 +302,6 @@ media:
           the updraft
         Expression: Wild focused relief
     createdAt: 2026-09-16T13:10:49.620Z
-    key: /media/cloud-seeder/first-ignition.jpg
 cards:
   - name: Style
     attributes:

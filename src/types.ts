@@ -1,9 +1,8 @@
 export type MediaAsset = {
-  type: 'image' | 'audio' | 'video'
   name: string
-  key?: string
   prompt?: Record<string, unknown>
   createdAt: string
+  url?: string
 }
 
 export type Card = {
@@ -16,6 +15,10 @@ export type Slide = {
   background?: string
   speaker?: string
   dialogue?: string | string[]
+}
+
+export type NumberedSlide = Slide & {
+  index: number
 }
 
 export type Story = {

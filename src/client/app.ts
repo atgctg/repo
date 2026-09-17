@@ -23,15 +23,15 @@ function escapeHtml(str: string): string {
 
 function findImage(media: Story['media'], name?: string): MediaAsset | undefined {
   if (!name) return undefined
-  return media.find((item) => item.type === 'image' && item.name.toLowerCase() === name.toLowerCase())
+  return media.find((item) => item.name.toLowerCase() === name.toLowerCase())
 }
 
 function canGenerate(asset?: MediaAsset): boolean {
-  return Boolean(asset && asset.type === 'image' && !asset.key && asset.prompt && Object.keys(asset.prompt).length > 0)
+  return Boolean(asset && !asset.url && asset.prompt && Object.keys(asset.prompt).length > 0)
 }
 
 function canPromptImage(asset?: MediaAsset): boolean {
-  return Boolean(asset && asset.type === 'image' && asset.prompt && Object.keys(asset.prompt).length > 0)
+  return Boolean(asset && asset.prompt && Object.keys(asset.prompt).length > 0)
 }
 
 function formatPromptYaml(prompt?: Record<string, unknown>): string {
@@ -88,8 +88,8 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
   const hasSpeaker = Boolean(slide.speaker?.trim())
 
   const mediaAsset = findImage(media, slide.background)
-  const hasImage = Boolean(mediaAsset?.key)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}?v=${cacheBuster}" alt="" />` : ''
+  const hasImage = Boolean(mediaAsset?.url)
+  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.url!)}?v=${cacheBuster}" alt="" />` : ''
 
   const totalLen = lines.reduce((sum, l) => sum + l.replace(/\*/g, '').trim().length, 0)
   const isLeft = lines.length > 1 || totalLen > 120
@@ -186,8 +186,8 @@ function renderCardAttrs(attributes: Record<string, unknown>): string {
 
 function renderCard(card: Card, media: Story['media'], storyId: string): string {
   const mediaAsset = findImage(media, card.cover)
-  const hasImage = Boolean(mediaAsset?.key)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.key!)}?v=${cacheBuster}" alt="" />` : ''
+  const hasImage = Boolean(mediaAsset?.url)
+  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.url!)}?v=${cacheBuster}" alt="" />` : ''
   const attrsHtml = renderCardAttrs(card.attributes ?? {})
   const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 
@@ -202,8 +202,8 @@ function renderCard(card: Card, media: Story['media'], storyId: string): string 
 }
 
 function renderMedia(asset: MediaAsset, storyId: string): string {
-  const hasImage = asset.type === 'image' && Boolean(asset.key)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(asset.key!)}?v=${cacheBuster}" alt="" />` : ''
+  const hasImage = Boolean(asset.url)
+  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(asset.url!)}?v=${cacheBuster}" alt="" />` : ''
   const promptYaml = formatPromptYaml(asset.prompt)
   const promptHtml = promptYaml ? `<pre class="card-prompt">${escapeHtml(promptYaml)}</pre>` : ''
 

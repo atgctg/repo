@@ -1,7 +1,7 @@
 id: styles
 title: Styles
 createdAt: 2026-09-17T13:16:06.362Z
-updatedAt: 2026-09-17T13:19:47.150Z
+updatedAt: 2026-09-17T15:58:33.538Z
 slides:
   - background: Ghibli Anime
     speaker: Style
@@ -28,8 +28,7 @@ slides:
     speaker: Style
     dialogue: Claude Monet Impressionist Oil Painting
 media:
-  - type: image
-    name: Ghibli Anime
+  - name: Ghibli Anime
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -57,9 +56,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:16:02.725Z
-    key: /media/styles/ghibli-anime.jpg
-  - type: image
-    name: Retro Pixel Art
+  - name: Retro Pixel Art
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -87,9 +84,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:16:34.343Z
-    key: /media/styles/retro-pixel-art.jpg
-  - type: image
-    name: Blocky Minecraft
+  - name: Blocky Minecraft
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -120,9 +115,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:17:06.913Z
-    key: /media/styles/blocky-minecraft.jpg
-  - type: image
-    name: Dreamlike Wholesome Watercolor
+  - name: Dreamlike Wholesome Watercolor
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -151,9 +144,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:17:32.426Z
-    key: /media/styles/dreamlike-wholesome-watercolor.jpg
-  - type: image
-    name: Painterly Concept Art
+  - name: Painterly Concept Art
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -183,9 +174,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:18:06.653Z
-    key: /media/styles/painterly-concept-art.jpg
-  - type: image
-    name: Surreal 3D Grass Field
+  - name: Surreal 3D Grass Field
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -214,9 +203,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:18:33.975Z
-    key: /media/styles/surreal-3d-grass-field.jpg
-  - type: image
-    name: Synthwave Retro Futuristic
+  - name: Synthwave Retro Futuristic
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -246,9 +233,7 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:18:54.743Z
-    key: /media/styles/synthwave-retro-futuristic.jpg
-  - type: image
-    name: Impressionist Oil Painting
+  - name: Impressionist Oil Painting
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -277,5 +262,4 @@ media:
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:19:19.672Z
-    key: /media/styles/impressionist-oil-painting.jpg
 cards: []

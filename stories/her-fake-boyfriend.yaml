@@ -1,7 +1,7 @@
 id: her-fake-boyfriend
 title: Her Fake Boyfriend
 createdAt: 2026-09-15T21:31:43.922Z
-updatedAt: 2026-09-16T07:05:00.000Z
+updatedAt: 2026-09-17T15:58:33.513Z
 slides:
   - background: Tenno Sushi
   - background: Keiko's Question
@@ -29,12 +29,10 @@ slides:
   - background: Whispering In Your Ear
     speaker: Yuki
     dialogue:
-      - "Please. Pretend you're my boyfriend."
-      - "I told them we've been together for eight months."
+      - Please. Pretend you're my boyfriend.
+      - I told them we've been together for eight months.
 media:
-  - type: image
-    name: Tenno Sushi
-    key: /media/her-fake-boyfriend/tenno-sushi.jpg
+  - name: Tenno Sushi
     prompt:
       Shot:
         Type: Establishing exterior
@@ -48,9 +46,7 @@ media:
           glowing paper lanterns, wooden sign clearly reading "Tenno Sushi"
       Action: Quiet night street outside a cozy sushi restaurant, no people in focus
     createdAt: 2026-09-15T21:31:49.403Z
-  - type: image
-    name: Keiko's Question
-    key: /media/her-fake-boyfriend/keiko-s-question.jpg
+  - name: Keiko's Question
     prompt:
       Shot:
         Type: Close-up
@@ -73,9 +69,7 @@ media:
       Action: Leaning forward across the table, chin resting on folded hands
       Expression: Sweet, curious, slightly intrusive smile
     createdAt: 2026-09-15T21:31:57.333Z
-  - type: image
-    name: Yuki Spots You
-    key: /media/her-fake-boyfriend/yuki-spots-you.jpg
+  - name: Yuki Spots You
     prompt:
       Shot:
         Type: Medium close-up
@@ -102,8 +96,7 @@ media:
       Expression: Startled, eyes wide, cheeks flushed, staring ahead in shock, not
         looking at the viewer
     createdAt: 2026-09-15T21:32:16.285Z
-  - type: image
-    name: Eyes Lock On You
+  - name: Eyes Lock On You
     prompt:
       Shot:
         Type: Close-up
@@ -131,10 +124,7 @@ media:
       Expression: Eyes locked on the viewer, startled recognition, flushed cheeks,
         lips parted
     createdAt: 2026-09-16T07:05:00.000Z
-    key: /media/her-fake-boyfriend/eyes-lock-on-you.jpg
-  - type: image
-    name: Haruma's Tease
-    key: /media/her-fake-boyfriend/haruma-s-tease.jpg
+  - name: Haruma's Tease
     prompt:
       Shot:
         Type: Medium shot
@@ -156,9 +146,7 @@ media:
       Action: Holding a glass of beer, pausing mid-drink at the wooden table
       Expression: Amused, teasing smirk
     createdAt: 2026-09-15T21:32:07.308Z
-  - type: image
-    name: The Arm Grab
-    key: /media/her-fake-boyfriend/the-arm-grab.jpg
+  - name: The Arm Grab
     prompt:
       Shot:
         Type: Medium action shot
@@ -186,9 +174,7 @@ media:
         viewer's charcoal jacket sleeve
       Expression: High urgency, desperate, looking up at the viewer
     createdAt: 2026-09-15T21:32:25.593Z
-  - type: image
-    name: POV There You Are
-    key: /media/her-fake-boyfriend/pov-there-you-are.jpg
+  - name: POV There You Are
     prompt:
       Shot:
         Type: Medium shot
@@ -234,9 +220,7 @@ media:
       Expression: Yuki has a tight, desperately forced smile, flushed pink cheeks,
         eyes locked on the viewer. Parents look shocked.
     createdAt: 2026-09-15T21:32:35.760Z
-  - type: image
-    name: Whispering In Your Ear
-    key: /media/her-fake-boyfriend/whispering-in-your-ear.jpg
+  - name: Whispering In Your Ear
     prompt:
       Shot:
         Type: Extreme close-up
@@ -249,9 +233,7 @@ media:
       Action: Hand cupped beside the mouth, whispering
       Expression: Lips parted in a hush
     createdAt: 2026-09-15T21:32:45.302Z
-  - type: image
-    name: Parents Staring
-    key: /media/her-fake-boyfriend/parents-staring.jpg
+  - name: Parents Staring
     prompt:
       Shot:
         Type: Medium shot

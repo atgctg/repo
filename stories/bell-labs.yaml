@@ -1,7 +1,7 @@
 id: bell-labs
 title: Bell Labs
 createdAt: 2026-09-15T14:24:29.991Z
-updatedAt: 2026-09-15T14:24:29.991Z
+updatedAt: 2026-09-17T15:58:33.462Z
 slides:
   - background: Bell Labs Building
     speaker: Sim
@@ -22,8 +22,7 @@ slides:
     speaker: Dennis Ritchie
     dialogue: Would you like to see what we're working on?
 media:
-  - type: image
-    name: Bell Labs Building
+  - name: Bell Labs Building
     prompt:
       Description: A striking mid-century modern building with clean geometric lines
         and large glass windows. The exterior features a mix of concrete, steel,
@@ -31,18 +30,14 @@ media:
         building sits in a well-maintained campus setting with manicured lawns
         and walking paths.
     createdAt: 2026-09-15T14:24:29.991Z
-    key: /media/bell-labs/bell-labs-building.jpg
-  - type: image
-    name: Bell Labs Interior
+  - name: Bell Labs Interior
     prompt:
       Description: A mid-century modern research laboratory with clean lines and
         minimalist design. Large windows let in natural light, illuminating rows
         of vintage computers and oscilloscopes. Scientists in white lab coats
         work at long tables covered in schematics and equipment.
     createdAt: 2026-09-15T14:24:35.229Z
-    key: /media/bell-labs/bell-labs-interior.jpg
-  - type: image
-    name: Dennis Ritchie
+  - name: Dennis Ritchie
     prompt:
       Description: A young computer scientist with short dark hair and glasses,
         wearing a white lab coat over a button-down shirt and tie. He's standing
@@ -50,7 +45,6 @@ media:
         technical manuals. The background shows the clean, modern Bell Labs
         interior.
     createdAt: 2026-09-15T14:24:40.045Z
-    key: /media/bell-labs/dennis-ritchie.jpg
 cards:
   - name: Style
     attributes:

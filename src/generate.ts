@@ -9,7 +9,7 @@ export function safeStoryId(id: string): string {
   return id.replace(/[^a-zA-Z0-9_-]/g, '_')
 }
 
-function mediaFileName(name: string): string {
+export function mediaFileName(name: string): string {
   const slug = name
     .trim()
     .toLowerCase()
@@ -22,7 +22,7 @@ export function mediaDiskPath(storyId: string, name: string): string {
   return `${STORIES_DIR}/media/${safeStoryId(storyId)}/${mediaFileName(name)}`
 }
 
-function mediaUrl(storyId: string, name: string): string {
+export function mediaUrl(storyId: string, name: string): string {
   return `/media/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(mediaFileName(name))}`
 }
 
@@ -71,7 +71,7 @@ function absolutePrunaUrl(url: string): string {
   return `https://api.pruna.ai/${url}`
 }
 
-function errorMessage(error: unknown): string {
+export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
@@ -178,15 +178,15 @@ export async function generateStoryImage(
   try {
     const buffer = await generatePrunaImage(yamlPrompt)
     await Bun.write(mediaDiskPath(storyId, name), buffer)
-    const key = mediaUrl(storyId, name)
+    const url = mediaUrl(storyId, name)
     console.error('img gen ok', {
       storyId,
       name,
-      key,
+      url,
       bytes: buffer.byteLength,
       ms: Math.round(performance.now() - started),
     })
-    return key
+    return url
   } catch (error) {
     console.error('img gen error', {
       storyId,

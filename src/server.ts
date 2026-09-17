@@ -1,10 +1,9 @@
 import studio from './client/index.html'
-import { mediaDiskPath, safeStoryId } from './generate'
-import { generateMediaImage, listStories, loadStory, storyExists } from './stories'
+import { errorMessage, mediaDiskPath, safeStoryId } from './generate'
+import { generateImage, listStories, loadStory, storyExists } from './stories'
 
 function jsonError(error: unknown, status = 500): Response {
-  const message = error instanceof Error ? error.message : String(error)
-  return Response.json({ error: message }, { status })
+  return Response.json({ error: errorMessage(error) }, { status })
 }
 
 const server = Bun.serve({
@@ -37,7 +36,7 @@ const server = Bun.serve({
           return Response.json({ error: 'name is required' }, { status: 400 })
         }
         try {
-          const result = await generateMediaImage(id, body.name.trim())
+          const result = await generateImage(id, body.name.trim())
           return Response.json(result)
         } catch (error) {
           console.error('img gen error', {

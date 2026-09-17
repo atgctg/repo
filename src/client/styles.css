@@ -222,9 +222,16 @@ a.card:hover {
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0) 60%);
+    in oklch to top,
+    oklch(0 0 0 / 0.3) 0%,
+    oklch(0 0 0 / 0.28) 12%,
+    oklch(0 0 0 / 0.23) 24%,
+    oklch(0 0 0 / 0.16) 35%,
+    oklch(0 0 0 / 0.09) 44%,
+    oklch(0 0 0 / 0.04) 52%,
+    oklch(0 0 0 / 0.01) 57%,
+    oklch(0 0 0 / 0) 60%
+  );
 }
 
 .gen-btn {

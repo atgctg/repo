@@ -1,7 +1,7 @@
 id: her-fake-boyfriend
 title: Her Fake Boyfriend
 createdAt: 2026-09-15T21:31:43.922Z
-updatedAt: 2026-09-17T15:58:33.513Z
+updatedAt: 2026-09-18T06:44:34.527Z
 slides:
   - background: Tenno Sushi
   - background: Keiko's Question
@@ -10,27 +10,110 @@ slides:
   - background: Yuki Spots You
     speaker: Yuki
     dialogue: "*Chopsticks stop halfway to the plate.*"
+  - background: Haruma's Tease
+    speaker: Haruma
+    dialogue:
+      - Your boyfriend.
+      - The one who has apparently been keeping our daughter in America.
   - background: Eyes Lock On You
-    dialogue: "*Eyes dart frantically around the restaurant until they lock onto you
-      passing by.*"
-  - background: Haruma's Tease
-    speaker: Haruma
-    dialogue: Your boyfriend. The one who has apparently been keeping our daughter
-      in America.
-  - background: Haruma's Tease
-    speaker: Haruma
-    dialogue: "*Chuckles, takes another slow drink of his beer.*"
+    dialogue: "*Eyes dart frantically around the restaurant until they lock onto you passing by.*"
   - background: The Arm Grab
     speaker: Yuki
-    dialogue: "*Hand shoots out, catching your sleeve.*"
+    dialogue: "*Stands up and catches your sleeve.*"
   - background: POV There You Are
     speaker: Yuki
     dialogue: There you are! Mom, Dad... this is my boyfriend!
   - background: Whispering In Your Ear
     speaker: Yuki
     dialogue:
+      - "*Leans in close to your ear*"
       - Please. Pretend you're my boyfriend.
       - I told them we've been together for eight months.
+  - background: Leo's Introduction
+    speaker: Leo
+    dialogue:
+      - "*Nods*"
+      - Riiight, it's nice to finally meet you all! I'm Leo!
+  - background: Eyes Lock On You
+    speaker: Yuki
+    dialogue:
+      - "*Exhales in relief*"
+      - Yes! See, Mom? I told you he wasn't standing us up!
+  - background: Parents Reaction
+    speaker: Keiko
+    dialogue: Oh my goodness! Leo! Sit down, sit down!
+  - background: Parents Reaction
+    speaker: Haruma
+    dialogue:
+      - "*Sets down beer*"
+      - Leo, is it? Eight months, and she's only just showing you off.
+  - background: Leo Awkward Laugh
+    speaker: Leo
+    dialogue: Well.. You all live so far away.. haha
+  - background: Leo Awkward Laugh
+    speaker: Yuki
+    dialogue:
+      - "*Squeezes your hand fiercely under the table*"
+      - Tokyo isn't that far, silly! But he works so hard, Dad.
+  - background: Leo Exclaims at Yuki
+    speaker: Leo
+    dialogue:
+      - "*Stares incredulously at Yuki*"
+      - Not that far?! From LA? Are you crazy?
+  - background: Parents Stunned Silence
+    speaker: Keiko
+    dialogue:
+      - "*Blinks*"
+      - LA...? Yuki, didn't you say he lived across town in Shibuya?
+  - background: Yuki Panic Stare
+    speaker: Yuki
+    dialogue:
+      - "*Kicks Leo under the table*"
+      - Little America! He means the diner in Shibuya, right honey?!
+  - background: Haruma Eyeing Them
+    speaker: Haruma
+    dialogue:
+      - "*Narrows eyes*"
+      - Is that what you meant, Leo? Los Angeles or a diner?
+  - background: Leo Digs Deeper Hole
+    speaker: Leo
+    dialogue:
+      - Wait, you also live in Tokyo?
+      - I thought you moved here with her... uh recently!
+  - background: Parents Stunned Silence
+    speaker: Haruma
+    dialogue:
+      - "*Haruma frowns*"
+      - We live in Sapporo, Leo.
+      - We took a twelve-hour flight just to see her.
+  - background: Leo Whispers Back
+    speaker: Yuki
+    dialogue:
+      - "*Leans in to whisper*"
+      - Sapporo! They live in Hokkaido!
+      - Stop guessing before you kill me!
+  - background: Leo Whispers Back
+    speaker: Leo
+    dialogue:
+      - "*Whispers back*"
+      - What do you mean? Which is it?
+      - Sapporo or Hokkaido?
+  - background: Leo Whispers Back
+    speaker: Yuki
+    dialogue:
+      - "*Pinches bridge of nose*"
+      - Sapporo is the capital city of Hokkaido..
+      - It's the same place you idiot!
+  - background: Parents Reaction
+    speaker: Keiko
+    dialogue:
+      - "*Chuckles*"
+      - Look at them, Haruma.
+      - They already have their little private secrets.
+  - background: Haruma Eyeing Them
+    speaker: Haruma
+    dialogue:
+      - Eight months together... and you didn't know where Yuki grew up?
 media:
   - name: Tenno Sushi
     prompt:
@@ -233,50 +316,103 @@ media:
       Action: Hand cupped beside the mouth, whispering
       Expression: Lips parted in a hush
     createdAt: 2026-09-15T21:32:45.302Z
-  - name: Parents Staring
+  - name: Leo's Introduction
     prompt:
-      Shot:
-        Type: Medium shot
-        Angle: From beside the viewer, looking back at the booth
-        Framing: Haruma and Keiko frozen in the booth, Keiko in a pink knit cardigan,
-          Yuki's hand clutching the viewer's arm in the foreground
-      Scene:
-        Location: Tenno Sushi interior booth
-        Time: Night
-        Lighting: Warm amber paper lantern light on honey wood
-        Details: Wooden booth, sushi plates, beer glass halted mid-air
+      Action: Leo standing at the aisle beside booth on screen right, looking left toward table and nodding with charming smile
       Characters:
-        Haruma Sakurai:
-          Age: "48"
-          Hair: Short salt-and-pepper gray hair, neatly trimmed
-          Eyes: Dark brown, behind thin rectangular wire-rim glasses
-          Face: Angular, faint stubble
-          Wardrobe: Navy blue collared button-down shirt, top button open, sleeves rolled
-            to the mid-forearm, no tie
-        Keiko Sakurai:
-          Age: "43"
-          Hair: Short wavy chestnut-brown bob, tucked behind the ears, no bangs over the
-            eyes, no glasses
-          Eyes: Warm brown
-          Face: Soft mature features, faint smile lines
-          Wardrobe: Pink knit cardigan over a simple cream blouse, small gold stud
-            earrings
-        Yuki Sakurai:
-          Age: "22"
-          Hair: Long slightly wavy dark brown hair worn half-up with a large white satin
-            ribbon at the back of her head
-          Eyes: Dark brown, wide and round
-          Face: Soft round face, light skin, cheeks that flush easily
-          Wardrobe: Oversized cream crew-neck knit sweater with long sleeves to the
-            wrists, thin gold chain necklace, small white pearl stud earrings.
-            No jacket, no collar, no patterns.
-        Viewer:
-          Wardrobe: Dark charcoal wool jacket sleeve clutched in the foreground
-      Action: Parents sitting frozen, staring at the viewer in stunned silence.
-        Haruma's beer glass halted mid-air. Yuki's hand still clutching the
-        viewer's arm in the foreground.
-      Expression: Haruma stunned and assessing. Keiko's eyes wide in shock.
-    createdAt: 2026-09-15T21:32:56.834Z
+        Leo: 24, screen-right standing, tousled wavy brown hair, dark charcoal wool jacket over white crew t-shirt
+        Yuki: 22, screen-right seated, wavy dark hair with white ribbon, cream knit sweater
+        Haruma: 48, middle-aged father, screen-left seated, salt-and-pepper hair, glasses, navy shirt
+        Keiko: 43, middle-aged mother, screen-left seated beside Haruma, chestnut bob, pink knit cardigan
+      Expression: Leo smiling charmingly, parents surprised
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
+      Shot: Medium shot along axis of action, parents on screen-left facing right, Leo and Yuki on screen-right facing left
+    createdAt: 2026-09-17T22:05:41.353Z
+  - name: Parents Reaction
+    prompt:
+      Action: Haruma and Keiko seated together on left side of booth, looking rightward toward Leo and Yuki
+      Characters:
+        Haruma: 48, middle-aged Japanese father in late 40s, screen-left, mature face with visible age lines and faint stubble, salt-and-pepper gray hair, thin rectangular wire-rim glasses, navy blue shirt, holding beer glass
+        Keiko: 43, middle-aged Japanese mother, screen-left beside Haruma, soft mature face, short wavy chestnut-brown bob, pink knit cardigan over cream blouse
+      Eyeline: Haruma and Keiko looking rightward across table toward couple
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow, sushi table
+      Shot: Medium shot facing parents on screen-left, looking rightward across table
+    createdAt: 2026-09-17T22:05:41.916Z
+  - name: Leo Awkward Laugh
+    prompt:
+      Action: Leo seated on screen-right beside Yuki, scratching neck with awkward laugh facing left toward parents
+      Characters:
+        Leo: 24, screen-right, tousled wavy brown hair, dark charcoal wool jacket over white crew t-shirt
+        Yuki: 22, screen-right beside Leo, cream knit sweater
+      Expression: Leo nervous sheepish laugh looking left across table
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
+      Shot: Medium shot from parents' side looking rightward at Leo and Yuki seated on screen-right
+    createdAt: 2026-09-17T22:16:35.808Z
+  - name: Leo Exclaims at Yuki
+    prompt:
+      Action: Leo on screen-right turning head to look directly at Yuki sitting right next to him with utter disbelief
+      Characters:
+        Leo: 24, screen-right, tousled wavy brown hair, dark charcoal wool jacket over white crew t-shirt
+        Yuki: 22, screen-far-right beside Leo, wide dark eyes, cream knit sweater
+      Expression: Leo jaw dropped in disbelief staring at Yuki
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
+      Shot: Medium close-up on screen-right booth, Leo turning toward Yuki
+    createdAt: 2026-09-17T22:18:25.225Z
+  - name: Parents Stunned Silence
+    prompt:
+      Action: Haruma and Keiko seated on screen-left frozen in booth, staring rightward at the couple in shock
+      Characters:
+        Haruma: 48, middle-aged Japanese father in late 40s, screen-left, mature face with visible age lines and faint stubble, salt-and-pepper gray hair, thin rectangular wire-rim glasses, navy blue shirt, beer glass paused mid-air
+        Keiko: 43, middle-aged Japanese mother, screen-left next to Haruma, soft mature face, chestnut bob, pink knit cardigan
+      Eyeline: Haruma stunned staring right, Keiko eyes wide in disbelief looking right
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
+      Shot: Medium shot facing parents on screen-left, looking rightward across table
+    createdAt: 2026-09-17T22:18:32.662Z
+  - name: Yuki Panic Stare
+    prompt:
+      Action: Yuki kicking Leo under table while flashing wide panicked eyes and strained smile
+      Characters:
+        Yuki: 22, wavy dark hair with white satin ribbon, cream knit sweater
+        Leo: 24, tousled wavy brown hair, dark charcoal wool jacket
+      Expression: Yuki sheer panic, wide eyes, desperate forced smile
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern light
+      Shot: Medium close-up on Yuki seated beside Leo
+    createdAt: 2026-09-17T22:18:40.396Z
+  - name: Haruma Eyeing Them
+    prompt:
+      Action: Father Haruma on screen-right leaning back with crossed arms, looking left across the table with cold suspicion
+      Characters:
+        Haruma: 48, middle-aged Japanese father in late 40s, screen-right facing left, mature angular face with faint stubble, salt-and-pepper gray hair, wire-rim glasses, navy button-down shirt
+      Eyeline: Haruma on screen-right looking intently across table to screen-left
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
+      Shot: Medium close-up over-the-shoulder reverse shot.
+      Foreground left: silhouette of Leo's shoulder.
+      Right: Haruma in sharp focus facing left.
+    createdAt: 2026-09-17T22:18:49.499Z
+  - name: Leo Digs Deeper Hole
+    prompt:
+      Action: Leo on screen-left raising hands defensively trying to explain, Yuki on screen-right blushing nervously next to him
+      Characters:
+        Leo: 24, screen-left, messy brown hair, open charcoal jacket over white shirt, looking forward-right explaining
+        Yuki: 22, screen-right, long dark hair, white satin ribbon, cream knit sweater, hands clasped anxiously
+      Eyeline: Leo on left looking across table to right, Yuki on right looking anxious
+      Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
+      Shot: Medium shot two-shot.
+      Screen-left: Leo seated facing forward-right.
+      Screen-right: Yuki seated facing forward-left.
+    createdAt: 2026-09-17T22:35:48.549Z
+  - name: Leo Whispers Back
+    prompt:
+      Action: Young man Leo on screen-left facing right whispering into the ear of young woman Yuki on screen-right facing left
+      Characters:
+        Leo: 24, screen-left facing right, tousled wavy brown hair, dark charcoal wool jacket over white crew shirt
+        Yuki: 22, screen-right facing left, long dark hair with large white satin ribbon, cream knit sweater
+      Eyeline: Leo on left looks right at Yuki, Yuki on right faces left toward Leo
+      Scene: Tenno Sushi wooden booth interior, Little Tokyo, warm lantern light
+      Shot: Medium close-up two-shot along axis of action.
+      Left: Leo in charcoal jacket facing right.
+      Right: Yuki in cream sweater facing left.
+    createdAt: 2026-09-17T22:37:32.066Z
 cards:
   - name: Style
     attributes:

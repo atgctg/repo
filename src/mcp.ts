@@ -10,15 +10,13 @@ import {
   setCard,
 } from './stories'
 
-const FreeformObject = z.looseObject({}).meta({ additionalProperties: true })
-
 const SlideSchema = z.object({
   background: z.string().optional().describe('Background image name from media'),
-  speaker: z.string().optional().describe('Speaker character name or role'),
+  speaker: z.string().optional().describe('Speaker character name or role; comes before dialogue field'),
   dialogue: z
     .union([z.string(), z.array(z.string())])
     .optional()
-    .describe('Spoken line or action. Can be a single string or an array of lines.'),
+    .describe('Spoken line or short *action* in asterisk. Can be a single string or an array of lines. Do not surround with quotation marks.'),
 })
 
 const storyId = z.string().describe('ID of the story')
@@ -29,20 +27,27 @@ export function createServer(): McpServer {
     version: '1.0.0',
   })
 
+  const MAX_PROMPT_CHARS = 2500
+  const SOFT_MAX_PROMPT_CHARS = 2000
+
   server.registerTool(
-    'Image',
+    'Imagine',
     {
-      description: 'Generate an background image for the story. To overwrite an existing image, use the same name.'
-       + 'Prompts must be self-contained: the generator only sees this prompt plus the Style card (appended after). '
+      description: 'Generate an image. To overwrite an existing image, use the same name.'
       + 'Give each entity distinct repeatable features. '
-      + 'Never write "as before", "earlier", "same as last", "previous", or "that background". '
-      + 'Put rendered text in quotation marks, e.g. clouds spelling "Hello". ',
+      + 'Put rendered text in quotation marks, e.g. clouds spelling "Hello". '
+       + 'Prompts must be self-contained: the generator only sees this prompt plus the Style card (appended after). '
+       + 'Never refer to previous images using "earlier", "same as last" or similar. ',
       inputSchema: z.object({
         storyId,
-        name: z.string().describe('Unique name'),
-        prompt: FreeformObject.describe(
-          'Structured prompt object. Max 3 nested levels.',
-        ),
+        name: z.string().describe('Unique'),
+        prompt: z
+          .record(z.string(), z.unknown())
+          .refine(
+            (val) => JSON.stringify(val).length <= MAX_PROMPT_CHARS,
+            { message: `Prompt object must be ${SOFT_MAX_PROMPT_CHARS} characters or less when serialized` },
+          )
+          .describe(`Structured prompt object. Max 3 nested levels, max ${SOFT_MAX_PROMPT_CHARS} chars JSON.`),
       }),
     },
     async ({ storyId, name, prompt }) => {
@@ -62,16 +67,15 @@ export function createServer(): McpServer {
     'Insert',
     {
       description:
-        'Append or insert a slide into the story. '
-        + 'Specify background, speaker, and dialogue line(s). '
-        + 'If dialogue is an array of strings, lines are stacked on the slide. '
-        + 'Default to short lines, max 70 characters; split longer speech at pauses into multiple lines. '
-        + 'Prefer character speech over narration. Keep the speaker\'s voice. '
-        + 'Can also add slides without dialogue (establishing shots or pauses). ',
+        'Insert a slide into the story. Use this to continue the story by appending new slides one by one. '
+        + 'Max 70 characters per line; split longer speech at natural pauses into multiple lines. '
+        + 'Leave speaker empty for narration or superimposed text.'
+        + 'Prefer character dialogue over narration. '
+        + 'For visual storytelling, only set the background. ',
       inputSchema: SlideSchema.extend({
         storyId,
         index: z.number().int().nonnegative().optional().describe(
-          '0-based index before which to insert (omit to append to end)'
+          '0-based index before which to insert (omit this to just append at the end)'
         ),
       }),
     },
@@ -154,27 +158,24 @@ export function createServer(): McpServer {
   server.registerTool(
     'Card',
     {
-      description:
-        'Create or patch a named card (characters, Style, etc.). Only create cards when asked. '
-        + 'attributes is a patch merged into the existing card with this name: nested objects deep-merge, '
-        + 'JSON null deletes a field. cover names an existing image; '
-        + 'null clears it. Default to short key-value pairs. Max 3 nested levels. ',
+      description: 'Create or patch a named card (Character, Style, etc.). Only create cards when asked.',
       inputSchema: z.object({
         storyId,
-        name: z.string().describe(
-          'Card name. Same name patches the existing card.'
-        ),
+        name: z.string().describe('Unique'),
         cover: z
           .string()
           .nullable()
           .optional()
           .describe(
-            'Existing image name to use as the card cover. null clears it.'
+            'Existing image name to use as the card cover, or `null` to clear it.'
           ),
-        attributes: FreeformObject.optional().describe(
-          'Patch of short keys/values. Nested merge, null deletes. '
-          + 'Example: { Look: { Wear: "pink cardigan" }, Vibe: null }'
-        ),
+        attributes: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe(
+            'A patch merged into the existing card with this name: nested objects deep-merge. '
+            + 'Default to short key-value pairs. Max 3 nested levels. Use `null` to delete a field.',
+          ),
       }),
     },
     async ({ storyId, name, cover, attributes }) => {

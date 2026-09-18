@@ -10,13 +10,23 @@ import {
   setCard,
 } from './stories'
 
+const MAX_LINE_CHARS = 120
+const SOFT_MAX_LINE_CHARS = 80
+
+const LineSchema = z
+  .string()
+  .refine(
+    (line) => line.length <= MAX_LINE_CHARS,
+    { message: `Line must be ${SOFT_MAX_LINE_CHARS} characters or less (split longer speech into multiple lines)` },
+  )
+
 const SlideSchema = z.object({
   background: z.string().optional().describe('Background image name from media'),
-  speaker: z.string().optional().describe('Speaker character name or role; comes before dialogue field'),
+  speaker: z.string().optional().describe('Speaker character name or role'),
   dialogue: z
-    .union([z.string(), z.array(z.string())])
+    .union([LineSchema, z.array(LineSchema)])
     .optional()
-    .describe('Spoken line or short *action* in asterisk. Can be a single string or an array of lines. Do not surround with quotation marks.'),
+    .describe(`Spoken line or short *action* in asterisks. Split longer speech into multiple lines (max ${SOFT_MAX_LINE_CHARS} chars per line).`),
 })
 
 const storyId = z.string().describe('ID of the story')
@@ -33,21 +43,17 @@ export function createServer(): McpServer {
   server.registerTool(
     'Imagine',
     {
-      description: 'Generate an image. To overwrite an existing image, use the same name.'
-      + 'Give each entity distinct repeatable features. '
-      + 'Put rendered text in quotation marks, e.g. clouds spelling "Hello". '
-       + 'Prompts must be self-contained: the generator only sees this prompt plus the Style card (appended after). '
-       + 'Never refer to previous images using "earlier", "same as last" or similar. ',
+      description: 'Generate an image',
       inputSchema: z.object({
         storyId,
-        name: z.string().describe('Unique'),
+        name: z.string().describe('Unique (use an existing name to overwrite)'),
         prompt: z
           .record(z.string(), z.unknown())
           .refine(
             (val) => JSON.stringify(val).length <= MAX_PROMPT_CHARS,
             { message: `Prompt object must be ${SOFT_MAX_PROMPT_CHARS} characters or less when serialized` },
           )
-          .describe(`Structured prompt object. Max 3 nested levels, max ${SOFT_MAX_PROMPT_CHARS} chars JSON.`),
+          .describe(`Structured freeform JSON object. Max 3 nested levels, max ${SOFT_MAX_PROMPT_CHARS} chars.`),
       }),
     },
     async ({ storyId, name, prompt }) => {
@@ -66,16 +72,11 @@ export function createServer(): McpServer {
   server.registerTool(
     'Insert',
     {
-      description:
-        'Insert a slide into the story. Use this to continue the story by appending new slides one by one. '
-        + 'Max 70 characters per line; split longer speech at natural pauses into multiple lines. '
-        + 'Leave speaker empty for narration or superimposed text.'
-        + 'Prefer character dialogue over narration. '
-        + 'For visual storytelling, only set the background. ',
+      description: 'Insert a slide',
       inputSchema: SlideSchema.extend({
         storyId,
         index: z.number().int().nonnegative().optional().describe(
-          '0-based index before which to insert (omit this to just append at the end)'
+          '0-based index before which to insert (omit to append at the end)'
         ),
       }),
     },
@@ -120,7 +121,7 @@ export function createServer(): McpServer {
   server.registerTool(
     'Delete',
     {
-      description: 'Delete slides by 0-based index or array of indices.',
+      description: 'Delete slides',
       inputSchema: z.object({
         storyId,
         indices: z
@@ -166,15 +167,12 @@ export function createServer(): McpServer {
           .string()
           .nullable()
           .optional()
-          .describe(
-            'Existing image name to use as the card cover, or `null` to clear it.'
-          ),
+          .describe('Existing image name to use as card cover, or null to clear it'),
         attributes: z
           .record(z.string(), z.unknown())
           .optional()
           .describe(
-            'A patch merged into the existing card with this name: nested objects deep-merge. '
-            + 'Default to short key-value pairs. Max 3 nested levels. Use `null` to delete a field.',
+            'Deep-merged key-value patch (max 3 nested levels). Set a field to null to delete it.',
           ),
       }),
     },

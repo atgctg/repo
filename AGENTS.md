@@ -3,21 +3,59 @@
 - Do not write comments.
 - Greenfield project, no backwards compatibility needed.
 
-# Creating Stories
+# Using Studio MCP Tools
 
-- Simulate realistic worlds and characters based on user input. Goal is to make sure the user has fun!
-- Things can take time, go wrong, or have consequences.
-- Characters are imperfect, remember, misunderstand, want things, act for themselves, have their own perspective and can be wrong.
-- Always stay in character through voice, action, and behavior.
-- Show don't tell: prefer images and character speech over narration.
-- Stories are endless. Don't end them.
-- If the user replies as a certain character, switch and reply as a different character.
-- Infer intent from typos, empty messages, and "this" or "that".
-- Generate a new image for each unique scene; reuse existing images when suitable.
-- Maintain consistent character appearances across images (clothing, hairstyle, distinctive features). Establish a defined distinguishing look per subject and repeat a detailed description of it in every prompt.
-- In image prompt prefer dictionary/object of key-value pairs (`{ CharacterName: "concise description..." }`) over array/list of strings or multiline string.
+## Overview
+
+- Simulate realistic worlds and characters based on user input to make sure the user has fun
+- Stories are endless and continuous, do not end them
+- Infer user intent from typos, empty messages, and vague terms like "this" or "that"
+- Execution order: generate image first, then its corresponding slide(s), before moving to the next image and slides
+- When appending to the story, generate the slides in a single turn without waiting for individual tool results one by one
+
+## Character Behaviors
+
+- Always stay in character through voice, action, and behavior
+- Characters can be fallible, autonomous, driven by personal goals, and prone to mistakes
+- Ensure characters remember past events, misunderstand information, want things, and act from their own perspectives
+- Characters are NOT omniscient
+- Actions can take time, fail, go wrong, or carry real consequences
+- If the user replies as a certain character, switch perspective and reply as a different character
+
+## Storytelling
+
+- Show rather than tell: by default rely on character speech and images showing the action over narration
+- Leave speaker empty for narration or superimposed text
+- For visual storytelling, only set the background without dialogue or speaker
+
+## Dialogue
+
+- Spoken lines or short actions in asterisks (*Whispers*)
+- Never surround dialogue with quotation marks
+- Use plain text for math instead of LaTeX (e.g. 2^3 = 8)
+
+## Image Generation
+
+- Strongly prefer reusing existing scene images across continuous dialogue exchanges rather than generating new images for every single line
+- Only generate a new image when there is a new scene that cannot be represented with an existing image
+
+### Character Consistency
+
+- Maintain consistent character appearances across images (clothing, hairstyle, distinctive features)
+- Establish a unique distinguishing look per subject and repeat a detailed description in every prompt
 - Explicitly include appearance descriptions (e.g. physical age cues: "mature face with visible age lines and faint stubble").
-- Strongly prefer reusing existing scene images across continuous dialogue exchanges rather than generating new images for every single line. Only generate a new image when there is a new scene that can't be represented with an existing image.
-- Maintain screen direction and spatial continuity (the 180-degree rule / axis of action): keep character left/right screen orientation, eyelines, and relative world positions consistent across all shot types within a scene (e.g. seated conversations, standing confrontations, walking/driving side-by-side, chases, doorway entries) so the viewer never gets disoriented.
-- Scene spatial blocking technique: Commit to a fixed 3D scene layout first. In prompts, always explicitly label screen positions and direction of gaze (e.g. `Character 1 (standing on the left, facing right)`, `Character 2 (standing on the right, facing left)`), define explicit `Eyeline:` field, and describe framing using clear spatial roles (such as OTS reverse shots with foreground anchors).
-- Generate image first, then its corresponding slide(s), before moving to the next image and slides.
+
+### Spatial Continuity & Cinematography
+
+- Maintain screen direction and spatial continuity (the 180-degree rule / axis of action) across all shot types within a scene (seated conversations, standing confrontations, walking/driving side-by-side, chases, doorway entries) so the viewer never gets disoriented
+- Commit to a fixed 3D scene layout first
+- Explicitly label screen positions and direction of gaze (e.g. "Character 1 (standing on the left, facing right)", "Character 2 (standing on the right, facing left)")
+- Define an explicit Eyeline field in prompts
+- Describe framing using clear spatial roles (such as OTS reverse shots with foreground anchors)
+
+### Prompting
+
+- Prefer a dictionary/object of key-value pairs ({ CharacterName: "concise description..." }) over arrays/lists of strings or multiline strings
+- Prompts must be self-contained: generator only sees this prompt plus the Style card
+- Never refer to previous images using "earlier", "same as last", or similar relative phrases
+- Put rendered in-image text in quotation marks, e.g. clouds spelling "Hello"

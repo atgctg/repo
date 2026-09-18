@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/server'
 import { serveStdio } from '@modelcontextprotocol/server/stdio'
 import { z } from 'zod'
 import { errorMessage } from './generate'
+import { normalizeRecord } from './records'
 import {
   deleteSlides,
   generateImage,
@@ -10,24 +11,37 @@ import {
   setCard,
 } from './stories'
 
-const MAX_LINE_CHARS = 120
-const SOFT_MAX_LINE_CHARS = 80
-
-const LineSchema = z
-  .string()
-  .refine(
-    (line) => line.length <= MAX_LINE_CHARS,
-    { message: `Line must be ${SOFT_MAX_LINE_CHARS} characters or less (split longer speech into multiple lines)` },
-  )
+function normalizeToRecord(val: unknown) {
+  return val === undefined ? undefined : normalizeRecord(val)
+}
 
 const SlideSchema = z.object({
   background: z.string().optional().describe('Background image name from media'),
   speaker: z.string().optional().describe('Speaker character name or role'),
   dialogue: z
-    .union([LineSchema, z.array(LineSchema)])
+    .union([z.string(), z.array(z.string())])
     .optional()
-    .describe(`Spoken line or short *action* in asterisks. Split longer speech into multiple lines (max ${SOFT_MAX_LINE_CHARS} chars per line).`),
+    .describe('Spoken line or short *action* in asterisks. Try to keep lines below 70 chars, splitting longer speech into multiple lines.'),
 })
+
+const MAX_PROMPT_CHARS = 2000
+const PromptLeaf = z.string().describe('Concise description text')
+const PromptDetails = z
+  .record(z.string(), PromptLeaf)
+  .describe('Named group of text fields, e.g. Characters: { Leo: "..." }')
+const PromptGroup = z.record(z.string(), z.union([PromptLeaf, PromptDetails]))
+const PromptSection = z.union([PromptLeaf, z.record(z.string(), z.union([PromptLeaf, PromptGroup]))])
+
+const PromptSchema = z.preprocess(
+  normalizeToRecord,
+  z
+    .record(z.string(), PromptSection)
+    .refine(
+      (val) => JSON.stringify(val).length <= MAX_PROMPT_CHARS,
+      { message: `Prompt object must be ${MAX_PROMPT_CHARS} characters or less when serialized` },
+    )
+    .describe(`Structured freeform key-value object (max 3 nested levels, max ${MAX_PROMPT_CHARS} chars serialized). Values are text or nested objects of text.`),
+)
 
 const storyId = z.string().describe('ID of the story')
 
@@ -37,9 +51,6 @@ export function createServer(): McpServer {
     version: '1.0.0',
   })
 
-  const MAX_PROMPT_CHARS = 2500
-  const SOFT_MAX_PROMPT_CHARS = 2000
-
   server.registerTool(
     'Imagine',
     {
@@ -47,13 +58,7 @@ export function createServer(): McpServer {
       inputSchema: z.object({
         storyId,
         name: z.string().describe('Unique (use an existing name to overwrite)'),
-        prompt: z
-          .record(z.string(), z.unknown())
-          .refine(
-            (val) => JSON.stringify(val).length <= MAX_PROMPT_CHARS,
-            { message: `Prompt object must be ${SOFT_MAX_PROMPT_CHARS} characters or less when serialized` },
-          )
-          .describe(`Structured freeform JSON object. Max 3 nested levels, max ${SOFT_MAX_PROMPT_CHARS} chars.`),
+        prompt: PromptSchema,
       }),
     },
     async ({ storyId, name, prompt }) => {
@@ -136,7 +141,7 @@ export function createServer(): McpServer {
       }),
     },
     async ({ storyId, indices, index }) => {
-      const targets = indices ?? (index !== undefined ? index : [])
+      const targets = indices ?? index ?? []
       try {
         const { deleted, story } = await deleteSlides(storyId, targets)
         return {
@@ -168,12 +173,15 @@ export function createServer(): McpServer {
           .nullable()
           .optional()
           .describe('Existing image name to use as card cover, or null to clear it'),
-        attributes: z
-          .record(z.string(), z.unknown())
-          .optional()
-          .describe(
-            'Deep-merged key-value patch (max 3 nested levels). Set a field to null to delete it.',
-          ),
+        attributes: z.preprocess(
+          normalizeToRecord,
+          z
+            .record(z.string(), z.unknown())
+            .optional()
+            .describe(
+              'Deep-merged key-value patch (any JSON values, including arrays and numbers). Set a field to null to delete it.',
+            ),
+        ),
       }),
     },
     async ({ storyId, name, cover, attributes }) => {

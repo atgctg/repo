@@ -1,5 +1,5 @@
 import { stringify } from 'yaml'
-import { isPlainObject } from '../attributes'
+import { isPlainObject } from '../records'
 import type { Card, MediaAsset, Slide, Story, StorySummary } from '../types'
 
 {
@@ -27,7 +27,7 @@ function findImage(media: Story['media'], name?: string): MediaAsset | undefined
 }
 
 function canGenerate(asset?: MediaAsset): boolean {
-  return Boolean(asset && !asset.url && asset.prompt && Object.keys(asset.prompt).length > 0)
+  return Boolean(asset && !asset.url) && canPromptImage(asset)
 }
 
 function canPromptImage(asset?: MediaAsset): boolean {
@@ -40,6 +40,14 @@ function formatPromptYaml(prompt?: Record<string, unknown>): string {
 }
 
 const REFRESH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
+
+function cardClass(hasImage: boolean, extra = ''): string {
+  return ['card', extra, hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
+}
+
+function imgTag(url?: string): string {
+  return url ? `<img class="card-img" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />` : ''
+}
 
 function renderGenerateBtn(storyId: string, asset?: MediaAsset): string {
   if (!canGenerate(asset) || !asset) return ''
@@ -88,8 +96,7 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
   const hasSpeaker = Boolean(slide.speaker?.trim())
 
   const mediaAsset = findImage(media, slide.background)
-  const hasImage = Boolean(mediaAsset?.url)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.url!)}?v=${cacheBuster}" alt="" />` : ''
+  const bgHtml = imgTag(mediaAsset?.url)
 
   const isLeft = hasSpeaker || lines.length > 1
   const dialogueLinesHtml = lines
@@ -121,11 +128,11 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
       ? `<div class="card-title">${escapeHtml(slide.background)}</div>`
       : ''
 
-  const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
+  const cardClasses = cardClass(Boolean(mediaAsset?.url))
 
   return `
     <div class="${cardClasses}">
-      ${imgBgHtml}
+      ${bgHtml}
       ${titleHtml}
       ${contentHtml}
       ${!hasDialogue && !hasSpeaker ? renderGenerateBtn(storyId, mediaAsset) : ''}
@@ -188,14 +195,12 @@ function renderCardAttrs(attributes: Record<string, unknown>): string {
 
 function renderCard(card: Card, media: Story['media'], storyId: string): string {
   const mediaAsset = findImage(media, card.cover)
-  const hasImage = Boolean(mediaAsset?.url)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.url!)}?v=${cacheBuster}" alt="" />` : ''
   const attrsHtml = renderCardAttrs(card.attributes ?? {})
-  const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
+  const cardClasses = cardClass(Boolean(mediaAsset?.url))
 
   return `
     <div class="${cardClasses}">
-      ${imgBgHtml}
+      ${imgTag(mediaAsset?.url)}
       <div class="card-title">${escapeHtml(card.name)}</div>
       ${attrsHtml}
       ${renderGenerateBtn(storyId, mediaAsset)}
@@ -205,11 +210,10 @@ function renderCard(card: Card, media: Story['media'], storyId: string): string 
 
 function renderMedia(asset: MediaAsset, storyId: string): string {
   const hasImage = Boolean(asset.url)
-  const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(asset.url!)}?v=${cacheBuster}" alt="" />` : ''
   const promptYaml = formatPromptYaml(asset.prompt)
   const promptHtml = promptYaml ? `<pre class="card-prompt">${escapeHtml(promptYaml)}</pre>` : ''
 
-  const cardClasses = ['card', 'card-media', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
+  const cardClasses = cardClass(hasImage, 'card-media')
 
   const canPrompt = canPromptImage(asset)
   const btnHtml = canPrompt
@@ -220,7 +224,7 @@ function renderMedia(asset: MediaAsset, storyId: string): string {
 
   return `
     <div class="${cardClasses}">
-      ${imgBgHtml}
+      ${imgTag(asset.url)}
       <div class="card-title">${escapeHtml(asset.name)}</div>
       ${promptHtml}
       ${btnHtml}
@@ -251,16 +255,10 @@ function renderIndex(stories: Array<string | StorySummary>): void {
       const id = typeof item === 'string' ? item : item.id
       const title = typeof item === 'string' ? item : item.title || item.id
       const cover = typeof item === 'string' ? undefined : item.cover
-      const hasImage = Boolean(cover)
-      const imgBgHtml = hasImage
-        ? `<img class="card-img" src="${escapeHtml(cover!)}?v=${cacheBuster}" alt="" />`
-        : ''
-
-      const cardClasses = ['card', hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 
       return `
-        <a href="/${encodeURIComponent(id)}" class="${cardClasses}">
-          ${imgBgHtml}
+        <a href="/${encodeURIComponent(id)}" class="${cardClass(Boolean(cover))}">
+          ${imgTag(cover)}
           <div class="card-title">${escapeHtml(title)}</div>
         </a>
       `
@@ -413,39 +411,34 @@ function navigate(url: string): void {
 }
 
 let lastPayload = ''
+function renderOnce(payload: string, render: () => void): void {
+  if (payload === lastPayload) return
+  lastPayload = payload
+  render()
+}
 async function refresh(): Promise<void> {
   const pathname = currentPathname()
   const route = currentRoute()
-  let payload: string
 
   if (!pathname) {
     const stories = (await fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json())) as Array<
       string | StorySummary
     >
     if (currentRoute() !== route) return
-    payload = JSON.stringify({ pathname, stories })
-    if (payload === lastPayload) return
-    lastPayload = payload
-    renderIndex(stories)
+    renderOnce(JSON.stringify({ pathname, stories }), () => renderIndex(stories))
     return
   }
 
   const res = await fetch(`/api/stories/${encodeURIComponent(pathname)}`, { cache: 'no-store' })
   if (currentRoute() !== route) return
   if (!res.ok) {
-    payload = JSON.stringify({ pathname, missing: true })
-    if (payload === lastPayload) return
-    lastPayload = payload
-    renderNotFound(pathname)
+    renderOnce(JSON.stringify({ pathname, missing: true }), () => renderNotFound(pathname))
     return
   }
 
   const story = (await res.json()) as Story
   if (currentRoute() !== route) return
-  payload = JSON.stringify({ pathname, search: location.search, story })
-  if (payload === lastPayload) return
-  lastPayload = payload
-  renderStory(story)
+  renderOnce(JSON.stringify({ pathname, search: location.search, story }), () => renderStory(story))
 }
 
 const generating = new Set<string>()

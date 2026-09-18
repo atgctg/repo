@@ -26,16 +26,12 @@ export function mediaUrl(storyId: string, name: string): string {
   return `/media/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(mediaFileName(name))}`
 }
 
-function attributesToYaml(attributes: Record<string, unknown>): string {
-  return stringify(attributes, { indent: 2 }).trim()
-}
-
 function promptWithStyle(story: Story, prompt: Record<string, unknown>): string {
   const hasStyle = Object.keys(prompt).some((k) => k.toLowerCase() === 'style')
   const style = !hasStyle && story.cards.find((card) => card.name.toLowerCase() === 'style')?.attributes
-  const chunks: string[] = [attributesToYaml(prompt)]
+  const chunks: string[] = [stringify(prompt, { indent: 2 }).trim()]
   if (style && Object.keys(style).length > 0) {
-    chunks.push(attributesToYaml({ Style: style }))
+    chunks.push(stringify({ Style: style }, { indent: 2 }).trim())
   }
   return chunks.join('\n')
 }
@@ -51,19 +47,9 @@ type PrunaPrediction = {
 }
 
 function prunaStatus(value: unknown): PrunaStatus {
-  switch (value) {
-    case 'succeeded':
-    case 'starting':
-    case 'processing':
-    case 'failed':
-      return value
-    default:
-      return 'unknown'
-  }
-}
-
-function prunaHeaders(apiKey: string): HeadersInit {
-  return { apikey: apiKey }
+  return value === 'succeeded' || value === 'starting' || value === 'processing' || value === 'failed'
+    ? value
+    : 'unknown'
 }
 
 function absolutePrunaUrl(url: string): string {
@@ -83,7 +69,7 @@ async function generatePrunaImage(prompt: string): Promise<ArrayBuffer> {
   const response = await fetch('https://api.pruna.ai/v1/predictions', {
     method: 'POST',
     headers: {
-      ...prunaHeaders(apiKey),
+      apikey: apiKey,
       Model: PRUNA_MODEL,
       'Try-Sync': 'true',
       'Content-Type': 'application/json',
@@ -109,7 +95,7 @@ async function generatePrunaImage(prompt: string): Promise<ArrayBuffer> {
   }
 
   const generationUrl = await resolvePrunaGenerationUrl(parsed, apiKey)
-  return fetchImageBytes(absolutePrunaUrl(generationUrl), prunaHeaders(apiKey))
+  return fetchImageBytes(absolutePrunaUrl(generationUrl), { apikey: apiKey })
 }
 
 async function resolvePrunaGenerationUrl(parsed: PrunaPrediction, apiKey: string): Promise<string> {
@@ -123,7 +109,7 @@ async function resolvePrunaGenerationUrl(parsed: PrunaPrediction, apiKey: string
 
   const deadline = Date.now() + 90_000
   while (Date.now() < deadline) {
-    const statusRes = await fetch(statusUrl, { headers: prunaHeaders(apiKey) })
+    const statusRes = await fetch(statusUrl, { headers: { apikey: apiKey } })
     const statusBody = await statusRes.text()
     if (!statusRes.ok) throw new Error(`Pruna status error: ${statusBody}`)
 

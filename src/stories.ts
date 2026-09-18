@@ -1,5 +1,5 @@
 import { parse, stringify } from 'yaml'
-import { mergeAttributes } from './attributes'
+import { mergeAttributes } from './records'
 import { generateStoryImage, mediaDiskPath, mediaUrl, safeStoryId } from './generate'
 import type { Card, MediaAsset, NumberedSlide, Slide, Story, StorySummary } from './types'
 
@@ -46,9 +46,10 @@ function createEmptyStory(id: string): Story {
 
 export function getStoryCover(story: Story): string | undefined {
   for (const slide of story.slides) {
-    if (!slide.background) continue
-    const asset = story.media.find((m) => m.name.toLowerCase() === slide.background!.toLowerCase())
-    if (asset?.url) return asset.url
+    const bg = slide.background
+    if (!bg) continue
+    const url = story.media.find((m) => m.name.toLowerCase() === bg.toLowerCase())?.url
+    if (url) return url
   }
   return undefined
 }
@@ -127,12 +128,12 @@ export async function persistStory(story: Story): Promise<void> {
 
 export async function generateImage(
   storyId: string,
-  params: string | { name: string; prompt?: Record<string, unknown> },
+  params: { name: string; prompt?: Record<string, unknown> },
 ): Promise<{ story: Story; asset: MediaAsset; url: string }> {
-  const name = typeof params === 'string' ? params : params.name
+  const { name } = params
   const story = await loadStory(storyId)
   const existing = story.media.find((m) => m.name.toLowerCase() === name.toLowerCase())
-  const prompt = (typeof params === 'object' && params.prompt) || existing?.prompt
+  const prompt = params.prompt ?? existing?.prompt
   if (!prompt || Object.keys(prompt).length === 0) {
     throw new Error(`No prompt for image "${name}"`)
   }
@@ -246,10 +247,11 @@ export async function readSlides(
 ): Promise<NumberedSlide[]> {
   const story = await loadStory(storyId)
   const len = story.slides.length
-  const start = options.last !== undefined
-    ? Math.max(0, len - options.last)
-    : Math.max(0, options.offset !== undefined ? resolveIndex(options.offset, len) : 0)
-  const end = options.limit !== undefined ? Math.min(len, start + options.limit) : len
+  const { offset, limit, last } = options
+  const start = last !== undefined
+    ? Math.max(0, len - last)
+    : Math.max(0, offset !== undefined ? resolveIndex(offset, len) : 0)
+  const end = limit !== undefined ? Math.min(len, start + limit) : len
 
   return story.slides
     .slice(start, end)

@@ -5,6 +5,8 @@
 
 # Using Studio MCP Tools
 
+- Do not read the `.env` file, secrets are loaded when using the MCP server.
+
 ## Overview
 
 - Simulate realistic worlds and characters based on user input to make sure the user has fun
@@ -53,7 +55,7 @@
 
 ### Prompting
 
-- Prefer a dictionary/object of key-value pairs ({ CharacterName: "concise description..." }) over arrays/lists of strings or multiline strings
+- For nested fields use a dictionary object of key-value pairs ({ Character: "concise description..." }), never a string containing escaped JSON
 - Prompts must be self-contained, never refer to previous images using "earlier", "same as last", or similar relative phrases
 - Put rendered in-image text in quotation marks, e.g. clouds spelling "Hello"
 - The Style card is automatically appended to every image prompt. To override it for a specific image, set a Style field directly in the prompt

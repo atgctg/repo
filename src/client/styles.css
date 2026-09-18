@@ -268,10 +268,54 @@ a.card:hover {
   cursor: wait;
 }
 
-.gen-btn.regen-icon {
-  left: auto;
+.media-actions {
+  position: absolute;
   right: 12px;
   top: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.card:hover .media-actions,
+.card-media:hover .media-actions,
+.media-actions.is-generating,
+.media-actions:has(:disabled) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.copy-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.copy-btn svg {
+  display: block;
+}
+
+.copy-btn:hover {
+  background: var(--tint);
+}
+
+.gen-btn.regen-icon {
+  position: static;
+  left: auto;
+  right: auto;
+  top: auto;
   transform: none;
   width: 36px;
   height: 36px;
@@ -280,12 +324,12 @@ a.card:hover {
   align-items: center;
   justify-content: center;
   background: transparent;
-  border-radius: 0;
-  color: #fff;
+  border-radius: 50%;
+  color: var(--fg);
 }
 
 .gen-btn.regen-icon:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--tint);
 }
 
 .gen-btn.regen-icon.is-generating,
@@ -366,7 +410,7 @@ a.card:hover {
 
 .card-media .card-title {
   text-align: left;
-  padding-right: 36px;
+  padding-right: 80px;
 }
 
 .card-attrs {

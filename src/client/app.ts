@@ -40,6 +40,8 @@ function formatPromptYaml(prompt?: Record<string, unknown>): string {
 }
 
 const REFRESH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
+const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`
+const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`
 
 function cardClass(hasImage: boolean, extra = ''): string {
   return ['card', extra, hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
@@ -216,10 +218,17 @@ function renderMedia(asset: MediaAsset, storyId: string): string {
   const cardClasses = cardClass(hasImage, 'card-media')
 
   const canPrompt = canPromptImage(asset)
-  const btnHtml = canPrompt
-    ? hasImage
-      ? `<button type="button" class="gen-btn regen-btn regen-icon" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" aria-label="Regenerate" title="Regenerate">${REFRESH_ICON}</button>`
-      : `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
+  const copyBtnHtml = promptYaml
+    ? `<button type="button" class="copy-btn" aria-label="Copy prompt" title="Copy prompt">${COPY_ICON}</button>`
+    : ''
+  const regenBtnHtml = canPrompt && hasImage
+    ? `<button type="button" class="gen-btn regen-btn regen-icon" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" aria-label="Regenerate" title="Regenerate">${REFRESH_ICON}</button>`
+    : ''
+  const actionsHtml = copyBtnHtml || regenBtnHtml
+    ? `<div class="media-actions">${copyBtnHtml}${regenBtnHtml}</div>`
+    : ''
+  const genBtnHtml = canPrompt && !hasImage
+    ? `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
     : ''
 
   return `
@@ -227,7 +236,8 @@ function renderMedia(asset: MediaAsset, storyId: string): string {
       ${imgTag(asset.url)}
       <div class="card-title">${escapeHtml(asset.name)}</div>
       ${promptHtml}
-      ${btnHtml}
+      ${actionsHtml}
+      ${genBtnHtml}
     </div>
   `
 }
@@ -441,6 +451,21 @@ async function refresh(): Promise<void> {
   renderOnce(JSON.stringify({ pathname, search: location.search, story }), () => renderStory(story))
 }
 
+async function copyPromptFromButton(button: HTMLButtonElement): Promise<void> {
+  const card = button.closest('.card')
+  const promptText = card?.querySelector('.card-prompt')?.textContent?.trim()
+  if (!promptText) return
+
+  await navigator.clipboard.writeText(promptText)
+
+  button.innerHTML = CHECK_ICON
+  button.title = 'Copied'
+  setTimeout(() => {
+    button.innerHTML = COPY_ICON
+    button.title = 'Copy prompt'
+  }, 1500)
+}
+
 const generating = new Set<string>()
 
 async function generateFromButton(button: HTMLButtonElement): Promise<void> {
@@ -452,8 +477,13 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
   generating.add(job)
   button.disabled = true
   const isIcon = button.classList.contains('regen-icon')
-  if (isIcon) button.classList.add('is-generating')
-  else button.textContent = 'Generating…'
+  const actions = button.closest('.media-actions')
+  if (isIcon) {
+    button.classList.add('is-generating')
+    actions?.classList.add('is-generating')
+  } else {
+    button.textContent = 'Generating…'
+  }
   const started = performance.now()
   console.error('img gen start', { storyId, name })
   try {
@@ -481,6 +511,7 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
       button.textContent = message
     }
   } finally {
+    actions?.classList.remove('is-generating')
     generating.delete(job)
   }
 }
@@ -488,6 +519,12 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
 document.addEventListener('click', (event) => {
   const target = event.target
   if (!(target instanceof Element)) return
+  const copy = target.closest('button.copy-btn')
+  if (copy instanceof HTMLButtonElement) {
+    event.preventDefault()
+    void copyPromptFromButton(copy)
+    return
+  }
   const gen = target.closest('button.gen-btn')
   if (gen instanceof HTMLButtonElement) {
     event.preventDefault()

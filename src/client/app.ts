@@ -91,9 +91,7 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
   const hasImage = Boolean(mediaAsset?.url)
   const imgBgHtml = hasImage ? `<img class="card-img" src="${escapeHtml(mediaAsset!.url!)}?v=${cacheBuster}" alt="" />` : ''
 
-  const totalLen = lines.reduce((sum, l) => sum + l.replace(/\*/g, '').trim().length, 0)
-  const isLeft = lines.length > 1 || totalLen > 120
-
+  const isLeft = hasSpeaker || lines.length > 1
   const dialogueLinesHtml = lines
     .map((l) => `<div class="dialogue-line">${formatDialogue(l)}</div>`)
     .join('')
@@ -113,6 +111,11 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
     ? `<div class="speaker"><span class="avatar"><span class="avatar-letter">${initial}</span></span><span>${escapeHtml(slide.speaker!)}</span></div>`
     : ''
 
+  const contentHtml =
+    hasDialogue || hasSpeaker
+      ? `<div class="card-dialogue">${dialogueHtml}${speakerHtml}</div>`
+      : ''
+
   const titleHtml =
     !hasDialogue && !hasSpeaker && slide.background
       ? `<div class="card-title">${escapeHtml(slide.background)}</div>`
@@ -124,8 +127,7 @@ function renderSlide(slide: Slide, media: Story['media'], storyId: string): stri
     <div class="${cardClasses}">
       ${imgBgHtml}
       ${titleHtml}
-      ${dialogueHtml}
-      ${speakerHtml}
+      ${contentHtml}
       ${!hasDialogue && !hasSpeaker ? renderGenerateBtn(storyId, mediaAsset) : ''}
     </div>
   `

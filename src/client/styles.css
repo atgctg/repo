@@ -162,13 +162,17 @@ a {
 }
 
 .card {
+  --card-pad-x: 24px;
+  --card-pad-y: 20px;
   position: relative;
   aspect-ratio: 9 / 14;
   background: transparent;
   border-radius: 12px;
-  padding: 20px;
+  padding: var(--card-pad-y) var(--card-pad-x);
   overflow: hidden;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .card:not(.has-image) {
@@ -191,6 +195,7 @@ a.card:hover {
   height: 100%;
   object-fit: cover;
   z-index: 0;
+  pointer-events: none;
 }
 
 .card.has-image {
@@ -202,7 +207,7 @@ a.card:hover {
 .card.has-image .card-title,
 .card.has-image .dialogue,
 .card.has-image .speaker {
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
 }
 
 .card.has-image:has(.card-attrs) .card-img {
@@ -210,12 +215,7 @@ a.card:hover {
   transform: scale(1.12);
 }
 
-.card:has(.card-attrs) .card-title {
-  text-align: left;
-  padding-left: 8px;
-}
-
-.card.has-image:has(.dialogue, .speaker, .card-attrs)::after {
+.card.has-image:has(.card-dialogue, .card-attrs)::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -319,14 +319,13 @@ a.card:hover {
 }
 
 .card-media .card-prompt {
-  position: absolute;
-  top: 48px;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin-top: 12px;
   z-index: 2;
-  margin: 0;
-  overflow: auto;
+  overflow-y: auto;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
@@ -350,30 +349,37 @@ a.card:hover {
 }
 
 .card-title {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  right: 20px;
-  text-align: center;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--fg);
   z-index: 2;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.card:has(.card-attrs) .card-title {
+  text-align: left;
+  padding-left: 8px;
+  margin-bottom: 14px;
+}
+
+.card-media .card-title {
+  text-align: left;
+  padding-right: 36px;
 }
 
 .card-attrs {
-  position: absolute;
-  top: 48px;
-  left: 20px;
-  right: 20px;
-  bottom: 16px;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-content: start;
   gap: 18px;
-  overflow: auto;
+  overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -430,19 +436,25 @@ a.card:hover {
   color: var(--fg);
 }
 
-.dialogue {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 55px;
+.card-dialogue {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 14px;
+  width: 100%;
+  z-index: 2;
+}
+
+.dialogue {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
   font-weight: 500;
   color: var(--fg);
   letter-spacing: -0.015em;
-  z-index: 2;
+  align-items: center;
+  text-align: center;
 }
 
 .dialogue-left {
@@ -495,9 +507,6 @@ a.card:hover {
 }
 
 .speaker {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
   display: flex;
   align-items: center;
   gap: 8px;

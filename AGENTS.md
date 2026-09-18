@@ -45,13 +45,11 @@
 - Establish a unique distinguishing look per subject and repeat a detailed description in every prompt
 - Explicitly include appearance descriptions (e.g. physical age cues: "mature face with visible age lines and faint stubble").
 
-### Spatial Continuity & Cinematography
+### Maintain spatial continuity (the 180-degree rule / axis of action)
 
-- Maintain screen direction and spatial continuity (the 180-degree rule / axis of action) across all shot types within a scene (seated conversations, standing confrontations, walking/driving side-by-side, chases, doorway entries) so the viewer never gets disoriented
-- Commit to a fixed 3D scene layout first
-- Explicitly label screen positions and direction of gaze (e.g. "Character 1 (standing on the left, facing right)", "Character 2 (standing on the right, facing left)")
-- Define an explicit Eyeline field in prompts
-- Describe framing using clear spatial roles (such as OTS reverse shots with foreground anchors)
+- All directions are always from the viewer's screen perspective: explicitly label each subject as `screen-left` or `screen-right`, and specify who or what they are `facing toward` (e.g. `Character A (screen-left, facing right toward Character B)`).
+- Camera vantage: Explicitly specify whether the camera is shooting from the front (`front view, faces visible to camera`) or from behind (`rear view / over-the-shoulder, back of head and shoulders visible`).
+- Maintain this screen direction and relative positioning consistently across all shots in a scene.
 
 ### Prompting
 

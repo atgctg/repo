@@ -31,7 +31,8 @@ function attributesToYaml(attributes: Record<string, unknown>): string {
 }
 
 function promptWithStyle(story: Story, prompt: Record<string, unknown>): string {
-  const style = story.cards.find((card) => card.name.toLowerCase() === 'style')?.attributes
+  const hasStyle = Object.keys(prompt).some((k) => k.toLowerCase() === 'style')
+  const style = !hasStyle && story.cards.find((card) => card.name.toLowerCase() === 'style')?.attributes
   const chunks: string[] = [attributesToYaml(prompt)]
   if (style && Object.keys(style).length > 0) {
     chunks.push(attributesToYaml({ Style: style }))

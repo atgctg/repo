@@ -56,6 +56,6 @@
 ### Prompting
 
 - Prefer a dictionary/object of key-value pairs ({ CharacterName: "concise description..." }) over arrays/lists of strings or multiline strings
-- Prompts must be self-contained: generator only sees this prompt plus the Style card
-- Never refer to previous images using "earlier", "same as last", or similar relative phrases
+- Prompts must be self-contained, never refer to previous images using "earlier", "same as last", or similar relative phrases
 - Put rendered in-image text in quotation marks, e.g. clouds spelling "Hello"
+- The Style card is automatically appended to every image prompt. To override it for a specific image, set a Style field directly in the prompt

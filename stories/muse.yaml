@@ -1,0 +1,428 @@
+id: muse
+title: Muse
+createdAt: 2026-09-18T15:42:25.953Z
+updatedAt: 2026-09-19T11:03:38.789Z
+scenes:
+  - type: video
+    name: Muse Wave
+    prompt: 'Second 0 to 1: Muse smiles and waves at camera, holographic scarf
+      flutters. Second 1 to 3: she says "Hi, I am Muse!" with bright happy
+      voice, spark particles drift. Second 3 to 5: she laughs and says "I keep
+      40 tabs open and call it memory training!", playful mood, circular camera
+      push, enable cheerful non-diagetic music.'
+    firstFrame: Muse
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: |-
+      *Waves*
+      Hi. I am Muse.
+    speech:
+      key: 9c982ce2d887c551.wav
+      words:
+        - Hi.
+        - I
+        - am
+        - Muse.
+      t:
+        - 108
+        - 758
+        - 1080
+        - 1240
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: |-
+      *Whispers*
+      Sometimes a cloud is just a cloud. Not today.
+    speech:
+      key: 423ec4ad9d7ed874.wav
+      words:
+        - Sometimes
+        - a
+        - cloud
+        - is
+        - just
+        - a
+        - cloud.
+        - Not
+        - today.
+      t:
+        - 120
+        - 920
+        - 920
+        - 1400
+        - 1480
+        - 1800
+        - 1880
+        - 2792
+        - 3080
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: |-
+      *Laughs*
+      I named a star after a sandwich once. It stuck.
+    speech:
+      key: 13eb0c9cf60cb97f.wav
+      words:
+        - I
+        - named
+        - a
+        - star
+        - after
+        - a
+        - sandwich
+        - once.
+        - It
+        - stuck.
+      t:
+        - 120
+        - 280
+        - 600
+        - 600
+        - 1000
+        - 1320
+        - 1320
+        - 1800
+        - 2587
+        - 2840
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: |-
+      My sandwich star? Uh, I logged it on 04/20/2025.
+      Around 7:00 PM. The sky was being dramatic.
+    speech:
+      key: e33b14afdafacc5d.wav
+      words:
+        - My
+        - sandwich
+        - star?
+        - Uh,
+        - I
+        - logged
+        - it
+        - on
+        - April
+        - twentieth,
+        - twenty
+        - twenty-five.
+        - Around
+        - seven
+        - o'clock
+        - PM.
+        - The
+        - sky
+        - was
+        - being
+        - dramatic.
+      t:
+        - 120
+        - 280
+        - 680
+        - 1320
+        - 2288
+        - 2360
+        - 2760
+        - 2840
+        - 2920
+        - 3320
+        - 4063
+        - 4200
+        - 5328
+        - 5640
+        - 6040
+        - 6280
+        - 7196
+        - 7240
+        - 7640
+        - 7880
+        - 7960
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: It cost $19.99. Receipt went to muse@orbit.mail.
+    speech:
+      key: 0be8e83025d95be5.wav
+      words:
+        - It
+        - cost
+        - nineteen
+        - dollars
+        - and
+        - ninety-nine
+        - cents.
+        - Receipt
+        - went
+        - to
+        - muse
+        - at
+        - orbit
+        - dot
+        - mail.
+      t:
+        - 120
+        - 360
+        - 600
+        - 1160
+        - 1560
+        - 1640
+        - 2200
+        - 3159
+        - 3720
+        - 3960
+        - 3960
+        - 4520
+        - 4627
+        - 4920
+        - 5240
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: |-
+      Call (415) 555-1212 if a cloud steals it.
+      I crash at 123 Main St. Sometimes.
+    speech:
+      key: ce8aad3672b46b35.wav
+      words:
+        - Call
+        - four
+        - one
+        - five,
+        - five
+        - five
+        - five,
+        - one
+        - two,
+        - one
+        - two,
+        - if
+        - a
+        - cloud
+        - steals
+        - it.
+        - I
+        - crash
+        - at
+        - one
+        - two
+        - three
+        - main
+        - street
+        - Sometimes.
+      t:
+        - 114
+        - 680
+        - 920
+        - 1160
+        - 2109
+        - 2440
+        - 2760
+        - 3673
+        - 4040
+        - 4648
+        - 5080
+        - 5637
+        - 5880
+        - 5960
+        - 6200
+        - 6680
+        - 7234
+        - 7240
+        - 7720
+        - 7800
+        - 7960
+        - 8280
+        - 8600
+        - 8840
+        - 9240
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: Muse is spelled <spell>Muse</spell>. Not mews. Important.
+    speech:
+      key: 0cff683e2aaaf8f7.wav
+      words:
+        - Muse
+        - is
+        - spelled
+        - エムユーエスイー.
+        - Not
+        - mews.
+        - Important.
+      t:
+        - 120
+        - 600
+        - 600
+        - 1000
+        - 2223
+        - 2520
+        - 3280
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: I had a thought.<break time="1s"/>Nope. Completely gone.
+    speech:
+      key: 0248c8b0cb2c0c5b.wav
+      words:
+        - I
+        - had
+        - a
+        - thought.
+        - Nope.
+        - Completely
+        - gone.
+      t:
+        - 120
+        - 280
+        - 520
+        - 520
+        - 2289
+        - 3058
+        - 3760
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: <speed ratio="1.5"/> I talk fast when clouds do tricks!
+    speech:
+      key: b134f086c8267606.wav
+      words:
+        - I
+        - talk
+        - fast
+        - when
+        - clouds
+        - do
+        - tricks!
+      t:
+        - 120
+        - 280
+        - 600
+        - 840
+        - 1000
+        - 1320
+        - 1400
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: |-
+      *Leans in*
+      <volume ratio="0.5"/> Do not tell the sandwich star.
+    speech:
+      key: 6cfbf4e40d2c36d5.wav
+      words:
+        - Do
+        - not
+        - tell
+        - the
+        - sandwich
+        - star.
+      t:
+        - 120
+        - 360
+        - 600
+        - 1080
+        - 1091
+        - 1565
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: <emotion value="curious"/> Did you hear that? A hiccup in the dark.
+    speech:
+      key: 11828b1805168114.wav
+      words:
+        - Did
+        - you
+        - hear
+        - that?
+        - A
+        - hiccup
+        - in
+        - the
+        - dark.
+      t:
+        - 120
+        - 360
+        - 360
+        - 680
+        - 1473
+        - 1640
+        - 2040
+        - 2040
+        - 2280
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: "[laughter] Stars do not hiccup. I checked twice."
+    speech:
+      key: 276aa9abe1b13fe3.wav
+      words:
+        - "[laughter]"
+        - Stars
+        - do
+        - not
+        - hiccup.
+        - I
+        - checked
+        - twice.
+      t:
+        - 119
+        - 760
+        - 1080
+        - 1320
+        - 1480
+        - 2280
+        - 2280
+        - 2680
+  - type: image
+    name: Muse
+    speaker: Muse
+    caption: NASA noticed. The USA did not. Typical.
+    speech:
+      key: b59c6b0c54f3ff12.wav
+      words:
+        - NASA
+        - noticed.
+        - The
+        - USA
+        - did
+        - not.
+        - Typical.
+      t:
+        - 120
+        - 520
+        - 1528
+        - 1640
+        - 2200
+        - 2280
+        - 3050
+assets:
+  - name: Muse
+    createdAt: 2026-09-18T15:42:25.953Z
+    kind: image
+    prompt:
+      Character: "Muse (screen-center, front view, face visible to camera): young
+        adult anime woman, pale skin, short silver-violet bob with cyan tips,
+        amber eyes, oversized cream knit sweater with small spark pins, dark
+        pleated skirt, thigh-high socks, translucent holographic scarf floating"
+      Composition: Vertical portrait, upper body, screen-center, front view
+      Environment: Soft studio glow, pale gradient background with faint spark particles
+      Style: Clean anime key art, flat color shapes, crisp line work
+  - name: Muse Wave
+    createdAt: 2026-09-18T15:42:47.842Z
+    kind: video
+    prompt: 'Second 0 to 1: Muse smiles and waves at camera, holographic scarf
+      flutters. Second 1 to 3: she says "Hi, I am Muse!" with bright happy
+      voice, spark particles drift. Second 3 to 5: she laughs and says "I keep
+      40 tabs open and call it memory training!", playful mood, circular camera
+      push, enable cheerful non-diagetic music.'
+    firstFrame: Muse
+cards:
+  - name: Muse
+    cover: Muse
+    attributes:
+      Voice: Aiko
+      Fact: I keep 40 tabs open and call it memory training
+      Hair: Short silver-violet bob with cyan tips
+      Style: Cream knit sweater, pleated skirt, holographic scarf

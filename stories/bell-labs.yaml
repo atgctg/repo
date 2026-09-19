@@ -2,27 +2,34 @@ id: bell-labs
 title: Bell Labs
 createdAt: 2026-09-15T14:24:29.991Z
 updatedAt: 2026-09-17T15:58:33.462Z
-slides:
-  - background: Bell Labs Building
+scenes:
+  - type: image
+    name: Bell Labs Building
     speaker: Sim
-    dialogue: Murray Hill, New Jersey
-  - background: Bell Labs Building
+    caption: Murray Hill, New Jersey
+  - type: image
+    name: Bell Labs Building
     speaker: Sim
-    dialogue: "1969"
-  - background: Bell Labs Interior
+    caption: "1969"
+  - type: image
+    name: Bell Labs Interior
     speaker: Sim
-    dialogue: Welcome to Bell Labs.
-  - background: Bell Labs Interior
+    caption: Welcome to Bell Labs.
+  - type: image
+    name: Bell Labs Interior
     speaker: Sim
-    dialogue: Where the future is being built, one transistor at a time.
-  - background: Dennis Ritchie
+    caption: Where the future is being built, one transistor at a time.
+  - type: image
+    name: Dennis Ritchie
     speaker: Dennis Ritchie
-    dialogue: Ah, a visitor!
-  - background: Dennis Ritchie
+    caption: Ah, a visitor!
+  - type: image
+    name: Dennis Ritchie
     speaker: Dennis Ritchie
-    dialogue: Would you like to see what we're working on?
-media:
+    caption: Would you like to see what we're working on?
+assets:
   - name: Bell Labs Building
+    kind: image
     prompt:
       Description: A striking mid-century modern building with clean geometric lines
         and large glass windows. The exterior features a mix of concrete, steel,
@@ -31,6 +38,7 @@ media:
         and walking paths.
     createdAt: 2026-09-15T14:24:29.991Z
   - name: Bell Labs Interior
+    kind: image
     prompt:
       Description: A mid-century modern research laboratory with clean lines and
         minimalist design. Large windows let in natural light, illuminating rows
@@ -38,6 +46,7 @@ media:
         work at long tables covered in schematics and equipment.
     createdAt: 2026-09-15T14:24:35.229Z
   - name: Dennis Ritchie
+    kind: image
     prompt:
       Description: A young computer scientist with short dark hair and glasses,
         wearing a white lab coat over a button-down shirt and tie. He's standing

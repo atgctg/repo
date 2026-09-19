@@ -2,31 +2,47 @@ id: cloud-seeder
 title: The Cloud Seeder
 createdAt: 2026-09-16T11:33:02.496Z
 updatedAt: 2026-09-17T15:58:33.494Z
-slides:
-  - background: Arroyo Town Overlook
-  - background: Arroyo Town Overlook
-    dialogue: Arroyo Town.
-  - background: Drought Town Square
-  - background: Cracked Orchard Canal
-  - background: Withered Branch
-  - background: Arroyo Town Overlook
+scenes:
+  - type: image
+    name: Arroyo Town Overlook
+  - type: image
+    name: Arroyo Town Overlook
+    caption: Arroyo Town.
+  - type: image
+    name: Drought Town Square
+  - type: image
+    name: Cracked Orchard Canal
+  - type: image
+    name: Withered Branch
+  - type: image
+    name: Arroyo Town Overlook
     speaker: Jesse
-    dialogue: Another rain cloud forecast to pass right over us.
-  - background: Jesse Vance
+    caption: Another rain cloud forecast to pass right over us.
+  - type: image
+    name: Jesse Vance
     speaker: Jesse
-    dialogue: They're just sitting down there waiting to starve.
-  - background: Jesse Vance
+    caption: They're just sitting down there waiting to starve.
+  - type: image
+    name: Jesse Vance
     speaker: Jesse
-    dialogue: I'm not waiting anymore.
-  - background: Studying Cloud Seeding
-  - background: Workshop Parts Spread
-  - background: Welding the Burner
-  - background: Rig in Truck Bed
-  - background: Waiting for Clouds
-  - background: Racing the Ridge
-  - background: First Ignition
-media:
+    caption: I'm not waiting anymore.
+  - type: image
+    name: Studying Cloud Seeding
+  - type: image
+    name: Workshop Parts Spread
+  - type: image
+    name: Welding the Burner
+  - type: image
+    name: Rig in Truck Bed
+  - type: image
+    name: Waiting for Clouds
+  - type: image
+    name: Racing the Ridge
+  - type: image
+    name: First Ignition
+assets:
   - name: Arroyo Town Overlook
+    kind: image
     prompt:
       Shot:
         Type: Wide scenic overlook
@@ -46,6 +62,7 @@ media:
         high above
     createdAt: 2026-09-16T11:40:09.368Z
   - name: Drought Town Square
+    kind: image
     prompt:
       Shot:
         Type: Wide street level
@@ -68,6 +85,7 @@ media:
         themselves under awnings and staring defeatists toward the distant sky
     createdAt: 2026-09-16T12:01:39.187Z
   - name: Cracked Orchard Canal
+    kind: image
     prompt:
       Shot:
         Type: Medium shot
@@ -86,6 +104,7 @@ media:
         fruit trees
     createdAt: 2026-09-16T12:02:03.218Z
   - name: Withered Branch
+    kind: image
     prompt:
       Shot:
         Type: Extreme close-up
@@ -106,6 +125,7 @@ media:
         brittle yellowed leaves
     createdAt: 2026-09-16T12:03:09.966Z
   - name: Jesse Vance
+    kind: image
     prompt:
       Shot:
         Type: Medium portrait
@@ -132,6 +152,7 @@ media:
       Expression: Quiet fierce resolve, determined slight scowl
     createdAt: 2026-09-16T12:01:11.355Z
   - name: Studying Cloud Seeding
+    kind: image
     prompt:
       Shot:
         Type: Close-up
@@ -153,6 +174,7 @@ media:
       Expression: none
     createdAt: 2026-09-16T12:19:58.189Z
   - name: Workshop Parts Spread
+    kind: image
     prompt:
       Shot:
         Type: Wide workbench still life
@@ -179,6 +201,7 @@ media:
       Expression: Obsessed focus, jaw tight
     createdAt: 2026-09-16T13:08:25.816Z
   - name: Welding the Burner
+    kind: image
     prompt:
       Shot:
         Type: Medium action shot
@@ -203,6 +226,7 @@ media:
       Expression: Jaw clenched, obsessed focus
     createdAt: 2026-09-16T13:10:36.712Z
   - name: Rig in Truck Bed
+    kind: image
     prompt:
       Shot:
         Type: Wide truck-bed shot
@@ -230,6 +254,7 @@ media:
       Expression: Tired fierce grin
     createdAt: 2026-09-16T13:10:41.198Z
   - name: Waiting for Clouds
+    kind: image
     prompt:
       Shot:
         Type: Medium interior-exterior
@@ -255,6 +280,7 @@ media:
       Expression: Anxious hunger, ready to floor it
     createdAt: 2026-09-16T13:10:45.278Z
   - name: Racing the Ridge
+    kind: image
     prompt:
       Shot:
         Type: Wide tracking shot
@@ -278,6 +304,7 @@ media:
       Expression: none
     createdAt: 2026-09-16T13:10:47.000Z
   - name: First Ignition
+    kind: image
     prompt:
       Shot:
         Type: Wide dramatic ridge shot

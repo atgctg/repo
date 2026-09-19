@@ -1,29 +1,86 @@
 import { stringify } from 'yaml'
-import type { Story } from './types'
+import type { AssetKind, Speech, Story } from './types'
 
 const PRUNA_MODEL = 'p-image' as const
+const PRUNA_EDIT_MODEL = 'p-image-edit' as const
 const IMAGE_ASPECT_RATIO = '9:16' as const
 const STORIES_DIR = `${import.meta.dir}/../stories`
+
+export const PRUNA_VIDEO_MODEL = 'p-video-2-pro' as const
+export const VIDEO_RESOLUTION = '480p' as const
+export const VIDEO_MODE = 'speed' as const
+export const VIDEO_MIN_SECONDS = 5 as const
+export const VIDEO_MAX_SECONDS = 15 as const
+export const VIDEO_DEFAULT_SECONDS = 5 as const
+
+export const VOICE_NAMES = ['Skylar', 'Daniel', 'Jacqueline', 'Gemma', 'Archie', 'Aiko'] as const
+export type VoiceName = (typeof VOICE_NAMES)[number]
+
+export const VOICE_IDS: Record<VoiceName, string> = {
+  Skylar: 'db6b0ed5-d5d3-463d-ae85-518a07d3c2b4',
+  Daniel: '47c38ca4-5f35-497b-b1a3-415245fb35e1',
+  Jacqueline: '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc',
+  Gemma: '62ae83ad-4f6a-430b-af41-a9bede9286ca',
+  Archie: 'ef191366-f52f-447a-a398-ed8c0f2943a1',
+  Aiko: '498e7f37-7fa3-4e2c-b8e2-8b6e9276f956'
+}
+
+export function resolveVoiceId(input: string): string | undefined {
+  const trimmed = input.trim()
+  if (!trimmed) return undefined
+  const byName = VOICE_NAMES.find((n) => n.toLowerCase() === trimmed.toLowerCase())
+  if (byName) return VOICE_IDS[byName]
+  const byId = VOICE_NAMES.find((n) => VOICE_IDS[n].toLowerCase() === trimmed.toLowerCase())
+  if (byId) return VOICE_IDS[byId]
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed)) return trimmed
+  return undefined
+}
+
+export function captionToTranscript(caption?: string): string {
+  if (!caption) return ''
+  return caption
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter((line) => line.length > 1 && !(line.startsWith('*') && line.endsWith('*')))
+    .map((line) => line.replace(/\*/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join(' ')
+}
 
 export function safeStoryId(id: string): string {
   return id.replace(/[^a-zA-Z0-9_-]/g, '_')
 }
 
-export function mediaFileName(name: string): string {
+export function slugify(name: string): string {
   const slug = name
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-  return `${slug || 'image'}.jpg`
+  return slug || 'asset'
 }
 
-export function mediaDiskPath(storyId: string, name: string): string {
-  return `${STORIES_DIR}/media/${safeStoryId(storyId)}/${mediaFileName(name)}`
+const ASSET_EXT: Record<AssetKind, string> = { image: 'jpg', video: 'mp4' }
+
+export function assetFileName(name: string, kind: AssetKind): string {
+  return `${slugify(name)}.${ASSET_EXT[kind]}`
 }
 
-export function mediaUrl(storyId: string, name: string): string {
-  return `/media/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(mediaFileName(name))}`
+export function storyAssetPath(storyId: string, file: string): string {
+  return `${STORIES_DIR}/assets/${safeStoryId(storyId)}/${file}`
+}
+
+export function assetDiskPath(storyId: string, name: string, kind: AssetKind): string {
+  return storyAssetPath(storyId, assetFileName(name, kind))
+}
+
+export function assetUrl(storyId: string, name: string, kind: AssetKind): string {
+  return `/assets/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(assetFileName(name, kind))}`
+}
+
+export function speechFileName(voice: string, caption: string): string {
+  const hex = new Bun.CryptoHasher('sha256').update(`${voice.trim()}\n${caption}`).digest('hex').slice(0, 16)
+  return `${hex}.wav`
 }
 
 function promptWithStyle(story: Story, prompt: Record<string, unknown>): string {
@@ -34,6 +91,12 @@ function promptWithStyle(story: Story, prompt: Record<string, unknown>): string 
     chunks.push(stringify({ Style: style }, { indent: 2 }).trim())
   }
   return chunks.join('\n')
+}
+
+function videoPromptWithStyle(story: Story, promptText: string): string {
+  const style = story.cards.find((card) => card.name.toLowerCase() === 'style')?.attributes
+  if (!style || Object.keys(style).length === 0) return promptText
+  return `${promptText}\n${stringify({ Style: style }, { indent: 2 }).trim()}`
 }
 
 type PrunaStatus = 'succeeded' | 'starting' | 'processing' | 'failed' | 'unknown'
@@ -62,29 +125,68 @@ export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
-async function generatePrunaImage(prompt: string): Promise<ArrayBuffer> {
+function extractPrunaFileId(parsed: unknown): string | undefined {
+  if (typeof parsed === 'string' && parsed.trim()) return parsed.trim()
+  if (parsed !== null && typeof parsed === 'object') {
+    const obj = parsed as Record<string, unknown>
+    for (const key of ['id', 'file_id', 'fileId', 'key', 'name']) {
+      const val = obj[key]
+      if (typeof val === 'string' && val.trim()) return val.trim()
+    }
+    for (const key of ['file', 'data', 'result']) {
+      const nested = extractPrunaFileId(obj[key])
+      if (nested) return nested
+    }
+  }
+  return undefined
+}
+
+async function uploadPrunaFile(bytes: ArrayBuffer, filename: string): Promise<string> {
   const apiKey = Bun.env.PRUNA_API_KEY?.trim()
-  if (!apiKey) throw new Error('PRUNA_API_KEY is required for image gen')
+  if (!apiKey) throw new Error('PRUNA_API_KEY is required for video gen')
+  const form = new FormData()
+  form.append('content', new File([bytes], filename, { type: 'image/jpeg' }))
+  const response = await fetch('https://api.pruna.ai/v1/files', {
+    method: 'POST',
+    headers: { apikey: apiKey },
+    body: form,
+  })
+  const body = await response.text()
+  if (!response.ok) throw new Error(`Pruna upload error: ${body.slice(0, 500)}`)
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(body) as unknown
+  } catch {
+    throw new Error(`Pruna upload returned non-JSON: ${body.slice(0, 500)}`)
+  }
+  const fileId = extractPrunaFileId(parsed)
+  if (!fileId) throw new Error(`Pruna upload returned no id: ${body.slice(0, 500)}`)
+  if (fileId.startsWith('http://') || fileId.startsWith('https://')) return fileId
+  return `https://api.pruna.ai/v1/files/${fileId}`
+}
+
+async function prunaPredict(
+  model: string,
+  input: Record<string, unknown>,
+  opts: { sync?: boolean; timeoutMs: number; intervalMs: number },
+): Promise<ArrayBuffer> {
+  const apiKey = Bun.env.PRUNA_API_KEY?.trim()
+  if (!apiKey) throw new Error('PRUNA_API_KEY is required for generation')
 
   const response = await fetch('https://api.pruna.ai/v1/predictions', {
     method: 'POST',
     headers: {
       apikey: apiKey,
-      Model: PRUNA_MODEL,
-      'Try-Sync': 'true',
+      Model: model,
+      ...(opts.sync ? { 'Try-Sync': 'true' } : {}),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      input: {
-        prompt,
-        aspect_ratio: IMAGE_ASPECT_RATIO,
-      },
-    }),
+    body: JSON.stringify({ input }),
   })
 
   const body = await response.text()
   if (!response.ok) {
-    throw new Error(`Pruna API error: ${body}`)
+    throw new Error(`Pruna API error: ${body.slice(0, 500)}`)
   }
 
   let parsed: PrunaPrediction
@@ -94,20 +196,46 @@ async function generatePrunaImage(prompt: string): Promise<ArrayBuffer> {
     throw new Error(`Pruna API returned non-JSON: ${body.slice(0, 500)}`)
   }
 
-  const generationUrl = await resolvePrunaGenerationUrl(parsed, apiKey)
-  return fetchImageBytes(absolutePrunaUrl(generationUrl), { apikey: apiKey })
+  const generationUrl = await resolvePrunaGenerationUrl(parsed, apiKey, opts.timeoutMs, opts.intervalMs)
+  return fetchAssetBytes(absolutePrunaUrl(generationUrl), { apikey: apiKey })
 }
 
-async function resolvePrunaGenerationUrl(parsed: PrunaPrediction, apiKey: string): Promise<string> {
+async function generatePrunaImage(prompt: string): Promise<ArrayBuffer> {
+  return prunaPredict(PRUNA_MODEL, { prompt, aspect_ratio: IMAGE_ASPECT_RATIO }, { sync: true, timeoutMs: 90_000, intervalMs: 1000 })
+}
+
+async function generatePrunaImageEdit(prompt: string, imageUrls: string[]): Promise<ArrayBuffer> {
+  return prunaPredict(
+    PRUNA_EDIT_MODEL,
+    { prompt, images: imageUrls, aspect_ratio: IMAGE_ASPECT_RATIO },
+    { sync: true, timeoutMs: 90_000, intervalMs: 1000 },
+  )
+}
+
+async function generatePrunaVideo(prompt: string, imageUrl?: string, duration: number = VIDEO_DEFAULT_SECONDS, lastFrameUrl?: string): Promise<ArrayBuffer> {
+  const clamped = Math.max(VIDEO_MIN_SECONDS, Math.min(VIDEO_MAX_SECONDS, Math.round(duration)))
+  const input: Record<string, unknown> = {
+    prompt,
+    duration: clamped,
+    resolution: VIDEO_RESOLUTION,
+    mode: VIDEO_MODE,
+    aspect_ratio: IMAGE_ASPECT_RATIO,
+  }
+  if (imageUrl) input.image = imageUrl
+  if (lastFrameUrl) input.last_frame_image = lastFrameUrl
+  return prunaPredict(PRUNA_VIDEO_MODEL, input, { timeoutMs: 300_000, intervalMs: 2000 })
+}
+
+async function resolvePrunaGenerationUrl(parsed: PrunaPrediction, apiKey: string, timeoutMs: number, intervalMs: number): Promise<string> {
   const immediate = typeof parsed.generation_url === 'string' ? parsed.generation_url : undefined
   if (prunaStatus(parsed.status) === 'succeeded' && immediate) return immediate
 
   const statusUrl = typeof parsed.get_url === 'string' ? parsed.get_url : undefined
   if (!statusUrl) {
-    throw new Error(`Pruna API returned no image: ${JSON.stringify(parsed).slice(0, 500)}`)
+    throw new Error(`Pruna API returned no output: ${JSON.stringify(parsed).slice(0, 500)}`)
   }
 
-  const deadline = Date.now() + 90_000
+  const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
     const statusRes = await fetch(statusUrl, { headers: { apikey: apiKey } })
     const statusBody = await statusRes.text()
@@ -140,7 +268,7 @@ async function resolvePrunaGenerationUrl(parsed: PrunaPrediction, apiKey: string
       case 'starting':
       case 'processing':
       case 'unknown': {
-        await Bun.sleep(1000)
+        await Bun.sleep(intervalMs)
         break
       }
       default: {
@@ -157,15 +285,19 @@ export async function generateStoryImage(
   story: Story,
   name: string,
   prompt: Record<string, unknown>,
+  references: string[] = [],
 ): Promise<string> {
   const storyId = story.id
   const started = performance.now()
-  const yamlPrompt = promptWithStyle(story, prompt)
-  console.error('img gen start', { storyId, name })
+  const { References: _refs, ...promptBody } = prompt
+  const yamlPrompt = promptWithStyle(story, promptBody)
+  console.error('img gen start', { storyId, name, references })
   try {
-    const buffer = await generatePrunaImage(yamlPrompt)
-    await Bun.write(mediaDiskPath(storyId, name), buffer)
-    const url = mediaUrl(storyId, name)
+    const buffer = references.length > 0
+      ? await generatePrunaImageEdit(yamlPrompt, await uploadNamedImages(story, references))
+      : await generatePrunaImage(yamlPrompt)
+    await Bun.write(assetDiskPath(storyId, name, 'image'), buffer)
+    const url = assetUrl(storyId, name, 'image')
     console.error('img gen ok', {
       storyId,
       name,
@@ -185,7 +317,218 @@ export async function generateStoryImage(
   }
 }
 
-async function fetchImageBytes(url: string, headers: HeadersInit): Promise<ArrayBuffer> {
+async function uploadNamedImages(story: Story, names: string[]): Promise<string[]> {
+  if (names.length > 5) throw new Error('At most 5 reference images')
+  const urls: string[] = []
+  for (const name of names) {
+    const url = await uploadFrame(story, name)
+    if (!url) throw new Error(`Reference image "${name}" not found`)
+    urls.push(url)
+  }
+  return urls
+}
+
+async function uploadFrame(story: Story, frameName: string): Promise<string | undefined> {
+  const storyId = story.id
+  const ref = story.assets.find((m) => m.kind === 'image' && m.name.toLowerCase() === frameName.toLowerCase())
+  const diskName = ref?.name ?? frameName
+  const file = Bun.file(assetDiskPath(storyId, diskName, 'image'))
+  if (!(await file.exists())) return undefined
+  const bytes = await file.arrayBuffer()
+  return uploadPrunaFile(bytes, assetFileName(diskName, 'image'))
+}
+
+export async function generateStoryVideo(
+  story: Story,
+  name: string,
+  promptText: string,
+  opts: { firstFrame?: string; lastFrame?: string; duration?: number } = {},
+): Promise<string> {
+  const storyId = story.id
+  const started = performance.now()
+  const fullPrompt = videoPromptWithStyle(story, promptText.trim() || `Animate scene ${name}`)
+  const duration = opts.duration ?? VIDEO_DEFAULT_SECONDS
+  console.error('video gen start', { storyId, name, duration })
+  try {
+    const imageUrl = opts.firstFrame ? await uploadFrame(story, opts.firstFrame) : undefined
+    const lastFrameUrl = opts.lastFrame ? await uploadFrame(story, opts.lastFrame) : undefined
+    const buffer = await generatePrunaVideo(fullPrompt, imageUrl, duration, lastFrameUrl)
+    await Bun.write(assetDiskPath(storyId, name, 'video'), buffer)
+    const url = assetUrl(storyId, name, 'video')
+    console.error('video gen ok', { storyId, name, url, bytes: buffer.byteLength, ms: Math.round(performance.now() - started) })
+    return url
+  } catch (error) {
+    console.error('video gen error', { storyId, name, ms: Math.round(performance.now() - started), error: errorMessage(error) })
+    throw error
+  }
+}
+
+async function generateCartesiaVoiceSse(
+  transcript: string,
+  voiceId: string,
+): Promise<{ wav: Uint8Array; words: string[]; t: number[] }> {
+  const apiKey = Bun.env.CARTESIA_API_KEY?.trim()
+  if (!apiKey) throw new Error('CARTESIA_API_KEY is required for voice gen')
+  const text = transcript.trim()
+  if (!text) throw new Error('Empty transcript for voice gen')
+  const response = await fetch('https://api.cartesia.ai/tts/sse', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Cartesia-Version': '2026-03-01',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model_id: 'sonic-3.6',
+      transcript: text,
+      voice: voiceId,
+      output_format: { container: 'raw', encoding: 'pcm_s16le', sample_rate: 44100 },
+      add_timestamps: true,
+      use_normalized_timestamps: true,
+    }),
+  })
+  if (!response.ok) {
+    const body = (await response.text()).slice(0, 500)
+    throw new Error(`Cartesia error: ${response.status} ${body}`)
+  }
+  if (!response.body) throw new Error('Cartesia SSE returned no body')
+
+  const pcmParts: Uint8Array[] = []
+  const words: string[] = []
+  const t: number[] = []
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ''
+
+  const handleEvent = (raw: string): boolean => {
+    const data = raw
+      .split('\n')
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).trim())
+      .join('')
+    if (!data || data === '[DONE]') return false
+    let parsed: {
+      type?: unknown
+      data?: unknown
+      word_timestamps?: { words?: unknown; start?: unknown }
+      title?: unknown
+      message?: unknown
+    }
+    try {
+      parsed = JSON.parse(data) as typeof parsed
+    } catch {
+      throw new Error(`Cartesia SSE returned non-JSON: ${data.slice(0, 200)}`)
+    }
+    switch (parsed.type) {
+      case 'chunk': {
+        if (typeof parsed.data === 'string' && parsed.data) {
+          pcmParts.push(Buffer.from(parsed.data, 'base64'))
+        }
+        return false
+      }
+      case 'timestamps': {
+        const wt = parsed.word_timestamps
+        const nextWords = Array.isArray(wt?.words) ? wt.words : []
+        const nextStart = Array.isArray(wt?.start) ? wt.start : []
+        for (let i = 0; i < nextWords.length; i++) {
+          const word = nextWords[i]
+          const start = nextStart[i]
+          if (typeof word !== 'string' || typeof start !== 'number') continue
+          words.push(word)
+          t.push(Math.round(start * 1000))
+        }
+        return false
+      }
+      case 'phoneme_timestamps':
+        return false
+      case 'done':
+        return true
+      case 'error': {
+        const detail = typeof parsed.message === 'string' ? parsed.message : typeof parsed.title === 'string' ? parsed.title : data.slice(0, 200)
+        throw new Error(`Cartesia SSE error: ${detail}`)
+      }
+      default:
+        return false
+    }
+  }
+
+  while (true) {
+    const { done, value } = await reader.read()
+    buf += decoder.decode(value, { stream: !done })
+    const parts = buf.split('\n\n')
+    buf = done ? '' : (parts.pop() ?? '')
+    for (const part of parts) {
+      if (handleEvent(part.trim())) {
+        await reader.cancel()
+        return { wav: pcmS16leToWav(concatBytes(pcmParts)), words, t }
+      }
+    }
+    if (done) break
+  }
+
+  if (pcmParts.length === 0) throw new Error('Cartesia SSE returned no audio')
+  return { wav: pcmS16leToWav(concatBytes(pcmParts)), words, t }
+}
+
+function concatBytes(parts: Uint8Array[]): Uint8Array {
+  const total = parts.reduce((n, p) => n + p.byteLength, 0)
+  const out = new Uint8Array(total)
+  let offset = 0
+  for (const part of parts) {
+    out.set(part, offset)
+    offset += part.byteLength
+  }
+  return out
+}
+
+function pcmS16leToWav(pcm: Uint8Array, sampleRate = 44100): Uint8Array {
+  const buffer = new ArrayBuffer(44 + pcm.byteLength)
+  const view = new DataView(buffer)
+  const out = new Uint8Array(buffer)
+  const writeAscii = (offset: number, text: string) => {
+    for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i))
+  }
+  writeAscii(0, 'RIFF')
+  view.setUint32(4, 36 + pcm.byteLength, true)
+  writeAscii(8, 'WAVE')
+  writeAscii(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  writeAscii(36, 'data')
+  view.setUint32(40, pcm.byteLength, true)
+  out.set(pcm, 44)
+  return out
+}
+
+export async function generateStoryVoice(
+  storyId: string,
+  voice: string,
+  caption: string,
+): Promise<Speech> {
+  const key = speechFileName(voice, caption)
+  const path = storyAssetPath(storyId, key)
+  const started = performance.now()
+  const voiceId = resolveVoiceId(voice)
+  if (!voiceId) throw new Error(`Unknown voice "${voice}". Use one of ${VOICE_NAMES.join(', ')}`)
+  const transcript = captionToTranscript(caption)
+  console.error('voice gen start', { storyId, key, voice })
+  try {
+    const { wav, words, t } = await generateCartesiaVoiceSse(transcript, voiceId)
+    await Bun.write(path, wav)
+    console.error('voice gen ok', { storyId, key, bytes: wav.byteLength, words: words.length, ms: Math.round(performance.now() - started) })
+    return words.length > 0 ? { key, words, t } : { key }
+  } catch (error) {
+    console.error('voice gen error', { storyId, key, ms: Math.round(performance.now() - started), error: errorMessage(error) })
+    throw error
+  }
+}
+
+async function fetchAssetBytes(url: string, headers: HeadersInit): Promise<ArrayBuffer> {
   const response = await fetch(url, { headers })
   if (!response.ok) {
     const body = (await response.text()).slice(0, 500)

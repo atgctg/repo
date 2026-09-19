@@ -2,33 +2,42 @@ id: styles
 title: Styles
 createdAt: 2026-09-17T13:16:06.362Z
 updatedAt: 2026-09-17T15:58:33.538Z
-slides:
-  - background: Ghibli Anime
+scenes:
+  - type: image
+    name: Ghibli Anime
     speaker: Style
-    dialogue: Studio Ghibli Anime Style
-  - background: Retro Pixel Art
+    caption: Studio Ghibli Anime Style
+  - type: image
+    name: Retro Pixel Art
     speaker: Style
-    dialogue: Retro Game Pixelated Art Style
-  - background: Blocky Minecraft
+    caption: Retro Game Pixelated Art Style
+  - type: image
+    name: Blocky Minecraft
     speaker: Style
-    dialogue: Blocky Minecraft Voxel Style
-  - background: Dreamlike Wholesome Watercolor
+    caption: Blocky Minecraft Voxel Style
+  - type: image
+    name: Dreamlike Wholesome Watercolor
     speaker: Style
-    dialogue: Dreamlike Wonder Hand-Painted Wholesome
-  - background: Painterly Concept Art
+    caption: Dreamlike Wonder Hand-Painted Wholesome
+  - type: image
+    name: Painterly Concept Art
     speaker: Style
-    dialogue: Painterly Digital Painting Style
-  - background: Surreal 3D Grass Field
+    caption: Painterly Digital Painting Style
+  - type: image
+    name: Surreal 3D Grass Field
     speaker: Style
-    dialogue: Surreal 3D Art (Grass Field)
-  - background: Synthwave Retro Futuristic
+    caption: Surreal 3D Art (Grass Field)
+  - type: image
+    name: Synthwave Retro Futuristic
     speaker: Style
-    dialogue: 80s Synthwave Retro-Futuristic
-  - background: Impressionist Oil Painting
+    caption: 80s Synthwave Retro-Futuristic
+  - type: image
+    name: Impressionist Oil Painting
     speaker: Style
-    dialogue: Claude Monet Impressionist Oil Painting
-media:
+    caption: Claude Monet Impressionist Oil Painting
+assets:
   - name: Ghibli Anime
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -57,6 +66,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:16:02.725Z
   - name: Retro Pixel Art
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -85,6 +95,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:16:34.343Z
   - name: Blocky Minecraft
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -116,6 +127,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:17:06.913Z
   - name: Dreamlike Wholesome Watercolor
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -145,6 +157,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:17:32.426Z
   - name: Painterly Concept Art
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -175,6 +188,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:18:06.653Z
   - name: Surreal 3D Grass Field
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -204,6 +218,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:18:33.975Z
   - name: Synthwave Retro Futuristic
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -234,6 +249,7 @@ media:
         toward the horizon with wind blowing hair and jacket hem.
     createdAt: 2026-09-17T13:18:54.743Z
   - name: Impressionist Oil Painting
+    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary

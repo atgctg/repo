@@ -1,6 +1,5 @@
-import { stringify } from 'yaml'
 import { isPlainObject } from '../records'
-import type { Card, MediaAsset, Slide, Story, StorySummary } from '../types'
+import type { Asset, Card, ImageScene, Scene, Story, VideoScene, World } from '../types'
 
 {
   const icon = document.createElement('link')
@@ -21,28 +20,38 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;')
 }
 
-function findImage(media: Story['media'], name?: string): MediaAsset | undefined {
+function findAsset(assets: Story['assets'], name?: string): Asset | undefined {
   if (!name) return undefined
-  return media.find((item) => item.name.toLowerCase() === name.toLowerCase())
+  return assets.find((item) => item.name.toLowerCase() === name.toLowerCase())
 }
 
-function canGenerate(asset?: MediaAsset): boolean {
-  return Boolean(asset && !asset.url) && canPromptImage(asset)
+function canGenerate(asset?: Asset): boolean {
+  if (!asset || asset.url) return false
+  return canPrompt(asset)
 }
 
-function canPromptImage(asset?: MediaAsset): boolean {
-  return Boolean(asset && asset.prompt && Object.keys(asset.prompt).length > 0)
+function canPrompt(asset?: Asset): boolean {
+  if (!asset) return false
+  switch (asset.kind) {
+    case 'image':
+      return Boolean(asset.prompt && Object.keys(asset.prompt).length > 0)
+    case 'video':
+      return Boolean(asset.prompt?.trim() || asset.firstFrame)
+    default: {
+      const _exhaustive: never = asset
+      return _exhaustive
+    }
+  }
 }
 
-function formatPromptYaml(prompt?: Record<string, unknown>): string {
-  if (!prompt || Object.keys(prompt).length === 0) return ''
-  return stringify(prompt, { indent: 2 }).trim()
+function speechSrc(storyId: string, file?: string): string | undefined {
+  if (!file) return undefined
+  return `/assets/${encodeURIComponent(storyId)}/${encodeURIComponent(file)}`
 }
 
 const REFRESH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
-const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`
-const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`
-
+const PLAY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>`
+const PAUSE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>`
 function cardClass(hasImage: boolean, extra = ''): string {
   return ['card', extra, hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 }
@@ -51,40 +60,118 @@ function imgTag(url?: string): string {
   return url ? `<img class="card-img" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />` : ''
 }
 
-function renderGenerateBtn(storyId: string, asset?: MediaAsset): string {
-  if (!canGenerate(asset) || !asset) return ''
-  return `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
+function videoTag(url?: string): string {
+  return url ? `<video class="card-video" src="${escapeHtml(url)}?v=${cacheBuster}" controls autoplay muted loop playsinline></video>` : ''
 }
 
-function getDialogueLines(dialogue?: string | string[]): string[] {
-  if (!dialogue) return []
-  const rawList = Array.isArray(dialogue) ? dialogue : [dialogue]
-  return rawList
-    .flatMap((item) => String(item).split(/\n\n+/))
-    .map((line) => line.trim())
+function sceneVideoTag(url?: string): string {
+  return url ? `<video class="card-video" src="${escapeHtml(url)}?v=${cacheBuster}" preload="metadata" playsinline></video>` : ''
+}
+
+function playOverlayTag(audioUrl?: string): string {
+  const src = audioUrl ? ` data-src="${escapeHtml(audioUrl)}?v=${cacheBuster}"` : ''
+  return `<button type="button" class="play-btn play-overlay"${src} aria-label="Play" title="Play">${PLAY_ICON}</button>`
+}
+
+let voiceAudio: HTMLAudioElement | null = null
+let voiceButton: HTMLButtonElement | null = null
+
+function setPlayIcon(button: HTMLButtonElement, playing: boolean): void {
+  button.innerHTML = playing ? PAUSE_ICON : PLAY_ICON
+  button.title = playing ? 'Pause' : 'Play'
+  button.setAttribute('aria-label', playing ? 'Pause' : 'Play')
+}
+
+function videoForButton(button: HTMLButtonElement): HTMLVideoElement | null {
+  const found = button.closest('.card')?.querySelector('video.card-video')
+  return found instanceof HTMLVideoElement ? found : null
+}
+
+function startVoice(button: HTMLButtonElement, src: string): void {
+  if (voiceAudio) {
+    voiceAudio.pause()
+    if (voiceButton && voiceButton !== button) setPlayIcon(voiceButton, false)
+  }
+  voiceAudio = new Audio(src)
+  voiceButton = button
+  voiceAudio.onended = () => {
+    setPlayIcon(button, false)
+    if (voiceButton === button) voiceButton = null
+  }
+  setPlayIcon(button, true)
+  void voiceAudio.play().catch(() => setPlayIcon(button, false))
+}
+
+function toggleScenePlay(button: HTMLButtonElement): void {
+  const video = videoForButton(button)
+  const src = button.dataset.src
+  const voicePlaying = voiceButton === button && voiceAudio !== null && !voiceAudio.paused
+  if ((video && !video.paused) || voicePlaying) {
+    if (video) video.pause()
+    if (voiceAudio) voiceAudio.pause()
+    setPlayIcon(button, false)
+    return
+  }
+  if (video) {
+    video.onended = () => setPlayIcon(button, false)
+    video.onpause = () => setPlayIcon(button, false)
+    setPlayIcon(button, true)
+    void video.play().catch(() => setPlayIcon(button, false))
+    return
+  }
+  if (src) startVoice(button, src)
+}
+
+function fullscreenSceneVideo(button: HTMLButtonElement): void {
+  const video = videoForButton(button)
+  if (!video) return
+  if (video.paused) toggleScenePlay(button)
+  if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
+  else void video.requestFullscreen().catch(() => {})
+}
+
+function renderGenerateBtn(storyId: string, asset?: Asset): string {
+  if (!canGenerate(asset) || !asset) return ''
+  return `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-kind="${escapeHtml(asset.kind)}">Generate</button>`
+}
+
+function stripCaptionMarkup(text: string): string {
+  return text
+    .replace(/\[laughter\]/gi, '')
+    .replace(/<(speed|volume|emotion|break|spell)\b[^>]*\/>/gi, ' ')
+    .replace(/<\/?(speed|volume|emotion|break|spell)\b[^>]*>/gi, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim()
+}
+
+function getCaptionLines(caption?: string): string[] {
+  if (!caption) return []
+  return caption
+    .split('\n')
+    .map(stripCaptionMarkup)
     .filter(Boolean)
 }
 
-function getDialogueSizeClass(lines: string[]): string {
+function getCaptionSizeClass(lines: string[]): string {
   const totalClean = lines.map((l) => l.replace(/\*/g, '').trim())
   const totalLen = totalClean.reduce((sum, l) => sum + l.length, 0)
   const count = lines.length
 
   if (count > 1) {
-    if (totalLen <= 60) return 'dialogue-md'
-    if (totalLen <= 120) return 'dialogue-sm'
-    return 'dialogue-xs'
+    if (totalLen <= 60) return 'caption-md'
+    if (totalLen <= 120) return 'caption-sm'
+    return 'caption-xs'
   }
 
   const len = totalClean[0]?.length ?? 0
-  if (len <= 25) return 'dialogue-xl'
-  if (len <= 50) return 'dialogue-lg'
-  if (len <= 90) return 'dialogue-md'
-  if (len <= 140) return 'dialogue-sm'
-  return 'dialogue-xs'
+  if (len <= 25) return 'caption-xl'
+  if (len <= 50) return 'caption-lg'
+  if (len <= 90) return 'caption-md'
+  if (len <= 140) return 'caption-sm'
+  return 'caption-xs'
 }
 
-function formatDialogue(text: string): string {
+function formatCaption(text: string): string {
   const escaped = escapeHtml(text)
   return escaped
     .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
@@ -92,54 +179,74 @@ function formatDialogue(text: string): string {
     .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
 }
 
-function renderSlide(slide: Slide, media: Story['media'], storyId: string): string {
-  const lines = getDialogueLines(slide.dialogue)
-  const hasDialogue = lines.length > 0
-  const hasSpeaker = Boolean(slide.speaker?.trim())
-
-  const mediaAsset = findImage(media, slide.background)
-  const bgHtml = imgTag(mediaAsset?.url)
+function renderCaptions(scene: ImageScene): string {
+  const lines = getCaptionLines(scene.caption)
+  const hasCaption = lines.length > 0
+  const hasSpeaker = Boolean(scene.speaker?.trim())
+  if (!hasCaption && !hasSpeaker) return ''
 
   const isLeft = hasSpeaker || lines.length > 1
-  const dialogueLinesHtml = lines
-    .map((l) => `<div class="dialogue-line">${formatDialogue(l)}</div>`)
+  const captionLinesHtml = lines
+    .map((l) => `<div class="caption-line">${formatCaption(l)}</div>`)
     .join('')
 
   const classes = [
-    'dialogue',
-    getDialogueSizeClass(lines),
-    isLeft ? 'dialogue-left' : '',
+    'caption',
+    getCaptionSizeClass(lines),
+    isLeft ? 'caption-left' : '',
   ].filter(Boolean).join(' ')
 
-  const dialogueHtml = hasDialogue
-    ? `<div class="${classes}">${dialogueLinesHtml}</div>`
+  const captionHtml = hasCaption
+    ? `<div class="${classes}">${captionLinesHtml}</div>`
     : ''
 
-  const initial = hasSpeaker ? escapeHtml(slide.speaker!.trim()[0]?.toUpperCase() ?? '') : ''
+  const initial = hasSpeaker ? escapeHtml(scene.speaker!.trim()[0]?.toUpperCase() ?? '') : ''
   const speakerHtml = hasSpeaker
-    ? `<div class="speaker"><span class="avatar"><span class="avatar-letter">${initial}</span></span><span>${escapeHtml(slide.speaker!)}</span></div>`
+    ? `<div class="speaker"><span class="avatar"><span class="avatar-letter">${initial}</span></span><span>${escapeHtml(scene.speaker!)}</span></div>`
     : ''
 
-  const contentHtml =
-    hasDialogue || hasSpeaker
-      ? `<div class="card-dialogue">${dialogueHtml}${speakerHtml}</div>`
-      : ''
+  return `<div class="card-caption">${captionHtml}${speakerHtml}</div>`
+}
 
-  const titleHtml =
-    !hasDialogue && !hasSpeaker && slide.background
-      ? `<div class="card-title">${escapeHtml(slide.background)}</div>`
-      : ''
-
-  const cardClasses = cardClass(Boolean(mediaAsset?.url))
-
+function renderImageScene(scene: ImageScene, assets: Story['assets'], storyId: string): string {
+  const asset = findAsset(assets, scene.name)
+  const captions = renderCaptions(scene)
+  const titleHtml = captions ? '' : `<div class="card-title">${escapeHtml(scene.name)}</div>`
+  const overlayHtml = scene.speech?.key ? playOverlayTag(speechSrc(storyId, scene.speech.key)) : ''
   return `
-    <div class="${cardClasses}">
-      ${bgHtml}
+    <div class="${cardClass(Boolean(asset?.url))}">
+      ${imgTag(asset?.url)}
+      ${overlayHtml}
       ${titleHtml}
-      ${contentHtml}
-      ${!hasDialogue && !hasSpeaker ? renderGenerateBtn(storyId, mediaAsset) : ''}
+      ${captions}
+      ${captions ? '' : renderGenerateBtn(storyId, asset)}
     </div>
   `
+}
+
+function renderVideoScene(scene: VideoScene, assets: Story['assets'], storyId: string): string {
+  const asset = findAsset(assets, scene.name)
+  const url = asset?.url
+  return `
+    <div class="${cardClass(Boolean(url))}">
+      ${url ? `${sceneVideoTag(url)}${playOverlayTag()}` : ''}
+      <div class="card-title">${escapeHtml(scene.name)}</div>
+      ${renderGenerateBtn(storyId, asset)}
+    </div>
+  `
+}
+
+function renderScene(scene: Scene, assets: Story['assets'], storyId: string): string {
+  switch (scene.type) {
+    case 'image':
+      return renderImageScene(scene, assets, storyId)
+    case 'video':
+      return renderVideoScene(scene, assets, storyId)
+    default: {
+      const _exhaustive: never = scene
+      return _exhaustive
+    }
+  }
 }
 
 function hideAttrLabel(label: string): boolean {
@@ -195,72 +302,79 @@ function renderCardAttrs(attributes: Record<string, unknown>): string {
   return `<div class="card-attrs">${inner}</div>`
 }
 
-function renderCard(card: Card, media: Story['media'], storyId: string): string {
-  const mediaAsset = findImage(media, card.cover)
+function renderCard(card: Card, assets: Story['assets'], storyId: string): string {
+  const coverAsset = findAsset(assets, card.cover)
   const attrsHtml = renderCardAttrs(card.attributes ?? {})
-  const cardClasses = cardClass(Boolean(mediaAsset?.url))
+  const cardClasses = cardClass(Boolean(coverAsset?.url))
 
   return `
     <div class="${cardClasses}">
-      ${imgTag(mediaAsset?.url)}
+      ${imgTag(coverAsset?.url)}
       <div class="card-title">${escapeHtml(card.name)}</div>
       ${attrsHtml}
-      ${renderGenerateBtn(storyId, mediaAsset)}
+      ${renderGenerateBtn(storyId, coverAsset)}
     </div>
   `
 }
 
-function renderMedia(asset: MediaAsset, storyId: string): string {
-  const hasImage = Boolean(asset.url)
-  const promptYaml = formatPromptYaml(asset.prompt)
-  const promptHtml = promptYaml ? `<pre class="card-prompt">${escapeHtml(promptYaml)}</pre>` : ''
+function renderAsset(asset: Asset, storyId: string): string {
+  const kind = asset.kind
+  const hasVisual = Boolean(asset.url)
+  let visualHtml = ''
+  switch (kind) {
+    case 'video':
+      visualHtml = videoTag(asset.url)
+      break
+    case 'image':
+      visualHtml = imgTag(asset.url)
+      break
+    default: {
+      const _exhaustive: never = kind
+      return _exhaustive
+    }
+  }
 
-  const cardClasses = cardClass(hasImage, 'card-media')
-
-  const canPrompt = canPromptImage(asset)
-  const copyBtnHtml = promptYaml
-    ? `<button type="button" class="copy-btn" aria-label="Copy prompt" title="Copy prompt">${COPY_ICON}</button>`
+  const canPromptAsset = canPrompt(asset)
+  const regenBtnHtml = canPromptAsset && hasVisual
+    ? `<button type="button" class="gen-btn regen-btn regen-icon" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-kind="${escapeHtml(kind)}" aria-label="Regenerate" title="Regenerate">${REFRESH_ICON}</button>`
     : ''
-  const regenBtnHtml = canPrompt && hasImage
-    ? `<button type="button" class="gen-btn regen-btn regen-icon" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" aria-label="Regenerate" title="Regenerate">${REFRESH_ICON}</button>`
+  const actionsHtml = regenBtnHtml
+    ? `<div class="asset-actions">${regenBtnHtml}</div>`
     : ''
-  const actionsHtml = copyBtnHtml || regenBtnHtml
-    ? `<div class="media-actions">${copyBtnHtml}${regenBtnHtml}</div>`
-    : ''
-  const genBtnHtml = canPrompt && !hasImage
-    ? `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}">Generate</button>`
+  const genBtnHtml = canPromptAsset && !asset.url
+    ? `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-kind="${escapeHtml(kind)}">Generate</button>`
     : ''
 
   return `
-    <div class="${cardClasses}">
-      ${imgTag(asset.url)}
+    <div class="${cardClass(hasVisual, 'card-asset')}">
+      ${visualHtml}
+      <div class="card-topblur"></div>
       <div class="card-title">${escapeHtml(asset.name)}</div>
-      ${promptHtml}
       ${actionsHtml}
       ${genBtnHtml}
     </div>
   `
 }
 
-function renderIndex(stories: Array<string | StorySummary>): void {
+function renderIndex(worlds: Array<string | World>): void {
   document.title = 'Studio'
   const header = document.querySelector('header')
   const main = document.querySelector('main')
   if (!header || !main) return
 
   header.innerHTML = `
-    <span class="header-title">stories</span>
-    <span class="tab-count">${stories.length}</span>
+    <span class="header-title">worlds</span>
+    <span class="tab-count">${worlds.length}</span>
   `
 
-  if (!stories.length) {
+  if (!worlds.length) {
     main.className = 'list'
-    main.innerHTML = '<span class="muted">no stories</span>'
+    main.innerHTML = '<span class="muted">no worlds</span>'
     return
   }
 
   main.className = 'grid'
-  main.innerHTML = stories
+  main.innerHTML = worlds
     .map((item) => {
       const id = typeof item === 'string' ? item : item.id
       const title = typeof item === 'string' ? item : item.title || item.id
@@ -276,28 +390,28 @@ function renderIndex(stories: Array<string | StorySummary>): void {
     .join('\n')
 }
 
-type StoryTab = 'slides' | 'cards' | 'media'
+type StoryTab = 'scenes' | 'cards' | 'assets'
 
 function getStoryTab(): StoryTab {
   const tab = new URLSearchParams(location.search).get('tab')
-  if (tab === 'cards' || tab === 'media') return tab
-  return 'slides'
+  if (tab === 'cards' || tab === 'assets') return tab
+  return 'scenes'
 }
 
 function storyTabHref(storyId: string, tab: StoryTab): string {
   const path = `/${encodeURIComponent(storyId)}`
-  if (tab === 'slides') return path
+  if (tab === 'scenes') return path
   return `${path}?tab=${tab}`
 }
 
 function tabLabel(tab: StoryTab): string {
   switch (tab) {
-    case 'slides':
-      return 'Slides'
+    case 'scenes':
+      return 'Scenes'
     case 'cards':
       return 'Cards'
-    case 'media':
-      return 'Media'
+    case 'assets':
+      return 'Assets'
     default: {
       const _exhaustive: never = tab
       return _exhaustive
@@ -306,7 +420,7 @@ function tabLabel(tab: StoryTab): string {
 }
 
 function renderTabs(story: Story, active: StoryTab): string {
-  const tabs: StoryTab[] = ['slides', 'cards', 'media']
+  const tabs: StoryTab[] = ['scenes', 'cards', 'assets']
   return `<nav class="tabs">${tabs
     .map((tab) => {
       const activeClass = tab === active ? ' tab-active' : ''
@@ -317,12 +431,12 @@ function renderTabs(story: Story, active: StoryTab): string {
 
 function tabCount(story: Story, tab: StoryTab): number {
   switch (tab) {
-    case 'slides':
-      return story.slides?.length ?? 0
+    case 'scenes':
+      return story.scenes?.length ?? 0
     case 'cards':
       return story.cards?.length ?? 0
-    case 'media':
-      return story.media?.length ?? 0
+    case 'assets':
+      return story.assets?.length ?? 0
     default: {
       const _exhaustive: never = tab
       return _exhaustive
@@ -344,15 +458,15 @@ function renderStory(story: Story): void {
   `
 
   switch (tab) {
-    case 'slides': {
-      if (!story.slides?.length) {
+    case 'scenes': {
+      if (!story.scenes?.length) {
         main.className = 'list'
-        main.innerHTML = '<span class="muted">No slides</span>'
+        main.innerHTML = '<span class="muted">No scenes</span>'
         break
       }
       main.className = 'grid'
-      main.innerHTML = story.slides
-        .map((s) => renderSlide(s, story.media, story.id))
+      main.innerHTML = story.scenes
+        .map((s) => renderScene(s, story.assets, story.id))
         .join('\n')
       break
     }
@@ -363,17 +477,17 @@ function renderStory(story: Story): void {
         break
       }
       main.className = 'grid'
-      main.innerHTML = story.cards.map((c) => renderCard(c, story.media, story.id)).join('\n')
+      main.innerHTML = story.cards.map((c) => renderCard(c, story.assets, story.id)).join('\n')
       break
     }
-    case 'media': {
-      if (!story.media.length) {
+    case 'assets': {
+      if (!story.assets.length) {
         main.className = 'list'
-        main.innerHTML = '<span class="muted">no media</span>'
+        main.innerHTML = '<span class="muted">no assets</span>'
         break
       }
       main.className = 'grid'
-      main.innerHTML = story.media.map((m) => renderMedia(m, story.id)).join('\n')
+      main.innerHTML = story.assets.map((m) => renderAsset(m, story.id)).join('\n')
       break
     }
     default: {
@@ -431,11 +545,11 @@ async function refresh(): Promise<void> {
   const route = currentRoute()
 
   if (!pathname) {
-    const stories = (await fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json())) as Array<
-      string | StorySummary
+    const worlds = (await fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json())) as Array<
+      string | World
     >
     if (currentRoute() !== route) return
-    renderOnce(JSON.stringify({ pathname, stories }), () => renderIndex(stories))
+    renderOnce(JSON.stringify({ pathname, worlds }), () => renderIndex(worlds))
     return
   }
 
@@ -451,58 +565,44 @@ async function refresh(): Promise<void> {
   renderOnce(JSON.stringify({ pathname, search: location.search, story }), () => renderStory(story))
 }
 
-async function copyPromptFromButton(button: HTMLButtonElement): Promise<void> {
-  const card = button.closest('.card')
-  const promptText = card?.querySelector('.card-prompt')?.textContent?.trim()
-  if (!promptText) return
-
-  await navigator.clipboard.writeText(promptText)
-
-  button.innerHTML = CHECK_ICON
-  button.title = 'Copied'
-  setTimeout(() => {
-    button.innerHTML = COPY_ICON
-    button.title = 'Copy prompt'
-  }, 1500)
-}
-
 const generating = new Set<string>()
 
 async function generateFromButton(button: HTMLButtonElement): Promise<void> {
   const storyId = button.dataset.story
   const name = button.dataset.name
   if (!storyId || !name) return
-  const job = `${storyId}:${name}`
+  const kind = button.dataset.kind ?? 'image'
+  const job = `${storyId}:${name}:${kind}`
   if (generating.has(job)) return
   generating.add(job)
   button.disabled = true
   const isIcon = button.classList.contains('regen-icon')
-  const actions = button.closest('.media-actions')
   if (isIcon) {
     button.classList.add('is-generating')
-    actions?.classList.add('is-generating')
   } else {
     button.textContent = 'Generating…'
   }
   const started = performance.now()
-  console.error('img gen start', { storyId, name })
+  const endpoint = kind === 'video' ? 'generate-video' : 'generate-image'
+  const payload = kind === 'video' ? { name, duration: 5 } : { name }
+  console.error('asset gen start', { storyId, name, kind })
   try {
-    const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/generate`, {
+    const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(payload),
     })
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string }
       throw new Error(body.error ?? `Generate failed (${res.status})`)
     }
-    console.error('img gen ok', { storyId, name, ms: Math.round(performance.now() - started) })
+    console.error('asset gen ok', { storyId, name, kind, ms: Math.round(performance.now() - started) })
     cacheBuster = Date.now()
     lastPayload = ''
     await refresh()
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('img gen error', { storyId, name, ms: Math.round(performance.now() - started), error: message })
+    console.error('asset gen error', { storyId, name, kind, ms: Math.round(performance.now() - started), error: message })
     button.disabled = false
     if (isIcon) {
       button.classList.remove('is-generating')
@@ -511,7 +611,6 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
       button.textContent = message
     }
   } finally {
-    actions?.classList.remove('is-generating')
     generating.delete(job)
   }
 }
@@ -519,10 +618,19 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
 document.addEventListener('click', (event) => {
   const target = event.target
   if (!(target instanceof Element)) return
-  const copy = target.closest('button.copy-btn')
-  if (copy instanceof HTMLButtonElement) {
+  const overlay = target.closest('button.play-overlay')
+  if (overlay instanceof HTMLButtonElement) {
     event.preventDefault()
-    void copyPromptFromButton(copy)
+    toggleScenePlay(overlay)
+    return
+  }
+  const vid = target.closest('video.card-video')
+  if (vid instanceof HTMLVideoElement) {
+    const cardButton = vid.closest('.card')?.querySelector('button.play-overlay')
+    if (cardButton instanceof HTMLButtonElement) {
+      event.preventDefault()
+      toggleScenePlay(cardButton)
+    }
     return
   }
   const gen = target.closest('button.gen-btn')
@@ -540,6 +648,19 @@ document.addEventListener('click', (event) => {
 window.addEventListener('popstate', () => {
   lastPayload = ''
   void refresh()
+})
+
+document.addEventListener('dblclick', (event) => {
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const scope = target.closest('button.play-overlay, video.card-video')
+  if (!scope) return
+  const card = scope.closest('.card')
+  const button = card?.querySelector('button.play-overlay')
+  if (button instanceof HTMLButtonElement) {
+    event.preventDefault()
+    fullscreenSceneVideo(button)
+  }
 })
 
 void refresh()

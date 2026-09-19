@@ -204,10 +204,17 @@ a.card:hover {
   --tint: rgba(255, 255, 255, 0.22);
 }
 
+.card.has-image:has(.card-attrs) {
+  --fg: var(--text);
+  --fg-muted: var(--muted);
+  --tint: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
 .card.has-image .card-title,
-.card.has-image .dialogue,
+.card.has-image .caption,
 .card.has-image .speaker {
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+
 }
 
 .card.has-image:has(.card-attrs) .card-img {
@@ -215,7 +222,7 @@ a.card:hover {
   transform: scale(1.12);
 }
 
-.card.has-image:has(.card-dialogue, .card-attrs)::after {
+.card.has-image:has(.card-caption, .card-attrs)::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -232,6 +239,10 @@ a.card:hover {
     oklch(0 0 0 / 0.01) 57%,
     oklch(0 0 0 / 0) 60%
   );
+}
+
+.card.has-image:has(.card-attrs)::after {
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
 }
 
 .gen-btn {
@@ -251,24 +262,12 @@ a.card:hover {
   max-width: calc(100% - 32px);
 }
 
-.gen-btn.regen-btn {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.card:hover .gen-btn.regen-btn,
-.gen-btn.regen-btn:disabled {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .gen-btn:disabled {
   opacity: 0.7;
   cursor: wait;
 }
 
-.media-actions {
+.asset-actions {
   position: absolute;
   right: 12px;
   top: 12px;
@@ -276,39 +275,6 @@ a.card:hover {
   display: flex;
   align-items: center;
   gap: 2px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.card:hover .media-actions,
-.card-media:hover .media-actions,
-.media-actions.is-generating,
-.media-actions:has(:disabled) {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.copy-btn {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border-radius: 50%;
-  color: var(--fg);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.copy-btn svg {
-  display: block;
-}
-
-.copy-btn:hover {
-  background: var(--tint);
 }
 
 .gen-btn.regen-icon {
@@ -319,6 +285,7 @@ a.card:hover {
   transform: none;
   width: 36px;
   height: 36px;
+  max-width: none;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -340,6 +307,8 @@ a.card:hover {
 
 .gen-btn.regen-icon svg {
   display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .gen-btn.regen-icon.is-generating svg,
@@ -351,45 +320,6 @@ a.card:hover {
   to {
     transform: rotate(360deg);
   }
-}
-
-.card-media .card-img {
-  transition: filter 0.15s ease, transform 0.15s ease;
-}
-
-.card-media.has-image:hover .card-img {
-  filter: blur(10px);
-  transform: scale(1.06);
-}
-
-.card-media .card-prompt {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  margin-top: 12px;
-  z-index: 2;
-  overflow-y: auto;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--fg);
-  white-space: pre-wrap;
-  text-align: left;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.card-media .card-prompt::-webkit-scrollbar {
-  display: none;
-}
-
-.card-media:hover .card-prompt {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .card-title {
@@ -408,7 +338,22 @@ a.card:hover {
   margin-bottom: 14px;
 }
 
-.card-media .card-title {
+.card-topblur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  z-index: 1;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.card-asset .card-title {
   text-align: left;
   padding-right: 80px;
 }
@@ -480,7 +425,7 @@ a.card:hover {
   color: var(--fg);
 }
 
-.card-dialogue {
+.card-caption {
   margin-top: auto;
   display: flex;
   flex-direction: column;
@@ -489,7 +434,7 @@ a.card:hover {
   z-index: 2;
 }
 
-.dialogue {
+.caption {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -501,51 +446,51 @@ a.card:hover {
   text-align: center;
 }
 
-.dialogue-left {
+.caption-left {
   align-items: flex-start;
   text-align: left;
 }
 
-.dialogue-line {
+.caption-line {
   margin: 0;
   width: 100%;
   white-space: pre-wrap;
   text-wrap: balance;
 }
 
-.dialogue-left .dialogue-line {
+.caption-left .caption-line {
   text-align: left;
 }
 
-.dialogue em {
+.caption em {
   font-style: italic;
 }
 
-.dialogue strong {
+.caption strong {
   font-weight: 700;
 }
 
-.dialogue-xl {
+.caption-xl {
   font-size: 24px;
   line-height: 1.25;
 }
 
-.dialogue-lg {
+.caption-lg {
   font-size: 22px;
   line-height: 1.3;
 }
 
-.dialogue-md {
+.caption-md {
   font-size: 20px;
   line-height: 1.35;
 }
 
-.dialogue-sm {
+.caption-sm {
   font-size: 17px;
   line-height: 1.4;
 }
 
-.dialogue-xs {
+.caption-xs {
   font-size: 14px;
   line-height: 1.45;
 }
@@ -578,4 +523,90 @@ a.card:hover {
   font-size: 13px;
   color: var(--fg);
   font-weight: 900;
+}
+
+.card-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.card-asset .card-video:fullscreen {
+  object-fit: contain;
+  background: #000;
+}
+
+.card:not(.card-asset) .card-video:fullscreen {
+  object-fit: contain;
+  background: #000;
+}
+
+.play-btn {
+  position: relative;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.play-btn:hover {
+  background: var(--tint);
+}
+
+.play-btn svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.card-asset .play-btn {
+  align-self: center;
+  margin: auto 0;
+  width: 48px;
+  height: 48px;
+}
+
+.play-btn.play-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+}
+
+.play-btn.play-overlay svg {
+  width: 26px;
+  height: 26px;
+}
+
+.card:not(.card-asset) .card-video {
+  cursor: pointer;
+}
+
+.card-transcript {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin-top: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--fg);
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.card:has(.card-attrs) .card-title {
+  text-shadow: none;
 }

@@ -2,14 +2,20 @@ id: orbital-tether
 title: Orbital Tether
 createdAt: 2026-09-18T13:31:21.449Z
 updatedAt: 2026-09-18T13:33:57.134Z
-slides:
-  - background: Orbital Tether Valley
-  - background: Orbital Tether Valley v2
-  - background: Orbital Tether Valley v3
-  - background: Orbital Tether Valley v4
-  - background: Orbital Tether Valley v5
-media:
+scenes:
+  - type: image
+    name: Orbital Tether Valley
+  - type: image
+    name: Orbital Tether Valley v2
+  - type: image
+    name: Orbital Tether Valley v3
+  - type: image
+    name: Orbital Tether Valley v4
+  - type: image
+    name: Orbital Tether Valley v5
+assets:
   - name: Orbital Tether Valley
+    kind: image
     prompt:
       Composition: Vertical wide landscape shot. Vast bright cerulean blue sky fills
         upper frame. Flat golden yellow grass plain in foreground.
@@ -29,6 +35,7 @@ media:
         on grass leaning against robot leg.
     createdAt: 2026-09-18T13:31:21.449Z
   - name: Orbital Tether Valley v2
+    kind: image
     prompt:
       Composition: Vertical aspect ratio. Wide landscape view. Upper two thirds is
         bright vibrant cerulean sky. Lower third is a bright golden yellow
@@ -52,6 +59,7 @@ media:
         orange accent.
     createdAt: 2026-09-18T13:32:03.462Z
   - name: Orbital Tether Valley v3
+    kind: image
     prompt:
       Composition: Vertical framing, wide concept art view. Lower third is sunny
         golden yellow steppe. Midground has a pale gravel riverbed. Right side
@@ -76,6 +84,7 @@ media:
         rests on the grass leaning against the robot leg.
     createdAt: 2026-09-18T13:32:36.300Z
   - name: Orbital Tether Valley v4
+    kind: image
     prompt:
       Composition: Vertical portrait ratio. Wide view of valley. Yellow grassy meadow
         in bottom third. Right side has steep green mountain slope descending
@@ -101,6 +110,7 @@ media:
         orange accent sits to the left of the body leaning against robot leg.
     createdAt: 2026-09-18T13:33:05.876Z
   - name: Orbital Tether Valley v5
+    kind: image
     prompt:
       Composition: Vertical shot. Screen-right foreground has a white robot lander.
         Screen-center foreground has a traveler sitting in the yellow grass

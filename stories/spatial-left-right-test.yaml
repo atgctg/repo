@@ -2,32 +2,41 @@ id: spatial-left-right-test
 title: Spatial Left Right Test
 createdAt: 2026-09-18T11:05:14.610Z
 updatedAt: 2026-09-18T11:07:25.129Z
-slides:
-  - background: Viewer Two Characters
-    dialogue: "Two characters placed by screen coordinates: Girl on screen-left, Boy
+scenes:
+  - type: image
+    name: Viewer Two Characters
+    caption: "Two characters placed by screen coordinates: Girl on screen-left, Boy
       on screen-right."
-  - background: Char Hands Apple Book
-    dialogue: "Anatomical hand prompt: Apple in right hand, book in left hand.
+  - type: image
+    name: Char Hands Apple Book
+    caption: "Anatomical hand prompt: Apple in right hand, book in left hand.
       Character holds apple in her anatomical right hand (viewer's left)."
-  - background: Profile Facing Right
-    dialogue: "Profile view facing right: Subject is on the left facing towards
+  - type: image
+    name: Profile Facing Right
+    caption: "Profile view facing right: Subject is on the left facing towards
       frame-right."
-  - background: Profile Facing Left
-    dialogue: "Profile view facing left: Subject is on the right facing towards
+  - type: image
+    name: Profile Facing Left
+    caption: "Profile view facing left: Subject is on the right facing towards
       frame-left."
-  - background: Relational Facing Inward
-    dialogue: "Relational facing: Girl on left facing right towards boy; Boy on
+  - type: image
+    name: Relational Facing Inward
+    caption: "Relational facing: Girl on left facing right towards boy; Boy on
       right facing left towards girl. 100% accurate."
-  - background: Looking Towards Exit Right
-    dialogue: "Environmental gaze: Girl on left looking towards open door on the right."
-  - background: OTS Behind Right Shoulder
-    dialogue: "Over-the-shoulder framing: Character A foreground left anchor,
+  - type: image
+    name: Looking Towards Exit Right
+    caption: "Environmental gaze: Girl on left looking towards open door on the right."
+  - type: image
+    name: OTS Behind Right Shoulder
+    caption: "Over-the-shoulder framing: Character A foreground left anchor,
       Character B mid-ground right."
-  - background: Stage Left Positioning
-    dialogue: "Stage direction: 'Stage Left' was ignored; the model defaulted to
+  - type: image
+    name: Stage Left Positioning
+    caption: "Stage direction: 'Stage Left' was ignored; the model defaulted to
       dead-center."
-media:
+assets:
   - name: Viewer Left Pos
+    kind: image
     prompt:
       Characters: "Akari: Young woman with bright red twin-tails and white hoodie,
         standing on the left side of the screen, facing forward"
@@ -37,6 +46,7 @@ media:
       Shot: Medium shot, full body visible
     createdAt: 2026-09-18T11:05:27.125Z
   - name: Viewer Gaze Right
+    kind: image
     prompt:
       Characters: "Ren: Young man with short bright blue hair, head turned and eyes
         gazing towards the right edge of the frame"
@@ -46,6 +56,7 @@ media:
       Shot: Close-up portrait
     createdAt: 2026-09-18T11:05:27.339Z
   - name: Viewer Two Characters
+    kind: image
     prompt:
       Characters: "Ken (screen-right): Boy with short dark green hair, black jacket,
         on the right side of screen; Mika (screen-left): Girl with long bright
@@ -56,6 +67,7 @@ media:
       Shot: Wide two-shot, both facing camera
     createdAt: 2026-09-18T11:05:27.687Z
   - name: Char Hands Apple Book
+    kind: image
     prompt:
       Action: "Holding objects: holding a bright red apple in her anatomical right
         hand, and holding a blue book in her anatomical left hand"
@@ -65,6 +77,7 @@ media:
       Shot: Medium shot, facing camera squarely
     createdAt: 2026-09-18T11:05:33.824Z
   - name: Char Head Turn To His Right
+    kind: image
     prompt:
       Action: Torso facing forward towards camera, but turning his head and looking
         towards his own right shoulder (the character's own anatomical right
@@ -75,6 +88,7 @@ media:
       Shot: Medium close-up
     createdAt: 2026-09-18T11:05:34.236Z
   - name: Stage Left Positioning
+    kind: image
     prompt:
       Characters: "Kanon: Girl with bright orange hair and yellow dress, standing
         Stage Left, looking towards center stage"
@@ -84,6 +98,7 @@ media:
       Shot: Theatrical wide shot
     createdAt: 2026-09-18T11:05:34.405Z
   - name: Camera Left Facing Camera Right
+    kind: image
     prompt:
       Characters: "Shion: Girl with lavender hair, standing on camera-left (the left
         third of the image), facing toward camera-right (the right third of the
@@ -93,6 +108,7 @@ media:
       Shot: Medium wide shot
     createdAt: 2026-09-18T11:05:42.098Z
   - name: OTS Behind Right Shoulder
+    kind: image
     prompt:
       Action: Character A in the foreground seen from behind his right shoulder,
         looking forward at Character B who is in focus facing him
@@ -103,6 +119,7 @@ media:
       Shot: Over-the-shoulder (OTS) shot from behind Character A's right shoulder
     createdAt: 2026-09-18T11:05:42.213Z
   - name: Object Anchored Left Right
+    kind: image
     prompt:
       Action: "Sitting at a table with breakfast: a glass of orange juice on the left
         side of the plate, and a coffee mug on the right side of the plate"
@@ -112,6 +129,7 @@ media:
       Shot: Straight-on medium shot, table centered
     createdAt: 2026-09-18T11:05:42.499Z
   - name: Profile Facing Right
+    kind: image
     prompt:
       Action: Pure profile view, head and torso facing toward the right edge of the
         frame
@@ -121,6 +139,7 @@ media:
       Shot: Profile shot, head and shoulders, facing right
     createdAt: 2026-09-18T11:06:54.231Z
   - name: Profile Facing Left
+    kind: image
     prompt:
       Action: Pure profile view, head and torso facing toward the left edge of the
         frame
@@ -130,6 +149,7 @@ media:
       Shot: Profile shot, head and shoulders, facing left
     createdAt: 2026-09-18T11:06:54.939Z
   - name: Relational Facing Inward
+    kind: image
     prompt:
       Characters: "Girl (left side): facing right towards the boy; Boy (right side):
         facing left towards the girl"
@@ -140,6 +160,7 @@ media:
       Shot: Medium two-shot, confrontation
     createdAt: 2026-09-18T11:06:55.585Z
   - name: Looking Towards Exit Right
+    kind: image
     prompt:
       Action: Standing on the left side of the room, turned and looking towards an
         open wooden door situated on the right side of the room

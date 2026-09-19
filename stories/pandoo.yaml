@@ -2,16 +2,20 @@ id: pandoo
 title: Pandoo
 createdAt: 2026-09-16T13:32:38.536Z
 updatedAt: 2026-09-17T15:58:33.528Z
-slides:
-  - background: Pandoo
-  - background: Pandoo
+scenes:
+  - type: image
+    name: Pandoo
+  - type: image
+    name: Pandoo
     speaker: Pandoo
-    dialogue: Let's play twenty questions!
-  - background: Hooman
+    caption: Let's play twenty questions!
+  - type: image
+    name: Hooman
     speaker: Hooman
-    dialogue: Who thinks of something first?
-media:
+    caption: Who thinks of something first?
+assets:
   - name: Pandoo
+    kind: image
     prompt:
       Action: Standing on hind legs, paws held up in a welcoming gesture
       Characters:
@@ -36,6 +40,7 @@ media:
         Type: Character portrait
     createdAt: 2026-09-16T13:32:47.305Z
   - name: Hooman
+    kind: image
     prompt:
       Action: Standing facing Pandoo, asking a yes or no question with a curious tilt
         of the head
@@ -73,7 +78,7 @@ cards:
         - Either player may think of the secret; decide who guesses before you
           start.
         - When someone thinks of something, write it in Secret. Never say it on
-          slides.
+          scenes.
         - The guesser asks yes-or-no questions only.
         - Subtract 1 from Left for each real question.
         - Twenty questions.

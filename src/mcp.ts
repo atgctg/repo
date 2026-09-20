@@ -173,18 +173,18 @@ export function createServer(): McpServer {
         name: z.string().describe('Unique'),
         cover: z.string().nullable().optional()
           .describe('Existing image asset name to use as card cover, or null to clear it. Prefer a cover whose name matches the card name.'),
+        voice: z.enum(VOICE_NAMES).nullable().optional()
+          .describe('IF_ASKED Voice for auto speech on dialogue captions.'),
         attributes: z.preprocess(
           (val) => (val === undefined ? undefined : normalizeRecord(val)),
-          z.object({
-            Voice: z.enum(VOICE_NAMES).nullable().optional().describe('IF_ASKED Voice name for auto speech on dialogue captions.'),
-          }).catchall(z.unknown()).optional().describe(
-            'Deep-merged key-value patch (any JSON values, including arrays and numbers). Set a field to null to delete it.',
-          ),
+          z.record(z.string(), z.unknown()),
+        ).optional().describe(
+          'Deep-merged key-value patch. Set a field to null to delete it. Suggested fields: Info { Age, Gender , ... } Appearance { Clothing, Hair, ... } Relationships { ... } Personality { Goals, ... }',
         ),
       }),
     },
-    async ({ storyId, name, cover, attributes }) => {
-      await setCard(storyId, { name, cover, attributes })
+    async ({ storyId, name, cover, voice, attributes }) => {
+      await setCard(storyId, { name, cover, voice, attributes })
       return { content: [{ type: 'text', text: `${name} updated` }] }
     },
   )

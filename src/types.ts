@@ -34,6 +34,7 @@ export type AssetKind = Asset['kind']
 export type Card = {
   name: string
   cover?: string
+  voice?: string
   attributes?: Record<string, unknown>
 }
 

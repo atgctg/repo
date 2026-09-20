@@ -418,8 +418,8 @@ assets:
 cards:
   - name: Muse
     cover: Muse
+    voice: Aiko
     attributes:
-      Voice: Aiko
       Fact: I keep 40 tabs open and call it memory training
       Hair: Short silver-violet bob with cyan tips
       Style: Cream knit sweater, pleated skirt, holographic scarf

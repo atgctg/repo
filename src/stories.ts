@@ -288,6 +288,7 @@ export async function setCard(
   params: {
     name: string
     cover?: string | null
+    voice?: string | null
     attributes?: Record<string, unknown>
   },
 ): Promise<Story> {
@@ -296,16 +297,16 @@ export async function setCard(
     const existing = existingIdx >= 0 ? story.cards[existingIdx] : undefined
 
     const cover = params.cover === undefined ? existing?.cover : (params.cover ?? undefined)
+    const voice = params.voice === undefined ? existing?.voice : (params.voice ?? undefined)
     const attributes =
       params.attributes === undefined
         ? (existing?.attributes ?? {})
         : mergeAttributes(existing?.attributes ?? {}, params.attributes)
 
-    const card: Card = {
-      name: params.name,
-      cover,
-      attributes,
-    }
+    const card: Card = { name: params.name }
+    if (cover) card.cover = cover
+    if (voice) card.voice = voice
+    if (Object.keys(attributes).length > 0) card.attributes = attributes
 
     if (existingIdx >= 0) {
       story.cards[existingIdx] = card
@@ -323,8 +324,8 @@ function resolveIndex(index: number, length: number): number {
 
 function voiceForSpeaker(story: Story, speaker?: string): string | undefined {
   if (!speaker?.trim()) return undefined
-  const value = story.cards.find((c) => c.name.toLowerCase() === speaker.toLowerCase())?.attributes?.Voice
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+  const value = story.cards.find((c) => c.name.toLowerCase() === speaker.toLowerCase())?.voice
+  return value?.trim() || undefined
 }
 
 async function speakDialogueScene(

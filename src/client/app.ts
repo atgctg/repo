@@ -315,7 +315,10 @@ function renderCardAttrs(attributes: Record<string, unknown>): string {
 
 function renderCard(card: Card, assets: Story['assets'], storyId: string): string {
   const coverAsset = findAsset(assets, card.cover)
-  const attrsHtml = renderCardAttrs(card.attributes ?? {})
+  const attrsHtml = renderCardAttrs({
+    ...(card.voice ? { Voice: card.voice } : {}),
+    ...card.attributes,
+  })
   const cardClasses = cardClass(Boolean(coverAsset?.url))
 
   return `

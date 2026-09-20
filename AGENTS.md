@@ -24,6 +24,10 @@ Do not read the `.env` file, secrets are loaded when using the MCP server.
 
 I need to manually restart Cursor for changes to the MCP to take effect. If you're blocked by this, let me know and use this emoji: 🔁.
 
+## Flags
+
+`IF_ASKED`: Only use this tool or field when the user explicitly asks for it.
+
 ## Overview
 
 - Simulate realistic worlds and characters based on user input to make sure the user has fun

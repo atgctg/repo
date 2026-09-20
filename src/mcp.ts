@@ -102,7 +102,7 @@ export function createServer(): McpServer {
   server.registerTool(
     'Video',
     {
-      description: 'Generate a video (only when user explicitly asks for it). Can take up to a few minutes, so returns immediately while video generates in the background.',
+      description: 'IF_ASKED Generate a video. Can take up to a few minutes, so returns immediately while video generates in the background.',
       inputSchema: InsertVideoSceneSchema.extend({
         storyId,
         index: insertIndex,
@@ -167,7 +167,7 @@ export function createServer(): McpServer {
   server.registerTool(
     'Card',
     {
-      description: 'Create or patch a named card (Character, Style, etc.). Only create cards when asked.',
+      description: 'IF_ASKED Create or patch a named card (Character, Style, etc.).',
       inputSchema: z.object({
         storyId,
         name: z.string().describe('Unique'),
@@ -176,7 +176,7 @@ export function createServer(): McpServer {
         attributes: z.preprocess(
           (val) => (val === undefined ? undefined : normalizeRecord(val)),
           z.object({
-            Voice: z.enum(VOICE_NAMES).nullable().optional().describe('Voice name for auto speech on dialogue captions. Only set when user explicitly asks for it.'),
+            Voice: z.enum(VOICE_NAMES).nullable().optional().describe('IF_ASKED Voice name for auto speech on dialogue captions.'),
           }).catchall(z.unknown()).optional().describe(
             'Deep-merged key-value patch (any JSON values, including arrays and numbers). Set a field to null to delete it.',
           ),

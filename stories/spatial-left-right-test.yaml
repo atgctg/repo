@@ -5,33 +5,49 @@ updatedAt: 2026-09-18T11:07:25.129Z
 scenes:
   - type: image
     name: Viewer Two Characters
+  - type: dialogue
+    background: Viewer Two Characters
     caption: "Two characters placed by screen coordinates: Girl on screen-left, Boy
       on screen-right."
   - type: image
     name: Char Hands Apple Book
+  - type: dialogue
+    background: Char Hands Apple Book
     caption: "Anatomical hand prompt: Apple in right hand, book in left hand.
       Character holds apple in her anatomical right hand (viewer's left)."
   - type: image
     name: Profile Facing Right
+  - type: dialogue
+    background: Profile Facing Right
     caption: "Profile view facing right: Subject is on the left facing towards
       frame-right."
   - type: image
     name: Profile Facing Left
+  - type: dialogue
+    background: Profile Facing Left
     caption: "Profile view facing left: Subject is on the right facing towards
       frame-left."
   - type: image
     name: Relational Facing Inward
-    caption: "Relational facing: Girl on left facing right towards boy; Boy on
-      right facing left towards girl. 100% accurate."
+  - type: dialogue
+    background: Relational Facing Inward
+    caption: "Relational facing: Girl on left facing right towards boy; Boy on right
+      facing left towards girl. 100% accurate."
   - type: image
     name: Looking Towards Exit Right
+  - type: dialogue
+    background: Looking Towards Exit Right
     caption: "Environmental gaze: Girl on left looking towards open door on the right."
   - type: image
     name: OTS Behind Right Shoulder
+  - type: dialogue
+    background: OTS Behind Right Shoulder
     caption: "Over-the-shoulder framing: Character A foreground left anchor,
       Character B mid-ground right."
   - type: image
     name: Stage Left Positioning
+  - type: dialogue
+    background: Stage Left Positioning
     caption: "Stage direction: 'Stage Left' was ignored; the model defaulted to
       dead-center."
 assets:

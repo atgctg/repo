@@ -93,12 +93,6 @@ function promptWithStyle(story: Story, prompt: Record<string, unknown>): string 
   return chunks.join('\n')
 }
 
-function videoPromptWithStyle(story: Story, promptText: string): string {
-  const style = story.cards.find((card) => card.name.toLowerCase() === 'style')?.attributes
-  if (!style || Object.keys(style).length === 0) return promptText
-  return `${promptText}\n${stringify({ Style: style }, { indent: 2 }).trim()}`
-}
-
 type PrunaStatus = 'succeeded' | 'starting' | 'processing' | 'failed' | 'unknown'
 
 type PrunaPrediction = {
@@ -289,8 +283,7 @@ export async function generateStoryImage(
 ): Promise<string> {
   const storyId = story.id
   const started = performance.now()
-  const { References: _refs, ...promptBody } = prompt
-  const yamlPrompt = promptWithStyle(story, promptBody)
+  const yamlPrompt = promptWithStyle(story, prompt)
   console.error('img gen start', { storyId, name, references })
   try {
     const buffer = references.length > 0
@@ -341,12 +334,12 @@ async function uploadFrame(story: Story, frameName: string): Promise<string | un
 export async function generateStoryVideo(
   story: Story,
   name: string,
-  promptText: string,
+  prompt: Record<string, unknown>,
   opts: { firstFrame?: string; lastFrame?: string; duration?: number } = {},
 ): Promise<string> {
   const storyId = story.id
   const started = performance.now()
-  const fullPrompt = videoPromptWithStyle(story, promptText.trim() || `Animate scene ${name}`)
+  const fullPrompt = promptWithStyle(story, prompt)
   const duration = opts.duration ?? VIDEO_DEFAULT_SECONDS
   console.error('video gen start', { storyId, name, duration })
   try {

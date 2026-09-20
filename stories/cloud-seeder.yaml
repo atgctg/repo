@@ -5,8 +5,8 @@ updatedAt: 2026-09-17T15:58:33.494Z
 scenes:
   - type: image
     name: Arroyo Town Overlook
-  - type: image
-    name: Arroyo Town Overlook
+  - type: dialogue
+    background: Arroyo Town Overlook
     caption: Arroyo Town.
   - type: image
     name: Drought Town Square
@@ -14,16 +14,18 @@ scenes:
     name: Cracked Orchard Canal
   - type: image
     name: Withered Branch
-  - type: image
-    name: Arroyo Town Overlook
+  - type: dialogue
+    background: Arroyo Town Overlook
     speaker: Jesse
     caption: Another rain cloud forecast to pass right over us.
   - type: image
     name: Jesse Vance
+  - type: dialogue
+    background: Jesse Vance
     speaker: Jesse
     caption: They're just sitting down there waiting to starve.
-  - type: image
-    name: Jesse Vance
+  - type: dialogue
+    background: Jesse Vance
     speaker: Jesse
     caption: I'm not waiting anymore.
   - type: image

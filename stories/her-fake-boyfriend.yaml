@@ -7,140 +7,168 @@ scenes:
     name: Tenno Sushi
   - type: image
     name: Keiko
+  - type: dialogue
+    background: Keiko
     speaker: Keiko
     caption: So, Yuki... when are we finally meeting him?
   - type: image
     name: Yuki
+  - type: dialogue
+    background: Yuki
     speaker: Yuki
     caption: "*Chopsticks stop halfway to the plate.*"
   - type: image
     name: Haruma
+  - type: dialogue
+    background: Haruma
     speaker: Haruma
-    caption:
-      - Your boyfriend.
-      - The one who has apparently been keeping our daughter in America.
+    caption: |-
+      Your boyfriend.
+      The one who has apparently been keeping our daughter in America.
   - type: image
     name: Eyes Lock On You
+  - type: dialogue
+    background: Eyes Lock On You
     caption: "*Eyes dart frantically around the restaurant until they lock onto you
       passing by.*"
   - type: image
     name: The Arm Grab
+  - type: dialogue
+    background: The Arm Grab
     speaker: Yuki
     caption: "*Stands up and catches your sleeve.*"
   - type: image
     name: POV There You Are
+  - type: dialogue
+    background: POV There You Are
     speaker: Yuki
     caption: There you are! Mom, Dad... this is my boyfriend!
   - type: image
     name: Whispering In Your Ear
+  - type: dialogue
+    background: Whispering In Your Ear
     speaker: Yuki
-    caption:
-      - "*Leans in close to your ear*"
-      - Please. Pretend you're my boyfriend.
-      - I told them we've been together for eight months.
+    caption: |-
+      *Leans in close to your ear*
+      Please. Pretend you're my boyfriend.
+      I told them we've been together for eight months.
   - type: image
     name: Leo's Introduction
+  - type: dialogue
+    background: Leo's Introduction
     speaker: Leo
-    caption:
-      - "*Nods*"
-      - Riiight, it's nice to finally meet you all! I'm Leo!
-  - type: image
-    name: Eyes Lock On You
+    caption: |-
+      *Nods*
+      Riiight, it's nice to finally meet you all! I'm Leo!
+  - type: dialogue
+    background: Eyes Lock On You
     speaker: Yuki
-    caption:
-      - "*Exhales in relief*"
-      - Yes! See, Mom? I told you he wasn't standing us up!
+    caption: |-
+      *Exhales in relief*
+      Yes! See, Mom? I told you he wasn't standing us up!
   - type: image
     name: Parents Reaction
+  - type: dialogue
+    background: Parents Reaction
     speaker: Keiko
     caption: Oh my goodness! Leo! Sit down, sit down!
-  - type: image
-    name: Haruma
+  - type: dialogue
+    background: Haruma
     speaker: Haruma
-    caption:
-      - Leo, is it? Eight months, and she's only just showing you off.
+    caption: Leo, is it? Eight months, and she's only just showing you off.
   - type: image
     name: Leo Awkward Laugh
+  - type: dialogue
+    background: Leo Awkward Laugh
     speaker: Leo
-    caption:
-      - Well.. You all live so far away..
-      - "*Laughs nervously*"
-  - type: image
-    name: Yuki
+    caption: |-
+      Well.. You all live so far away..
+      *Laughs nervously*
+  - type: dialogue
+    background: Yuki
     speaker: Yuki
-    caption:
-      - "*Squeezes your hand fiercely under the table*"
-      - Tokyo isn't that far, silly! But he works so hard, Dad.
+    caption: |-
+      *Squeezes your hand fiercely under the table*
+      Tokyo isn't that far, silly! But he works so hard, Dad.
   - type: image
     name: Leo Exclaims at Yuki
+  - type: dialogue
+    background: Leo Exclaims at Yuki
     speaker: Leo
-    caption:
-      - "*Stares incredulously at Yuki*"
-      - Not that far?! From LA? Are you crazy?
+    caption: |-
+      *Stares incredulously at Yuki*
+      Not that far?! From LA? Are you crazy?
   - type: image
     name: Parents Stunned Silence
+  - type: dialogue
+    background: Parents Stunned Silence
     speaker: Keiko
-    caption:
-      - "*Blinks*"
-      - LA...? Yuki, didn't you say he lived across town in Shibuya?
-  - type: image
-    name: Yuki
+    caption: |-
+      *Blinks*
+      LA...? Yuki, didn't you say he lived across town in Shibuya?
+  - type: dialogue
+    background: Yuki
     speaker: Yuki
-    caption:
-      - "*Kicks Leo under the table*"
-      - Little America! He means the diner in Shibuya, right honey?!
+    caption: |-
+      *Kicks Leo under the table*
+      Little America! He means the diner in Shibuya, right honey?!
   - type: image
     name: Haruma Eyeing Them
+  - type: dialogue
+    background: Haruma Eyeing Them
     speaker: Haruma
-    caption:
-      - "*Narrows eyes*"
-      - Is that what you meant, Leo? Los Angeles or a diner?
+    caption: |-
+      *Narrows eyes*
+      Is that what you meant, Leo? Los Angeles or a diner?
   - type: image
     name: Leo Digs Deeper Hole
+  - type: dialogue
+    background: Leo Digs Deeper Hole
     speaker: Leo
-    caption:
-      - Wait, you also live in Tokyo?
-      - I thought you moved here with her... uh recently!
-  - type: image
-    name: Parents Stunned Silence
+    caption: |-
+      Wait, you also live in Tokyo?
+      I thought you moved here with her... uh recently!
+  - type: dialogue
+    background: Parents Stunned Silence
     speaker: Haruma
-    caption:
-      - "*Haruma frowns*"
-      - We live in Sapporo, Leo.
-      - We took a twelve-hour flight just to see her.
-  - type: image
-    name: Whispering In Your Ear
+    caption: |-
+      *Haruma frowns*
+      We live in Sapporo, Leo.
+      We took a twelve-hour flight just to see her.
+  - type: dialogue
+    background: Whispering In Your Ear
     speaker: Yuki
-    caption:
-      - "*Leans in to whisper*"
-      - Sapporo! They live in Hokkaido!
-      - Stop guessing before you kill me!
+    caption: |-
+      *Leans in to whisper*
+      Sapporo! They live in Hokkaido!
+      Stop guessing before you kill me!
   - type: image
     name: Leo Whispering
+  - type: dialogue
+    background: Leo Whispering
     speaker: Leo
-    caption:
-      - "*Whispers back*"
-      - What do you mean? Which is it?
-      - Sapporo or Hokkaido?
-  - type: image
-    name: Whispering In Your Ear
+    caption: |-
+      *Whispers back*
+      What do you mean? Which is it?
+      Sapporo or Hokkaido?
+  - type: dialogue
+    background: Whispering In Your Ear
     speaker: Yuki
-    caption:
-      - "*Pinches bridge of nose*"
-      - Sapporo is the capital city of Hokkaido..
-      - It's the same place you idiot!
-  - type: image
-    name: Parents Reaction
+    caption: |-
+      *Pinches bridge of nose*
+      Sapporo is the capital city of Hokkaido..
+      It's the same place you idiot!
+  - type: dialogue
+    background: Parents Reaction
     speaker: Keiko
-    caption:
-      - "*Chuckles*"
-      - Look at them, Haruma.
-      - They already have their little private secrets.
-  - type: image
-    name: Haruma Eyeing Them
+    caption: |-
+      *Chuckles*
+      Look at them, Haruma.
+      They already have their little private secrets.
+  - type: dialogue
+    background: Haruma Eyeing Them
     speaker: Haruma
-    caption:
-      - Eight months together... and you didn't know where Yuki grew up?
+    caption: Eight months together... and you didn't know where Yuki grew up?
 assets:
   - name: Tenno Sushi
     kind: image

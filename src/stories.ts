@@ -1,7 +1,7 @@
 import { parse, stringify } from 'yaml'
 import { mergeAttributes } from './records'
 import { captionToTranscript, errorMessage, generateStoryImage, generateStoryVideo, generateStoryVoice, assetDiskPath, assetUrl, resolveVoiceId, safeStoryId } from './generate'
-import { AssetSchema, SpeechSchema, type Asset, type Card, type ImageAsset, type ImageScene, type InsertScene, type NumberedScene, type Scene, type Story, type VideoAsset, type World } from './types'
+import { AssetSchema, SpeechSchema, type Asset, type Card, type DialogueScene, type ImageAsset, type InsertDialogueScene, type InsertImageScene, type InsertVideoScene, type NumberedScene, type Scene, type Story, type VideoAsset, type World } from './types'
 
 const STORIES_DIR = `${import.meta.dir}/../stories`
 
@@ -53,16 +53,14 @@ function readCaption(raw: unknown): string | undefined {
   return undefined
 }
 
-function readSpeech(raw: unknown): ImageScene['speech'] {
+function readSpeech(raw: unknown): DialogueScene['speech'] {
   if (typeof raw === 'string' && raw) return { key: raw }
   const parsed = SpeechSchema.safeParse(raw)
   return parsed.success ? parsed.data : undefined
 }
 
-function readScene(raw: Record<string, unknown>): Scene {
-  const name = String(raw.name ?? '')
-  if (raw.type === 'video') return { type: 'video', name }
-  const scene: ImageScene = { type: 'image', name }
+function readDialogue(raw: Record<string, unknown>): DialogueScene {
+  const scene: DialogueScene = { type: 'dialogue', background: String(raw.background ?? '') }
   if (typeof raw.speaker === 'string' && raw.speaker) scene.speaker = raw.speaker
   const caption = readCaption(raw.caption)
   if (caption) scene.caption = caption
@@ -71,10 +69,37 @@ function readScene(raw: Record<string, unknown>): Scene {
   return scene
 }
 
+function readScene(raw: Record<string, unknown>): Scene {
+  switch (raw.type) {
+    case 'video':
+      return { type: 'video', name: String(raw.name ?? '') }
+    case 'dialogue':
+      return readDialogue(raw)
+    default:
+      return { type: 'image', name: String(raw.name ?? '') }
+  }
+}
+
+function sceneImageName(scene: Scene): string | undefined {
+  switch (scene.type) {
+    case 'image':
+      return scene.name
+    case 'dialogue':
+      return scene.background
+    case 'video':
+      return undefined
+    default: {
+      const _exhaustive: never = scene
+      return _exhaustive
+    }
+  }
+}
+
 export function getStoryCover(story: Story): string | undefined {
   for (const scene of story.scenes) {
-    if (scene.type !== 'image') continue
-    const found = story.assets.find((m) => m.name.toLowerCase() === scene.name.toLowerCase())
+    const name = sceneImageName(scene)
+    if (!name) continue
+    const found = story.assets.find((m) => m.name.toLowerCase() === name.toLowerCase())
     if (found?.kind === 'image' && found.url) return found.url
   }
   return undefined
@@ -165,6 +190,21 @@ function createdAtFor(story: Story, name: string): string {
   return story.assets.find((m) => m.name.toLowerCase() === name.toLowerCase())?.createdAt ?? new Date().toISOString()
 }
 
+function hasPrompt(prompt?: Record<string, unknown>): prompt is Record<string, unknown> {
+  return Boolean(prompt && Object.keys(prompt).length > 0)
+}
+
+function requireImage(story: Story, name: string, label: string): void {
+  const asset = story.assets.find((a) => a.kind === 'image' && a.name.toLowerCase() === name.toLowerCase())
+  if (!asset) throw new Error(`${label} image "${name}" not found`)
+}
+
+function spliceScene(story: Story, scene: Scene, index?: number): number {
+  const at = index === undefined ? story.scenes.length : Math.max(0, Math.min(story.scenes.length, index))
+  story.scenes.splice(at, 0, scene)
+  return at
+}
+
 export async function generateImage(
   storyId: string,
   params: { name: string; prompt?: Record<string, unknown>; references?: string[] },
@@ -174,19 +214,20 @@ export async function generateImage(
   const existing = story.assets.find((m) => m.name.toLowerCase() === name.toLowerCase())
   const existingImage = existing?.kind === 'image' ? existing : undefined
   const basePrompt = params.prompt ?? existingImage?.prompt
-  if (!basePrompt || Object.keys(basePrompt).length === 0) {
+  if (!hasPrompt(basePrompt)) {
     throw new Error(`No prompt for image "${name}"`)
   }
-  const references = params.references ?? existingImage?.references ?? []
-  const { References: _ignored, ...promptBody } = basePrompt
+  const references = (params.references ?? (params.prompt ? [] : existingImage?.references) ?? [])
+    .map((item) => item.trim())
+    .filter((item) => item && item.toLowerCase() !== name.toLowerCase())
 
-  const url = await generateStoryImage(story, name, promptBody, references)
+  const url = await generateStoryImage(story, name, basePrompt, references)
 
   return updateStory(storyId, (latest) => {
     const asset: ImageAsset = {
       name,
       kind: 'image',
-      prompt: promptBody,
+      prompt: basePrompt,
       createdAt: createdAtFor(latest, name),
       url,
       ...(references.length > 0 ? { references } : {}),
@@ -196,31 +237,41 @@ export async function generateImage(
   })
 }
 
+function resolveVideoPrompt(
+  story: Story,
+  name: string,
+  params: { prompt?: Record<string, unknown>; firstFrame?: string },
+  existing?: VideoAsset,
+): Record<string, unknown> {
+  if (hasPrompt(params.prompt)) return params.prompt
+  if (hasPrompt(existing?.prompt)) return existing.prompt
+  if (params.firstFrame) {
+    const frame = story.assets.find((m) => m.kind === 'image' && m.name.toLowerCase() === params.firstFrame!.toLowerCase())
+    if (hasPrompt(frame?.prompt)) return frame.prompt
+  }
+  throw new Error(`No prompt for video "${name}"`)
+}
+
 export async function generateVideo(
   storyId: string,
-  params: { name: string; prompt?: string; firstFrame?: string; lastFrame?: string; duration?: number },
+  params: { name: string; prompt?: Record<string, unknown>; firstFrame?: string; lastFrame?: string; duration?: number },
 ): Promise<{ story: Story; asset: VideoAsset; url: string }> {
   const { name } = params
   const story = await loadStory(storyId)
   const existing = story.assets.find((m) => m.name.toLowerCase() === name.toLowerCase())
   const existingVideo = existing?.kind === 'video' ? existing : undefined
-  let promptText = params.prompt?.trim() ?? existingVideo?.prompt?.trim() ?? ''
   const firstFrame = params.firstFrame ?? existingVideo?.firstFrame
   const lastFrame = params.lastFrame ?? existingVideo?.lastFrame
   const duration = params.duration ?? existingVideo?.duration
-  if (!promptText && firstFrame) {
-    const ref = story.assets.find((m) => m.name.toLowerCase() === firstFrame.toLowerCase())
-    if (ref?.kind === 'image' && ref.prompt) promptText = stringify(ref.prompt, { indent: 2 }).trim()
-  }
-  if (!promptText) promptText = `Animate scene ${name}`
+  const prompt = resolveVideoPrompt(story, name, { prompt: params.prompt, firstFrame }, existingVideo)
 
-  const url = await generateStoryVideo(story, name, promptText, { firstFrame, lastFrame, duration })
+  const url = await generateStoryVideo(story, name, prompt, { firstFrame, lastFrame, duration })
 
   return updateStory(storyId, (latest) => {
     const asset: VideoAsset = {
       name,
       kind: 'video',
-      prompt: promptText,
+      prompt,
       createdAt: createdAtFor(latest, name),
       url,
       ...(firstFrame ? { firstFrame } : {}),
@@ -266,23 +317,6 @@ export async function setCard(
   })
 }
 
-function cleanScene(scene: InsertScene): Scene {
-  switch (scene.type) {
-    case 'image': {
-      const result: ImageScene = { type: 'image', name: scene.name }
-      if (scene.speaker) result.speaker = scene.speaker
-      if (scene.caption !== undefined) result.caption = scene.caption
-      return result
-    }
-    case 'video':
-      return { type: 'video', name: scene.name }
-    default: {
-      const _exhaustive: never = scene
-      return _exhaustive
-    }
-  }
-}
-
 function resolveIndex(index: number, length: number): number {
   return index < 0 ? length + index : index
 }
@@ -293,13 +327,13 @@ function voiceForSpeaker(story: Story, speaker?: string): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
 }
 
-async function speakImageScene(
+async function speakDialogueScene(
   storyId: string,
   index: number,
 ): Promise<{ story: Story; index: number }> {
   const story = await loadStory(storyId)
   const scene = story.scenes[index]
-  if (!scene || scene.type !== 'image') throw new Error(`No image scene at index ${index}`)
+  if (scene?.type !== 'dialogue') throw new Error(`No dialogue scene at index ${index}`)
   if (scene.caption === undefined) throw new Error(`Scene ${index} has no caption`)
   const transcript = captionToTranscript(scene.caption)
   if (!transcript) throw new Error(`Scene ${index} has no caption`)
@@ -309,55 +343,81 @@ async function speakImageScene(
   const speech = await generateStoryVoice(storyId, voice, scene.caption)
   return updateStory(storyId, (latest) => {
     const target = latest.scenes[index]
-    if (target?.type === 'image') target.speech = speech
+    if (target?.type === 'dialogue') target.speech = speech
     return { story: latest, index }
   })
 }
 
-export async function insertScene(
+export async function insertImage(
   storyId: string,
-  scene: InsertScene,
+  scene: InsertImageScene,
   index?: number,
 ): Promise<{ story: Story; index: number }> {
-  switch (scene.type) {
-    case 'image': {
-      if (scene.prompt && Object.keys(scene.prompt).length > 0) {
-        await generateImage(storyId, { name: scene.name, prompt: scene.prompt, references: scene.references })
-      }
-      break
-    }
-    case 'video': {
-      if (scene.prompt?.trim()) {
-        await generateVideo(storyId, {
-          name: scene.name,
-          prompt: scene.prompt,
-          firstFrame: scene.firstFrame,
-          lastFrame: scene.lastFrame,
-          duration: scene.duration,
-        })
-      }
-      break
-    }
-    default: {
-      const _exhaustive: never = scene
-      return _exhaustive
-    }
+  if (hasPrompt(scene.prompt)) {
+    await generateImage(storyId, { name: scene.name, prompt: scene.prompt, references: scene.references })
   }
+  return updateStory(storyId, (story) => ({
+    story,
+    index: spliceScene(story, { type: 'image', name: scene.name }, index),
+  }))
+}
 
+export async function insertDialogue(
+  storyId: string,
+  scene: InsertDialogueScene,
+  index?: number,
+): Promise<{ story: Story; index: number }> {
   const result = await updateStory(storyId, (story) => {
-    const clamped = index === undefined ? story.scenes.length : Math.max(0, Math.min(story.scenes.length, index))
-    story.scenes.splice(clamped, 0, cleanScene(scene))
-    return { story, index: clamped }
+    requireImage(story, scene.background, 'Background')
+    const inserted: DialogueScene = { type: 'dialogue', background: scene.background }
+    if (scene.speaker) inserted.speaker = scene.speaker
+    if (scene.caption !== undefined) inserted.caption = scene.caption
+    return { story, index: spliceScene(story, inserted, index) }
   })
-
   const inserted = result.story.scenes[result.index]
-  if (inserted?.type === 'image' && inserted.speaker && inserted.caption && voiceForSpeaker(result.story, inserted.speaker)) {
+  if (inserted?.type === 'dialogue' && inserted.speaker && inserted.caption && voiceForSpeaker(result.story, inserted.speaker)) {
     try {
-      const voiced = await speakImageScene(storyId, result.index)
+      const voiced = await speakDialogueScene(storyId, result.index)
       return { story: voiced.story, index: result.index }
     } catch (error) {
       console.error('voice auto skip', { storyId, index: result.index, error: errorMessage(error) })
     }
+  }
+  return result
+}
+
+export async function insertVideo(
+  storyId: string,
+  scene: InsertVideoScene,
+  index?: number,
+): Promise<{ story: Story; index: number }> {
+  const result = await updateStory(storyId, (story) => {
+    if (scene.firstFrame) requireImage(story, scene.firstFrame, 'First frame')
+    if (scene.lastFrame) requireImage(story, scene.lastFrame, 'Last frame')
+    const at = spliceScene(story, { type: 'video', name: scene.name }, index)
+    if (hasPrompt(scene.prompt)) {
+      upsertAsset(story, {
+        name: scene.name,
+        kind: 'video',
+        prompt: scene.prompt,
+        createdAt: createdAtFor(story, scene.name),
+        ...(scene.firstFrame ? { firstFrame: scene.firstFrame } : {}),
+        ...(scene.lastFrame ? { lastFrame: scene.lastFrame } : {}),
+        ...(scene.duration ? { duration: scene.duration } : {}),
+      })
+    }
+    return { story, index: at }
+  })
+  if (hasPrompt(scene.prompt)) {
+    void generateVideo(storyId, {
+      name: scene.name,
+      prompt: scene.prompt,
+      firstFrame: scene.firstFrame,
+      lastFrame: scene.lastFrame,
+      duration: scene.duration,
+    }).catch((error) => {
+      console.error('async video gen error', { storyId, name: scene.name, error: errorMessage(error) })
+    })
   }
   return result
 }
@@ -411,5 +471,3 @@ export async function readScenes(
       return { index, ...scene, prompt: asset?.kind === 'video' ? asset.prompt : undefined }
     })
 }
-
-export type { NumberedScene } from './types'

@@ -1,5 +1,5 @@
 import { isPlainObject } from '../records'
-import type { Asset, Card, ImageScene, Scene, Story, VideoScene, World } from '../types'
+import type { Asset, Card, DialogueScene, ImageScene, Scene, Story, VideoScene, World } from '../types'
 
 {
   const icon = document.createElement('link')
@@ -32,11 +32,12 @@ function canGenerate(asset?: Asset): boolean {
 
 function canPrompt(asset?: Asset): boolean {
   if (!asset) return false
+  const prompted = Boolean(asset.prompt && Object.keys(asset.prompt).length > 0)
   switch (asset.kind) {
     case 'image':
-      return Boolean(asset.prompt && Object.keys(asset.prompt).length > 0)
+      return prompted
     case 'video':
-      return Boolean(asset.prompt?.trim() || asset.firstFrame)
+      return prompted || Boolean(asset.firstFrame)
     default: {
       const _exhaustive: never = asset
       return _exhaustive
@@ -179,7 +180,7 @@ function formatCaption(text: string): string {
     .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
 }
 
-function renderCaptions(scene: ImageScene): string {
+function renderCaptions(scene: DialogueScene): string {
   const lines = getCaptionLines(scene.caption)
   const hasCaption = lines.length > 0
   const hasSpeaker = Boolean(scene.speaker?.trim())
@@ -210,16 +211,24 @@ function renderCaptions(scene: ImageScene): string {
 
 function renderImageScene(scene: ImageScene, assets: Story['assets'], storyId: string): string {
   const asset = findAsset(assets, scene.name)
+  return `
+    <div class="${cardClass(Boolean(asset?.url))}">
+      ${imgTag(asset?.url)}
+      <div class="card-title">${escapeHtml(scene.name)}</div>
+      ${renderGenerateBtn(storyId, asset)}
+    </div>
+  `
+}
+
+function renderDialogueScene(scene: DialogueScene, assets: Story['assets'], storyId: string): string {
+  const asset = findAsset(assets, scene.background)
   const captions = renderCaptions(scene)
-  const titleHtml = captions ? '' : `<div class="card-title">${escapeHtml(scene.name)}</div>`
   const overlayHtml = scene.speech?.key ? playOverlayTag(speechSrc(storyId, scene.speech.key)) : ''
   return `
     <div class="${cardClass(Boolean(asset?.url))}">
       ${imgTag(asset?.url)}
       ${overlayHtml}
-      ${titleHtml}
       ${captions}
-      ${captions ? '' : renderGenerateBtn(storyId, asset)}
     </div>
   `
 }
@@ -240,6 +249,8 @@ function renderScene(scene: Scene, assets: Story['assets'], storyId: string): st
   switch (scene.type) {
     case 'image':
       return renderImageScene(scene, assets, storyId)
+    case 'dialogue':
+      return renderDialogueScene(scene, assets, storyId)
     case 'video':
       return renderVideoScene(scene, assets, storyId)
     default: {

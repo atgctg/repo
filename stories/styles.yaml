@@ -5,34 +5,50 @@ updatedAt: 2026-09-17T15:58:33.538Z
 scenes:
   - type: image
     name: Ghibli Anime
+  - type: dialogue
+    background: Ghibli Anime
     speaker: Style
     caption: Studio Ghibli Anime Style
   - type: image
     name: Retro Pixel Art
+  - type: dialogue
+    background: Retro Pixel Art
     speaker: Style
     caption: Retro Game Pixelated Art Style
   - type: image
     name: Blocky Minecraft
+  - type: dialogue
+    background: Blocky Minecraft
     speaker: Style
     caption: Blocky Minecraft Voxel Style
   - type: image
     name: Dreamlike Wholesome Watercolor
+  - type: dialogue
+    background: Dreamlike Wholesome Watercolor
     speaker: Style
     caption: Dreamlike Wonder Hand-Painted Wholesome
   - type: image
     name: Painterly Concept Art
+  - type: dialogue
+    background: Painterly Concept Art
     speaker: Style
     caption: Painterly Digital Painting Style
   - type: image
     name: Surreal 3D Grass Field
+  - type: dialogue
+    background: Surreal 3D Grass Field
     speaker: Style
     caption: Surreal 3D Art (Grass Field)
   - type: image
     name: Synthwave Retro Futuristic
+  - type: dialogue
+    background: Synthwave Retro Futuristic
     speaker: Style
     caption: 80s Synthwave Retro-Futuristic
   - type: image
     name: Impressionist Oil Painting
+  - type: dialogue
+    background: Impressionist Oil Painting
     speaker: Style
     caption: Claude Monet Impressionist Oil Painting
 assets:

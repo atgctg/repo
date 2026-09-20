@@ -5,26 +5,32 @@ updatedAt: 2026-09-17T15:58:33.462Z
 scenes:
   - type: image
     name: Bell Labs Building
+  - type: dialogue
+    background: Bell Labs Building
     speaker: Sim
     caption: Murray Hill, New Jersey
-  - type: image
-    name: Bell Labs Building
+  - type: dialogue
+    background: Bell Labs Building
     speaker: Sim
     caption: "1969"
   - type: image
     name: Bell Labs Interior
+  - type: dialogue
+    background: Bell Labs Interior
     speaker: Sim
     caption: Welcome to Bell Labs.
-  - type: image
-    name: Bell Labs Interior
+  - type: dialogue
+    background: Bell Labs Interior
     speaker: Sim
     caption: Where the future is being built, one transistor at a time.
   - type: image
     name: Dennis Ritchie
+  - type: dialogue
+    background: Dennis Ritchie
     speaker: Dennis Ritchie
     caption: Ah, a visitor!
-  - type: image
-    name: Dennis Ritchie
+  - type: dialogue
+    background: Dennis Ritchie
     speaker: Dennis Ritchie
     caption: Would you like to see what we're working on?
 assets:

@@ -5,12 +5,14 @@ updatedAt: 2026-09-17T15:58:33.528Z
 scenes:
   - type: image
     name: Pandoo
-  - type: image
-    name: Pandoo
+  - type: dialogue
+    background: Pandoo
     speaker: Pandoo
     caption: Let's play twenty questions!
   - type: image
     name: Hooman
+  - type: dialogue
+    background: Hooman
     speaker: Hooman
     caption: Who thinks of something first?
 assets:

@@ -5,14 +5,10 @@ updatedAt: 2026-09-19T11:03:38.789Z
 scenes:
   - type: video
     name: Muse Wave
-    prompt: 'Second 0 to 1: Muse smiles and waves at camera, holographic scarf
-      flutters. Second 1 to 3: she says "Hi, I am Muse!" with bright happy
-      voice, spark particles drift. Second 3 to 5: she laughs and says "I keep
-      40 tabs open and call it memory training!", playful mood, circular camera
-      push, enable cheerful non-diagetic music.'
-    firstFrame: Muse
   - type: image
     name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: |-
       *Waves*
@@ -29,8 +25,8 @@ scenes:
         - 758
         - 1080
         - 1240
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: |-
       *Whispers*
@@ -57,8 +53,8 @@ scenes:
         - 1880
         - 2792
         - 3080
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: |-
       *Laughs*
@@ -87,8 +83,8 @@ scenes:
         - 1800
         - 2587
         - 2840
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: |-
       My sandwich star? Uh, I logged it on 04/20/2025.
@@ -139,8 +135,8 @@ scenes:
         - 7640
         - 7880
         - 7960
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: It cost $19.99. Receipt went to muse@orbit.mail.
     speech:
@@ -177,8 +173,8 @@ scenes:
         - 4627
         - 4920
         - 5240
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: |-
       Call (415) 555-1212 if a cloud steals it.
@@ -237,8 +233,8 @@ scenes:
         - 8600
         - 8840
         - 9240
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: Muse is spelled <spell>Muse</spell>. Not mews. Important.
     speech:
@@ -259,8 +255,8 @@ scenes:
         - 2223
         - 2520
         - 3280
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: I had a thought.<break time="1s"/>Nope. Completely gone.
     speech:
@@ -281,8 +277,8 @@ scenes:
         - 2289
         - 3058
         - 3760
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: <speed ratio="1.5"/> I talk fast when clouds do tricks!
     speech:
@@ -303,8 +299,8 @@ scenes:
         - 1000
         - 1320
         - 1400
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: |-
       *Leans in*
@@ -325,8 +321,8 @@ scenes:
         - 1080
         - 1091
         - 1565
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: <emotion value="curious"/> Did you hear that? A hiccup in the dark.
     speech:
@@ -351,8 +347,8 @@ scenes:
         - 2040
         - 2040
         - 2280
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: "[laughter] Stars do not hiccup. I checked twice."
     speech:
@@ -375,8 +371,8 @@ scenes:
         - 2280
         - 2280
         - 2680
-  - type: image
-    name: Muse
+  - type: dialogue
+    background: Muse
     speaker: Muse
     caption: NASA noticed. The USA did not. Typical.
     speech:
@@ -412,11 +408,12 @@ assets:
   - name: Muse Wave
     createdAt: 2026-09-18T15:42:47.842Z
     kind: video
-    prompt: 'Second 0 to 1: Muse smiles and waves at camera, holographic scarf
-      flutters. Second 1 to 3: she says "Hi, I am Muse!" with bright happy
-      voice, spark particles drift. Second 3 to 5: she laughs and says "I keep
-      40 tabs open and call it memory training!", playful mood, circular camera
-      push, enable cheerful non-diagetic music.'
+    prompt:
+      Action: 'Second 0 to 1: Muse smiles and waves at camera, holographic scarf
+        flutters. Second 1 to 3: she says "Hi, I am Muse!" with bright happy
+        voice, spark particles drift. Second 3 to 5: she laughs and says "I keep
+        40 tabs open and call it memory training!", playful mood, circular camera
+        push, enable cheerful non-diagetic music.'
     firstFrame: Muse
 cards:
   - name: Muse

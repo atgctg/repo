@@ -9,6 +9,7 @@ import {
   InsertDialogueSceneSchema,
   InsertImageSceneSchema,
   InsertVideoSceneSchema,
+  JsonRecord,
   PromptSchema,
   type NumberedScene,
 } from './types'
@@ -16,7 +17,9 @@ import {
 const storyId = z.string().describe('ID of the story')
 const insertIndex = z.number().int().nonnegative().optional()
   .describe('0-based index before which to insert (omit to append at the end)')
-const sceneName = z.string().describe('Asset name (use an existing name to overwrite or reuse)')
+const assetName = z.string().describe(
+  'Human readable asset name in sentence case; use an existing name to overwrite or reuse)',
+).max(50)
 
 function formatScene(scene: NumberedScene): string {
   switch (scene.type) {
@@ -78,7 +81,7 @@ export function createServer(): McpServer {
       inputSchema: InsertImageSceneSchema.extend({
         storyId,
         index: insertIndex,
-        name: sceneName,
+        name: assetName,
         prompt: PromptSchema.optional().describe(
           'Structured JSON prompt. Suggested fields: Subject (who/what; age, appearance, clothing, expression), Behavior (action; screen-left/screen-right; who they face; front view vs rear/OTS; Edit: modification, target, preservation).',
         ),
@@ -106,7 +109,7 @@ export function createServer(): McpServer {
       inputSchema: InsertVideoSceneSchema.extend({
         storyId,
         index: insertIndex,
-        name: sceneName,
+        name: assetName,
         prompt: PromptSchema.optional().describe(
           'Structured JSON prompt. Suggested fields: Subject (who/what; appearance, clothing, distinguishing features), Actions array (what happens second by second; spoken lines in quotation marks), Camera (position, angle, focus, motion), Audio (diegetic and non-diegetic; explicitly enable or disable music, room tone, and speech).',
         ),
@@ -171,13 +174,13 @@ export function createServer(): McpServer {
       inputSchema: z.object({
         storyId,
         name: z.string().describe('Unique'),
-        cover: z.string().nullable().optional()
+        cover: z.string().meta({ title: 'AssetName' }).nullable().optional()
           .describe('Existing image asset name to use as card cover, or null to clear it. Prefer a cover whose name matches the card name.'),
         voice: z.enum(VOICE_NAMES).nullable().optional()
           .describe('IF_ASKED Voice for auto speech on dialogue captions.'),
         attributes: z.preprocess(
           (val) => (val === undefined ? undefined : normalizeRecord(val)),
-          z.record(z.string(), z.unknown()),
+          JsonRecord,
         ).optional().describe(
           'Deep-merged key-value patch. Set a field to null to delete it. Suggested fields: Info { Age, Gender , ... } Appearance { Clothing, Hair, ... } Relationships { ... } Personality { Goals, ... }',
         ),

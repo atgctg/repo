@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { normalizeRecord } from './records'
 
+export const JsonRecord = z.record(z.string(), z.json())
+
 const AssetBase = z.object({
   name: z.string(),
   createdAt: z.string(),
@@ -41,7 +43,7 @@ export type Card = {
 const MAX_PROMPT_CHARS = 2000
 export const PromptSchema = z.preprocess(
   (val) => (val === undefined ? undefined : normalizeRecord(val)),
-  z.record(z.string(), z.unknown()).refine(
+  JsonRecord.refine(
     (val) => JSON.stringify(val).length <= MAX_PROMPT_CHARS,
     { message: `Prompt object must be ${MAX_PROMPT_CHARS} characters or less when serialized` },
   ),

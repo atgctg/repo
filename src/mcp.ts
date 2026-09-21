@@ -83,7 +83,7 @@ export function createServer(): McpServer {
         index: insertIndex,
         name: assetName,
         prompt: PromptSchema.optional().describe(
-          'Structured JSON prompt. Suggested fields: Subject (who/what; age, appearance, clothing, expression), Behavior (action; screen-left/screen-right; who they face; front view vs rear/OTS; Edit: modification, target, preservation).',
+          'Structured JSON prompt. Suggested fields: Subject array (who/what; age, appearance, clothing and expression repeated in every image), Behavior (action; screen-left/screen-right; who they face; front view vs rear/OTS; when editing: modification, target, preservation).',
         ),
         references: InsertImageSceneSchema.shape.references.describe(
           'Existing image names to edit from (max 5)',

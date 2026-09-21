@@ -1,0 +1,477 @@
+id: solarpunk
+title: Solarpunk
+createdAt: 2026-09-20T12:25:45.956Z
+updatedAt: 2026-09-20T12:46:28.393Z
+scenes:
+  - type: image
+    name: solarpunk-robot-plain
+  - type: image
+    name: Solar Canopy Camp
+  - type: image
+    name: Elevator Base Station
+  - type: image
+    name: Spiral Wind Harvester
+  - type: image
+    name: Wandering Botanist
+  - type: image
+    name: River Scout Duo
+  - type: image
+    name: Surveyor At Rest
+  - type: image
+    name: Scouts River Crossing
+  - type: image
+    name: Scouts Lower Ridge
+  - type: image
+    name: Scouts Rocky Ascent
+  - type: image
+    name: Scouts Cloud Line
+  - type: image
+    name: Scouts Snowy Summit
+  - type: image
+    name: Orbital beam close up
+  - type: image
+    name: Botanist greeting traveler
+  - type: dialogue
+    background: Botanist greeting traveler
+    speaker: Botanist
+    caption: |-
+      Hello there!
+      *adjusts goggles on forehead with a gentle smile*
+      Just checking soil nodules along the river plain.
+      The nitrogen cycle is shifting toward the elevator base.
+  - type: image
+    name: Traveler inquiring
+  - type: dialogue
+    background: Traveler inquiring
+    speaker: Traveler
+    caption: |-
+      Is that bad?
+      *tilts dark hat, leaning gently on the staff*
+      And what exactly is a meadow?
+  - type: image
+    name: Botanist explaining cable
+  - type: dialogue
+    background: Botanist explaining cable
+    speaker: Botanist
+    caption: |-
+      *chuckles softly and points across the plain*
+      The wild grassland right beneath our boots.
+      That ribbon carries power down and climbers up.
+      Thirty-six thousand kilometers to orbit.
+  - type: image
+    name: Traveler amazed
+  - type: dialogue
+    background: Traveler amazed
+    speaker: Traveler
+    caption: |-
+      It is an elevator to the stars...
+      *eyes wide under brim of the hat*
+      Whoa. That is incredible.
+  - type: image
+    name: Botanist sharing tea
+  - type: dialogue
+    background: Botanist sharing tea
+    speaker: Botanist
+    caption: |-
+      *pours steamy tea into a small metal cup*
+      Grows on you once you have lived under it awhile.
+      Here, warm mountain mint and dandelion.
+      You look like you walked halfway across the basin.
+assets:
+  - name: solarpunk-robot-plain
+    createdAt: 2026-09-20T12:25:54.678Z
+    kind: image
+    prompt:
+      Composition: Vertical wide landscape perspective, front view from screen perspective
+      Environment: Vast bright cerulean sky above a flat golden yellow grass plain;
+        sunlit meadow in the foreground; winding light blue river bordered by
+        pale gravel banks in the midground; steep green mountain ridges framing
+        the valley leading to a distant rocky peak with a patch of snow; puffy
+        white cumulus cloud resting on the mountain ridge; massive
+        semi-transparent orbital elevator ribbon sky beam ascending straight up
+        vertically through the sky
+      Subject: Futuristic white robot lander with a cylindrical body, a wide
+        mushroom-shaped dome, and articulated legs with grey joints, standing
+        alone on the grass plain (screen-right, facing screen-left toward the
+        river and mountains). Solitary machine with no humans present.
+  - name: Solar Canopy Camp
+    createdAt: 2026-09-20T12:34:59.174Z
+    kind: image
+    prompt:
+      Composition: Vertical wide landscape perspective, front eye-level view from
+        screen perspective
+      Environment: Vast bright cerulean sky above a flat golden yellow grass plain;
+        sunlit meadow in the foreground; winding light blue river bordered by
+        pale gravel banks in the midground; steep green mountain ridges framing
+        the valley leading to a distant rocky peak with a patch of snow; puffy
+        white cumulus cloud resting on the mountain ridge; massive
+        semi-transparent orbital elevator ribbon sky beam ascending straight up
+        vertically through the sky
+      Subject: Curved iridescent glass-and-brass solar shade canopy arching over an
+        unmanned field station with bronze modular science tables, glowing amber
+        telemetry instruments, and folded canvas camp gear (screen-left, facing
+        screen-right toward the open river plain). No humans present.
+  - name: Elevator Base Station
+    createdAt: 2026-09-20T12:35:00.701Z
+    kind: image
+    prompt:
+      Composition: Vertical wide landscape perspective, front view looking toward the
+        valley center from screen perspective
+      Environment: Vast bright cerulean sky above a flat golden yellow grass plain;
+        sunlit meadow in foreground; winding light blue river with pale gravel
+        banks in midground; steep green mountain ridges in background framing
+        distant rocky peak with patch of snow; puffy cumulus clouds; massive
+        semi-transparent orbital elevator ribbon anchoring to the ground and
+        stretching straight up to the top of the sky
+      Subject: Monumental white circular terrestrial terminal anchor ring for the
+        orbital elevator, featuring terraced hydroponic gardens, geometric solar
+        louvers, and glass transit tubes (screen-center to screen-left, facing
+        screen-right toward the open valley). Unmanned architectural
+        infrastructure. No humans present.
+  - name: Spiral Wind Harvester
+    createdAt: 2026-09-20T12:35:01.378Z
+    kind: image
+    prompt:
+      Composition: Vertical wide landscape perspective, front view looking across the
+        meadow from screen perspective
+      Environment: Vast bright cerulean sky above a flat golden yellow grass plain;
+        sunlit meadow in the foreground; winding light blue river bordered by
+        pale gravel banks in the midground; steep green mountain ridges framing
+        the valley leading to a distant rocky peak with a patch of snow; puffy
+        white cumulus cloud resting on the mountain ridge; massive
+        semi-transparent orbital elevator ribbon ascending straight up into the
+        vivid blue sky
+      Subject: Tall elegant helical wind turbine mast constructed from pearlescent
+        white composite and warm copper bracing, with solar collection fins
+        (screen-right, facing screen-left). An automated cylindrical recharge
+        depot with glowing cyan indicator rings rests at its base. No humans
+        present.
+  - name: Wandering Botanist
+    createdAt: 2026-09-20T12:35:35.484Z
+    kind: image
+    prompt:
+      Behavior: Kneeling on the grass, examining wild clover; screen-left, facing
+        screen-right; three-quarter front view, face visible to camera
+      Composition: Vertical wide landscape, eye-level framing
+      Environment: Vast bright cerulean sky above flat golden yellow grass plain;
+        winding light blue river in midground; steep green ridges framing
+        distant snowy peak; orbital elevator ribbon ascending straight up
+      Subject: Young woman botanist with braided dark hair, wearing a loose olive
+        linen tunic, dark canvas field trousers, brass-rimmed goggles pushed up
+        on her forehead, and a woven utility satchel
+  - name: River Scout Duo
+    createdAt: 2026-09-20T12:35:36.618Z
+    kind: image
+    prompt:
+      Behavior: Standing together by the pale gravel riverbank, pointing across the
+        water toward the mountains; screen-center, facing screen-right; rear
+        three-quarter view, back of head and shoulders visible
+      Composition: Vertical wide landscape framing the winding river
+      Environment: Vast bright cerulean sky above golden yellow grass plain; light
+        blue river with pale gravel banks in midground; steep green ridges and
+        orbital elevator ribbon cutting vertically through the sky
+      Subject: Two scouts in matching white-and-amber solar-cloth windbreakers, loose
+        dark trousers, lightweight field backpacks, and water testing canisters
+        slung across their shoulders
+  - name: Surveyor At Rest
+    createdAt: 2026-09-20T12:35:37.286Z
+    kind: image
+    prompt:
+      Behavior: Resting against a weathered stone marker, holding a solar surveyor
+        staff; screen-right, facing screen-left; front view, face visible to
+        camera
+      Composition: Vertical wide landscape, eye-level framing
+      Environment: Vast bright cerulean sky above flat golden yellow grass plain;
+        sunlit meadow in foreground; winding light blue river; distant steep
+        green mountain ridges; semi-transparent orbital elevator ribbon in the
+        sky
+      Subject: Solitary traveler with weathered features, short grey hair,
+        wide-brimmed dark hat, draped indigo cloak over dark field clothes, and
+        leather walking boots
+  - name: Scouts River Crossing
+    createdAt: 2026-09-20T12:36:03.531Z
+    kind: image
+    prompt:
+      Behavior: Two scouts stepping carefully across flat pale river stones to cross
+        the water; screen-left moving toward screen-right; side profile view,
+        faces visible
+      Composition: Vertical wide landscape, mid-shot over the river water
+      Environment: Light blue winding river with pale gravel banks in foreground;
+        golden grass meadow behind; steep green mountain ridges looming closer
+        ahead; orbital elevator ribbon in cerulean sky
+      Subject: Two scouts in white-and-amber solar windbreakers, dark trousers,
+        lightweight backpacks, holding carbon walking poles
+  - name: Scouts Lower Ridge
+    createdAt: 2026-09-20T12:36:04.341Z
+    kind: image
+    prompt:
+      Behavior: Two scouts hiking single-file up a winding dirt switchback through
+        tall golden grasses; screen-bottom-left ascending toward
+        screen-top-right; rear view / over-the-shoulder
+      Composition: Vertical composition emphasizing steep terrain slope
+      Environment: Steep green mountain ridge slope in foreground and midground; wide
+        valley floor and river shrinking below; sunny cerulean sky with orbital
+        elevator ribbon ascending straight up
+      Subject: Two scouts in white-and-amber windbreakers, dark trousers, backpacks
+        with strapped gear, one leading and one trailing
+  - name: Scouts Rocky Ascent
+    createdAt: 2026-09-20T12:36:06.819Z
+    kind: image
+    prompt:
+      Behavior: Two scouts scrambling up rough granite boulders and scree;
+        screen-center, facing forward toward viewer, faces visible to camera
+      Composition: Vertical framing looking slightly down and across the rocky ridge
+      Environment: Rugged rocky mountain spur with sparse alpine moss; puffy white
+        clouds drifting at eye level; bright cerulean sky; elevator ribbon
+        gleaming nearby
+      Subject: Two scouts in white-and-amber windbreakers, dust on dark field
+        trousers, climbing gloves, adjusting backpack straps
+  - name: Scouts Cloud Line
+    createdAt: 2026-09-20T12:36:07.312Z
+    kind: image
+    prompt:
+      Behavior: Two scouts standing side-by-side at the ridge edge above the cloud
+        deck, resting on walking poles; screen-right, facing screen-left;
+        profile view
+      Composition: Vertical landscape, vast scale over the sea of clouds
+      Environment: Jagged dark rock crest jutting out over billowing white cumulus
+        clouds; distant valley floor hidden below; crisp cerulean sky above;
+        orbital elevator beam cutting vertically through the clouds
+      Subject: Two scouts in white-and-amber windbreakers, hoods up against wind, dark
+        trousers, backpacks
+  - name: Scouts Snowy Summit
+    createdAt: 2026-09-20T12:36:07.787Z
+    kind: image
+    prompt:
+      Behavior: Two scouts reaching the summit crest near a snowfield, raising their
+        arms in triumph; screen-center, facing screen-outward; three-quarter
+        front view
+      Composition: Vertical panorama from the mountain peak
+      Environment: Snow-patched rocky peak with crisp white snowdrift; infinite golden
+        valley and winding blue river far below; deep cerulean sky with
+        semi-transparent orbital elevator ribbon gleaming in full height
+      Subject: Two scouts in white-and-amber solar windbreakers, dark trousers, heavy
+        boots, backpacks and alpine gear
+  - name: Orbital beam close up
+    createdAt: 2026-09-20T12:37:04.673Z
+    kind: image
+    prompt:
+      Behavior: Camera looking up from immediately beside the glowing beam; low-angle
+        upward tilt
+      Composition: Vertical composition framing the colossal semi-transparent ribbon
+        ascending straight up into space
+      Environment: Luminous translucent orbital elevator ribbon radiating shimmering
+        cyan and golden energy lattices; bright cerulean upper atmosphere above;
+        mountain ridge silhouettes flanking the edges; crisp white atmospheric
+        haze
+      Subject: Massive crystalline composite sky ribbon anchored to a polished bronze
+        foundation ring, intricate glowing geometric conduits pulsing within the
+        translucent structure. No humans present.
+  - name: Botanist meeting traveler
+    createdAt: 2026-09-20T12:37:47.443Z
+    kind: image
+    prompt:
+      Behavior: Botanist looks up from the meadow grass toward the traveler standing
+        just out of frame; screen-left, facing screen-right; three-quarter front
+        view, pleasant curious expression
+      Composition: Vertical medium shot, eye-level framing
+      Environment: Golden yellow grass plain, winding blue river in background, sunny
+        cerulean sky with orbital beam ascending in distance
+      Subject: Botanist with braided dark hair, olive linen tunic, brass goggles
+        pushed up on forehead, holding a small brass magnifying loupe in one
+        hand
+  - name: Botanist explaining meadow
+    createdAt: 2026-09-20T12:38:57.282Z
+    kind: image
+    prompt:
+      Behavior: Botanist gestures toward the surrounding golden grassland and
+        riverbank; screen-left, facing screen-right toward traveler; front view,
+        gentle amused expression
+      Composition: Vertical medium close-up, eye-level framing
+      Environment: Sunlit golden yellow grass plain stretching out behind her, river
+        gleaming, cerulean sky
+      Subject: Botanist with braided dark hair, brass goggles on forehead, olive linen
+        tunic, holding up a stalk of wild clover in her fingers
+  - name: Orbital rim station
+    createdAt: 2026-09-20T12:40:22.599Z
+    kind: image
+    prompt:
+      Behavior: Massive rotating habitat wheel floating in low orbit; angled
+        three-quarter perspective looking down at Earth's curvature below
+      Composition: Vertical wide perspective overlooking the edge of the atmosphere
+        and space
+      Environment: Deep starry space above, vibrant blue planet curvature and golden
+        sunlit continents with the thin cyan limb of atmosphere below;
+        translucent orbital ribbon tether anchored to the central spindle hub
+      Subject: Vast circular orbital rim habitat ring with tiered solar panel banks,
+        hydroponic greenhouse rings glowing warm green, modular white docking
+        spokes, and shimmering composite struts. No humans visible.
+  - name: Botanist pointing at anchor ring
+    createdAt: 2026-09-20T12:41:04.615Z
+    kind: image
+    prompt:
+      Behavior: Botanist stands up, brushing off her tunic, and points toward the
+        distant base of the sky ribbon; screen-left, facing screen-right;
+        three-quarter front view, warm informative posture
+      Composition: Vertical medium shot framing botanist and the distant elevator
+        anchor in background
+      Environment: Sunlit golden grassland, clear cerulean sky, the colossal
+        terrestrial terminal base ring visible in the distance where the
+        elevator beam meets the ground
+      Subject: Botanist with dark braided hair, olive linen tunic, brass goggles,
+        canvas trousers, leather boots
+  - name: Botanist offering tea
+    createdAt: 2026-09-20T12:44:54.575Z
+    kind: image
+    prompt:
+      Behavior: Botanist picks up a warm copper thermos flask and offers a small cup
+        toward traveler; screen-left, facing screen-right; front view,
+        hospitable smile
+      Composition: Vertical medium shot, warm sunlight framing the interaction
+      Environment: Sunlit golden grass plain, river in midground, distant blue
+        mountain ridge, cerulean sky
+      Subject:
+        - "Botanist: young woman with braided dark hair, wearing loose olive
+          linen tunic, dark canvas field trousers, brass-rimmed goggles pushed
+          up on her forehead, canvas utility satchel, friendly expression"
+  - name: Botanist greeting traveler
+    createdAt: 2026-09-20T12:45:33.402Z
+    kind: image
+    prompt:
+      Behavior: Botanist kneeling in golden grass, looking up to screen-right toward
+        standing traveler; screen-left, facing screen-right; three-quarter front
+        view, warm welcoming smile
+      Composition: Vertical medium shot, character anchored screen-left, eye-level camera
+      Environment: Flat golden yellow grass meadow, winding light blue river with pale
+        gravel banks in midground, distant green ridges and thin
+        semi-transparent orbital elevator ribbon in cerulean sky
+      Subject:
+        - "Botanist (screen-left, facing screen-right): 26-year-old female
+          botanist with raven-black hair in a single neat three-strand braid
+          draped over her right shoulder; sun-warmed skin, freckles on nose;
+          wearing brass-framed circular goggles with amber lenses pushed up on
+          forehead; olive-green loose linen buttoned overshirt over an
+          unbleached beige cotton crewneck undershirt; dark charcoal canvas
+          utility trousers with brass-riveted cargo pockets; brown leather field
+          boots; diagonal leather strap across chest carrying a tan canvas
+          satchel with brass clasp"
+  - name: Traveler inquiring
+    createdAt: 2026-09-20T12:45:34.160Z
+    kind: image
+    prompt:
+      Behavior: Traveler standing upright, both hands resting atop his brass-capped
+        surveyor staff, looking down toward screen-left; screen-right, facing
+        screen-left; three-quarter front view, inquisitive thoughtful gaze
+      Composition: Vertical medium shot, character anchored screen-right, eye-level camera
+      Environment: Flat golden yellow grass meadow, winding light blue river with pale
+        gravel banks in midground, distant green ridges and thin
+        semi-transparent orbital elevator ribbon in cerulean sky
+      Subject:
+        - "Traveler (screen-right, facing screen-left): 38-year-old male
+          wanderer with weathered face and salt-and-pepper jaw stubble; wearing
+          wide-brimmed flat-topped dark charcoal wool felt hat; long dark
+          charcoal-grey heavy canvas duster coat worn open; slate-grey
+          collarless linen button-up shirt; charcoal trail trousers tucked into
+          tall lace-up dark brown boots; holding 5-foot ash-wood surveyor
+          walking staff topped with a circular brass astrolabe dial"
+  - name: Botanist explaining cable
+    createdAt: 2026-09-20T12:45:40.213Z
+    kind: image
+    prompt:
+      Behavior: Botanist standing upright in the meadow, extending left arm to point
+        toward the distant elevator anchor; screen-left, facing screen-right;
+        three-quarter front view, engaging informative expression
+      Composition: Vertical medium shot, character anchored screen-left, eye-level camera
+      Environment: Flat golden yellow grass meadow, winding light blue river with pale
+        gravel banks in midground, distant green ridges and thin
+        semi-transparent orbital elevator ribbon in cerulean sky
+      Subject:
+        - "Botanist (screen-left, facing screen-right): 26-year-old female
+          botanist with raven-black hair in a single neat three-strand braid
+          draped over her right shoulder; sun-warmed skin, freckles on nose;
+          wearing brass-framed circular goggles with amber lenses pushed up on
+          forehead; olive-green loose linen buttoned overshirt over an
+          unbleached beige cotton crewneck undershirt; dark charcoal canvas
+          utility trousers with brass-riveted cargo pockets; brown leather field
+          boots; diagonal leather strap across chest carrying a tan canvas
+          satchel with brass clasp"
+  - name: Traveler amazed
+    createdAt: 2026-09-20T12:45:40.349Z
+    kind: image
+    prompt:
+      Behavior: Traveler lifting one hand to tip back the brim of his charcoal hat,
+        other hand gripping the staff, looking toward screen-left with awe;
+        screen-right, facing screen-left; three-quarter front view, wide-eyed
+        amazement
+      Composition: Vertical medium shot, character anchored screen-right, eye-level camera
+      Environment: Flat golden yellow grass meadow, winding light blue river with pale
+        gravel banks in midground, distant green ridges and thin
+        semi-transparent orbital elevator ribbon in cerulean sky
+      Subject:
+        - "Traveler (screen-right, facing screen-left): 38-year-old male
+          wanderer with weathered face and salt-and-pepper jaw stubble; wearing
+          wide-brimmed flat-topped dark charcoal wool felt hat; long dark
+          charcoal-grey heavy canvas duster coat worn open; slate-grey
+          collarless linen button-up shirt; charcoal trail trousers tucked into
+          tall lace-up dark brown boots; holding 5-foot ash-wood surveyor
+          walking staff topped with a circular brass astrolabe dial"
+  - name: Botanist sharing tea
+    createdAt: 2026-09-20T12:45:45.734Z
+    kind: image
+    prompt:
+      Behavior: Botanist holding a cylindrical hammered-copper thermos in right hand
+        and offering a small steaming bronze cup forward toward screen-right;
+        screen-left, facing screen-right; three-quarter front view, warm
+        welcoming smile
+      Composition: Vertical medium shot, character anchored screen-left, eye-level camera
+      Environment: Flat golden yellow grass meadow, winding light blue river with pale
+        gravel banks in midground, distant green ridges and thin
+        semi-transparent orbital elevator ribbon in cerulean sky
+      Subject:
+        - "Botanist (screen-left, facing screen-right): 26-year-old female
+          botanist with raven-black hair in a single neat three-strand braid
+          draped over her right shoulder; sun-warmed skin, freckles on nose;
+          wearing brass-framed circular goggles with amber lenses pushed up on
+          forehead; olive-green loose linen buttoned overshirt over an
+          unbleached beige cotton crewneck undershirt; dark charcoal canvas
+          utility trousers with brass-riveted cargo pockets; brown leather field
+          boots; diagonal leather strap across chest carrying a tan canvas
+          satchel with brass clasp"
+cards:
+  - name: Style
+    attributes:
+      Atmosphere: Bright, clear sunlit daylight with vibrant contrast and clean
+        solarpunk mood
+      Medium: Painterly digital illustration with expressive brushstrokes and bold
+        graphic color shapes
+      Palette: Saturated cerulean blues, warm golden yellows, olive greens, and crisp
+        whites
+      Rendering: Flat graphic aesthetic, painterly textures, strictly avoiding
+        photorealism or 3D rendered appearance
+  - name: Botanist
+    attributes:
+      Appearance: Olive-green loose linen buttoned overshirt over an unbleached beige
+        cotton crewneck undershirt; dark charcoal canvas utility trousers with
+        brass riveted cargo pockets; heavy brown leather field boots with brass
+        buckles; brass-framed steampunk goggles with dark amber lenses pushed up
+        resting on forehead; leather shoulder strap running diagonally across
+        chest from left shoulder to right hip supporting a worn tan canvas
+        satchel with brass clasp
+      Hair: Glossy raven-black hair tied in a single neat three-strand braid resting
+        over her right shoulder with loose wisps around temples
+      Physical: 26-year-old female botanist, sun-warmed tan skin, clear brown
+        almond-shaped eyes, slight dusting of freckles over bridge of nose, warm
+        friendly smile
+  - name: Traveler
+    attributes:
+      Appearance: Wide-brimmed flat-topped dark charcoal wool felt hat with thin
+        leather hatband; ankle-length dark charcoal-grey heavy canvas duster
+        coat with deep turned-down collar worn open; slate-grey collarless
+        homespun linen button-up shirt underneath; charcoal rugged trail
+        trousers tucked into tall lace-up weathered dark brown leather travel
+        boots; dark leather cross-body strap carrying a rolled wool bedroll;
+        holds a 5-foot smooth ash-wood surveyor walking staff capped with a
+        polished brass circular astrolabe dial
+      Facial: 38-year-old solitary wanderer, pale olive weathered skin with faint
+        laugh lines around dark squinting eyes, three-day salt-and-pepper
+        stubble across jaw and chin

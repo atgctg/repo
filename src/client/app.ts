@@ -8,9 +8,8 @@ import {
   createElement,
   type IconNode,
 } from 'lucide'
-import { formatRanges } from '../project'
-import { isPlainObject } from '../records'
-import { logHtml } from './log'
+import { formatRanges } from '@/project'
+import { isPlainObject } from '@/records'
 import type {
   Asset,
   Card,
@@ -20,7 +19,8 @@ import type {
   Story,
   VideoScene,
   World,
-} from '../types'
+} from '@/types'
+import { logHtml } from './log'
 
 {
   const icon = document.createElement('link')

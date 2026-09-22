@@ -8,8 +8,8 @@ import {
   createElement,
   type IconNode,
 } from 'lucide'
-import { formatRanges } from '../project'
-import type { Attributes, Story, StoryEvent } from '../types'
+import { formatRanges } from '@/project'
+import type { Attributes, Story, StoryEvent } from '@/types'
 
 function escapeHtml(str: string): string {
   return str

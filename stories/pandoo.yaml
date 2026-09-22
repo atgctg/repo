@@ -13,7 +13,7 @@ events:
     name: 20 Questions
     attributes:
       Secret: Put Pandoo's secret here when he thinks of something.
-      Left: "20"
+      Left: '20'
       Rules:
         - Either player may think of the secret; decide who guesses before you
           start.

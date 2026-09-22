@@ -137,7 +137,7 @@ events:
         Jesse Vance:
           Style: Studio Ghibli anime character, clean 2D cel lines, simple expressive
             face, no uncanny realism
-          Age: "27"
+          Age: '27'
           Hair: Tousled dark brown hair under a simple canvas cap
           Eyes: Determined amber anime eyes
           Face: Clean anime features, slight smudge of dust on cheek
@@ -192,7 +192,7 @@ events:
       Characters:
         Jesse Vance:
           Style: Studio Ghibli anime, clean 2D cel lines
-          Age: "27"
+          Age: '27'
           Hair: Tousled dark brown hair under a canvas cap
           Eyes: Determined amber anime eyes
           Face: Dust smudge on cheek
@@ -218,7 +218,7 @@ events:
       Characters:
         Jesse Vance:
           Style: Studio Ghibli anime character, clean 2D cel lines, simple expressive face
-          Age: "27"
+          Age: '27'
           Hair: Tousled dark brown hair under canvas cap
           Eyes: Determined amber anime eyes
           Face: Dust smudge, welding goggles down over eyes
@@ -243,7 +243,7 @@ events:
       Characters:
         Jesse Vance:
           Style: Studio Ghibli anime character, clean 2D cel lines
-          Age: "27"
+          Age: '27'
           Hair: Tousled dark brown hair under canvas cap
           Eyes: Determined amber anime eyes
           Face: Dust smudge on cheek, sweat
@@ -269,7 +269,7 @@ events:
       Characters:
         Jesse Vance:
           Style: Studio Ghibli anime character, clean 2D cel lines
-          Age: "27"
+          Age: '27'
           Hair: Tousled dark brown hair under canvas cap
           Eyes: Determined amber anime eyes
           Face: Dust smudge, tense
@@ -294,7 +294,7 @@ events:
       Characters:
         Jesse Vance:
           Style: Studio Ghibli anime, small figure in cab
-          Age: "27"
+          Age: '27'
           Hair: Canvas cap
           Wardrobe: Faded blue work shirt
       Action: Jesse driving the untested rig full speed up the ridge as the cloud base
@@ -317,7 +317,7 @@ events:
         Characters:
           Jesse Vance:
             Style: Studio Ghibli anime character, clean 2D cel lines
-            Age: "27"
+            Age: '27'
             Hair: Tousled dark brown hair under canvas cap
             Eyes: Determined amber anime eyes
             Face: Lit by flame, grease and dust

@@ -19,7 +19,9 @@ function normalizeValue(value: unknown): unknown {
   }
   if (Array.isArray(value)) return value.map(normalizeValue)
   if (isPlainObject(value)) {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, normalizeValue(v)]))
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, normalizeValue(v)]),
+    )
   }
   return value
 }

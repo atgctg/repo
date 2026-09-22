@@ -23,15 +23,26 @@ export function storyAssetPath(storyId: string, file: string): string {
   return `${STORIES_DIR}/assets/${safeStoryId(storyId)}/${file}`
 }
 
-export function assetDiskPath(storyId: string, name: string, type: keyof typeof ASSET_EXT): string {
+export function assetDiskPath(
+  storyId: string,
+  name: string,
+  type: keyof typeof ASSET_EXT,
+): string {
   return storyAssetPath(storyId, assetFileName(name, type))
 }
 
-export function assetUrl(storyId: string, name: string, type: keyof typeof ASSET_EXT): string {
+export function assetUrl(
+  storyId: string,
+  name: string,
+  type: keyof typeof ASSET_EXT,
+): string {
   return `/assets/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(assetFileName(name, type))}`
 }
 
 export function speechFileName(voice: string, caption: string): string {
-  const hex = new Bun.CryptoHasher('sha256').update(`${voice.trim()}\n${caption}`).digest('hex').slice(0, 16)
+  const hex = new Bun.CryptoHasher('sha256')
+    .update(`${voice.trim()}\n${caption}`)
+    .digest('hex')
+    .slice(0, 16)
   return `${hex}.wav`
 }

@@ -1,9 +1,16 @@
-- Be concise.
-- Read files fully once from beginning to end, not many small partial reads.
-- Use Bun over Node (including file system operations).
-- Do not write comments.
-- Greenfield project, no backwards compatibility needed.
-- 1k+ lines are fine if they make sense (e.g. styles.css)
+Be concise.
+
+Read files fully once from beginning to end, not many small partial reads.
+
+Use Bun over Node (including file system operations).
+
+Do not write comments.
+
+Greenfield project, no backwards compatibility needed.
+
+1k+ lines are fine if they make sense (e.g. styles.css).
+
+After code changes, run `bun run fix` and resolve any remaining oxlint errors before finishing the turn.
 
 # About
 

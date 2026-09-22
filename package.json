@@ -3,13 +3,20 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/server.ts"
+    "dev": "bun --hot src/server.ts",
+    "lint": "oxlint -c .oxlintrc.json",
+    "lint:fix": "oxlint -c .oxlintrc.json --fix",
+    "fmt": "oxfmt -c .oxfmtrc.json",
+    "fmt:check": "oxfmt -c .oxfmtrc.json --check",
+    "fix": "oxlint -c .oxlintrc.json --fix && oxfmt -c .oxfmtrc.json"
   },
   "dependencies": {
     "lucide": "^1.47.0",
     "yaml": "^2.9.1"
   },
   "devDependencies": {
-    "bun-types": "^1.3.14"
+    "bun-types": "^1.3.14",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0"
   }
 }

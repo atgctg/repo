@@ -23,10 +23,10 @@ events:
   - type: image
     name: Muse
     prompt:
-      Character: "Muse (screen-center, front view, face visible to camera): young
+      Character: 'Muse (screen-center, front view, face visible to camera): young
         adult anime woman, pale skin, short silver-violet bob with cyan tips,
         amber eyes, oversized cream knit sweater with small spark pins, dark
-        pleated skirt, thigh-high socks, translucent holographic scarf floating"
+        pleated skirt, thigh-high socks, translucent holographic scarf floating'
       Composition: Vertical portrait, upper body, screen-center, front view
       Environment: Soft studio glow, pale gradient background with faint spark particles
       Style: Clean anime key art, flat color shapes, crisp line work
@@ -89,7 +89,7 @@ events:
   - type: dialogue
     background: Muse
     speaker: Muse
-    caption: "[laughter] Stars do not hiccup. I checked twice."
+    caption: '[laughter] Stars do not hiccup. I checked twice.'
   - type: dialogue
     background: Muse
     speaker: Muse

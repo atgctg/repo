@@ -1,7 +1,13 @@
 import studio from './client/index.html'
 import { safeStoryId, storyAssetPath } from './files'
 import { errorMessage } from './media'
-import { generateImage, generateVideo, listStories, loadStory, storyExists } from './stories'
+import {
+  generateImage,
+  generateVideo,
+  listStories,
+  loadStory,
+  storyExists,
+} from './stories'
 import { reply } from './turn'
 
 function jsonError(error: unknown, status = 500): Response {
@@ -43,7 +49,10 @@ const server = Bun.serve({
         if (typeof body.text !== 'string' || !body.text.trim()) {
           return Response.json({ error: 'text is required' }, { status: 400 })
         }
-        if (body.at !== undefined && (typeof body.at !== 'number' || !Number.isInteger(body.at) || body.at < 0)) {
+        if (
+          body.at !== undefined &&
+          (typeof body.at !== 'number' || !Number.isInteger(body.at) || body.at < 0)
+        ) {
           return Response.json({ error: 'at must be an index' }, { status: 400 })
         }
         try {
@@ -87,8 +96,16 @@ const server = Bun.serve({
           return Response.json({ error: 'name is required' }, { status: 400 })
         }
         const duration = body.duration === undefined ? 5 : body.duration
-        if (typeof duration !== 'number' || !Number.isInteger(duration) || duration < 5 || duration > 15) {
-          return Response.json({ error: 'duration must be an integer from 5 to 15' }, { status: 400 })
+        if (
+          typeof duration !== 'number' ||
+          !Number.isInteger(duration) ||
+          duration < 5 ||
+          duration > 15
+        ) {
+          return Response.json(
+            { error: 'duration must be an integer from 5 to 15' },
+            { status: 400 },
+          )
         }
         try {
           const result = await generateVideo(id, {
@@ -119,7 +136,10 @@ const server = Bun.serve({
           return new Response('Not found', { status: 404 })
         }
         return new Response(asset, {
-          headers: { 'Content-Type': assetContentType(file), 'Cache-Control': 'no-store' },
+          headers: {
+            'Content-Type': assetContentType(file),
+            'Cache-Control': 'no-store',
+          },
         })
       },
     },

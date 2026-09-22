@@ -28,7 +28,7 @@ events:
   - type: dialogue
     background: Yuki
     speaker: Yuki
-    caption: "*Chopsticks stop halfway to the plate.*"
+    caption: '*Chopsticks stop halfway to the plate.*'
   - type: image
     name: Haruma
   - type: dialogue
@@ -41,13 +41,13 @@ events:
     name: Eyes Lock On You
   - type: dialogue
     background: Eyes Lock On You
-    caption: "*Eyes dart frantically around the restaurant until they lock onto you passing by.*"
+    caption: '*Eyes dart frantically around the restaurant until they lock onto you passing by.*'
   - type: image
     name: The Arm Grab
   - type: dialogue
     background: The Arm Grab
     speaker: Yuki
-    caption: "*Stands up and catches your sleeve.*"
+    caption: '*Stands up and catches your sleeve.*'
   - type: image
     name: POV There You Are
   - type: dialogue
@@ -80,7 +80,7 @@ events:
   - type: dialogue
     background: Parents Stunned Silence
     speaker: Haruma
-    caption: "*Nods*"
+    caption: '*Nods*'
   - type: image
     name: Leo Awkward Laugh
   - type: dialogue

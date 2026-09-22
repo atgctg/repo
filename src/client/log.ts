@@ -1,4 +1,13 @@
-import { IdCard, Image as ImageIcon, MessageSquare, MessageSquareText, Trash, Video, createElement, type IconNode } from 'lucide'
+import {
+  IdCard,
+  Image as ImageIcon,
+  MessageSquare,
+  MessageSquareText,
+  Trash,
+  Video,
+  createElement,
+  type IconNode,
+} from 'lucide'
 import { formatRanges } from '../project'
 import type { Attributes, Story, StoryEvent } from '../types'
 
@@ -12,7 +21,8 @@ function escapeHtml(str: string): string {
 }
 
 function icon(node: IconNode): string {
-  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' }).outerHTML
+  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' })
+    .outerHTML
 }
 
 function findAsset(story: Story, name?: string | null): string | undefined {
@@ -26,7 +36,10 @@ function thumb(url: string | undefined, cacheBuster: number, avatar: boolean): s
   return `<img class="${cls}" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />`
 }
 
-function field(label: string, value: string | number | boolean | null | undefined): string {
+function field(
+  label: string,
+  value: string | number | boolean | null | undefined,
+): string {
   if (value === undefined || value === null || value === '') return ''
   return `<div class="event-field"><span class="event-key">${escapeHtml(label)}</span><span>${escapeHtml(String(value))}</span></div>`
 }
@@ -37,12 +50,20 @@ function jsonBlock(value: Attributes | undefined): string {
 }
 
 function placement(event: { index?: number; replace?: boolean }): string {
-  return [field('index', event.index), event.replace ? field('replace', 'yes') : ''].join('')
+  return [field('index', event.index), event.replace ? field('replace', 'yes') : ''].join(
+    '',
+  )
 }
 
-function speakerAvatar(story: Story, speaker: string | undefined, cacheBuster: number): string {
+function speakerAvatar(
+  story: Story,
+  speaker: string | undefined,
+  cacheBuster: number,
+): string {
   if (!speaker) return ''
-  const card = story.cards.find((item) => item.name.toLowerCase() === speaker.toLowerCase())
+  const card = story.cards.find(
+    (item) => item.name.toLowerCase() === speaker.toLowerCase(),
+  )
   return thumb(findAsset(story, card?.cover), cacheBuster, true)
 }
 
@@ -54,9 +75,17 @@ function sceneByEvent(story: Story): (number | undefined)[] {
   return byEvent
 }
 
-export function logHtml(story: Story, selected: ReadonlySet<number>, cacheBuster: number): string {
+export function logHtml(
+  story: Story,
+  selected: ReadonlySet<number>,
+  cacheBuster: number,
+): string {
   const scenes = sceneByEvent(story)
-  return story.events.map((event, index) => renderEvent(story, event, index, scenes[index], selected, cacheBuster)).join('')
+  return story.events
+    .map((event, index) =>
+      renderEvent(story, event, index, scenes[index], selected, cacheBuster),
+    )
+    .join('')
 }
 
 function renderEvent(
@@ -101,7 +130,9 @@ function renderEvent(
       mark = icon(MessageSquareText)
       lead = event.speaker ?? ''
       avatar = speakerAvatar(story, event.speaker, cacheBuster)
-      body = event.caption ? `<div class="event-copy">${escapeHtml(event.caption)}</div>` : ''
+      body = event.caption
+        ? `<div class="event-copy">${escapeHtml(event.caption)}</div>`
+        : ''
       extra = [
         event.speaker || event.caption ? field('background', event.background) : '',
         placement(event),
@@ -111,7 +142,11 @@ function renderEvent(
     case 'video':
       mark = icon(Video)
       lead = event.name
-      picture = thumb(event.firstFrame ? findAsset(story, event.firstFrame) : undefined, cacheBuster, false)
+      picture = thumb(
+        event.firstFrame ? findAsset(story, event.firstFrame) : undefined,
+        cacheBuster,
+        false,
+      )
       extra = [
         field('first frame', event.firstFrame),
         field('last frame', event.lastFrame),
@@ -129,7 +164,12 @@ function renderEvent(
       mark = icon(IdCard)
       lead = event.name
       avatar = thumb(findAsset(story, event.cover), cacheBuster, true)
-      extra = [field('cover', event.cover), field('voice', event.voice), field('error', event.error), jsonBlock(event.attributes)].join('')
+      extra = [
+        field('cover', event.cover),
+        field('voice', event.voice),
+        field('error', event.error),
+        jsonBlock(event.attributes),
+      ].join('')
       break
     case 'delete':
       mark = icon(Trash)
@@ -145,6 +185,7 @@ function renderEvent(
   const head = `<span class="event-head"><span class="event-type" title="${event.type}">${mark}</span>${who ? `<span class="event-who">${who}</span>` : ''}${picture}</span>`
   const shown = `${head}${body}`
   const cls = `event event-${event.type}${event.error ? ' event-error' : ''}${selectedClass}`
-  if (!extra) return `<div class="${cls}" data-event="${index}"${sceneAttr}>${shown}</div>`
+  if (!extra)
+    return `<div class="${cls}" data-event="${index}"${sceneAttr}>${shown}</div>`
   return `<details class="${cls}" data-event="${index}"${sceneAttr}><summary>${shown}</summary><div class="event-body">${extra}</div></details>`
 }

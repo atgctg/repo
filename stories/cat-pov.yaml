@@ -8,8 +8,8 @@ events:
     attributes:
       Lighting: Soft natural ambient indoor lighting, gentle floor reflections, no
         flash, no shadows of people holding phones
-      Scale: "Colossal human world from floor level: chairs and tables look like giant
-        pillars, humans in distance are seen only from feet to calves"
+      Scale: 'Colossal human world from floor level: chairs and tables look like giant
+        pillars, humans in distance are seen only from feet to calves'
       Vantage: Ground-level view 5 centimeters above the floor, looking horizontally
         forward across the room
       Optics: Wide-angle 140-degree field of view with slight curved perspective, deep
@@ -91,11 +91,11 @@ events:
   - type: video
     name: Tipping The Crunchies
     prompt:
-      Action: "Second 0 to 1: Cat approaches the ceramic food bowl. Second 1 to 3: A
+      Action: 'Second 0 to 1: Cat approaches the ceramic food bowl. Second 1 to 3: A
         furry cat paw bats and flips the ceramic bowl upside down, scattering
         kibble across the hardwood floor. Second 3 to 5: In the background, the
         human jumps back, leans down into view pointing at the floor, shouting
-        Hey! What are you doing?!"
+        Hey! What are you doing?!'
       Audio: Loud ceramic bowl flipping and clattering on the floor, kibble bouncing
         across wood floorboards, human shouting Hey! What are you doing?!, no
         music.

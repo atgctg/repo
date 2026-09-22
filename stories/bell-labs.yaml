@@ -45,7 +45,7 @@ events:
   - type: dialogue
     background: Bell Labs Building
     speaker: Sim
-    caption: "1969"
+    caption: '1969'
   - type: image
     name: Bell Labs Interior
     prompt:

@@ -59,7 +59,18 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
   padding: 1.5rem;
   min-height: 100vh;
 }
@@ -208,7 +219,7 @@ a {
 }
 
 .card:not(.has-image) {
-  border: .5px dashed color-mix(in srgb, var(--muted) 35%, transparent);
+  border: 0.5px dashed color-mix(in srgb, var(--muted) 35%, transparent);
 }
 
 a.card {
@@ -246,7 +257,6 @@ a.card:hover {
 .card.has-image .caption,
 .card.has-image .speaker {
   text-shadow: 0 0 1rem rgba(0, 0, 0, 0.4);
-
 }
 
 .card.has-image:has(.card-attrs) .card-img {
@@ -382,7 +392,11 @@ a.card:hover {
   -webkit-backdrop-filter: blur(0.5rem);
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 100%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .card-asset .card-title {
@@ -631,7 +645,9 @@ a.card:hover {
   z-index: 2;
   width: 100%;
   margin-top: 0.5rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   font-size: 0.75rem;
   line-height: 1.45;
   color: var(--fg);
@@ -679,7 +695,6 @@ body.in-story header {
   gap: 0.5rem;
 }
 
-
 body.in-story .story-title {
   font-size: 1rem;
   font-weight: 500;
@@ -726,8 +741,20 @@ body.in-story .drawer {
   flex-direction: column;
   gap: 1.25rem;
   padding: 1rem 0.75rem 0;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 2rem, #000 calc(100% - 6rem), transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 2rem, #000 calc(100% - 6rem), transparent);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 2rem,
+    #000 calc(100% - 6rem),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 2rem,
+    #000 calc(100% - 6rem),
+    transparent
+  );
 }
 
 .event {

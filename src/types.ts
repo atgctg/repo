@@ -66,7 +66,13 @@ export interface DeleteEvent extends StoryEventBase {
   indices: number[]
 }
 
-export type StoryEvent = MessageEvent | ImageEvent | DialogueEvent | VideoEvent | CardEvent | DeleteEvent
+export type StoryEvent =
+  | MessageEvent
+  | ImageEvent
+  | DialogueEvent
+  | VideoEvent
+  | CardEvent
+  | DeleteEvent
 
 export type Card = {
   name: string

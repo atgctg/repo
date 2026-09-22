@@ -1,8 +1,26 @@
-import { ArrowLeft, MousePointerClick, Pause, Play, PlayingCardsFan, X, createElement, type IconNode } from 'lucide'
+import {
+  ArrowLeft,
+  MousePointerClick,
+  Pause,
+  Play,
+  PlayingCardsFan,
+  X,
+  createElement,
+  type IconNode,
+} from 'lucide'
 import { formatRanges } from '../project'
 import { isPlainObject } from '../records'
 import { logHtml } from './log'
-import type { Asset, Card, DialogueScene, ImageScene, Scene, Story, VideoScene, World } from '../types'
+import type {
+  Asset,
+  Card,
+  DialogueScene,
+  ImageScene,
+  Scene,
+  Story,
+  VideoScene,
+  World,
+} from '../types'
 
 {
   const icon = document.createElement('link')
@@ -54,7 +72,8 @@ function speechSrc(storyId: string, file?: string): string | undefined {
 }
 
 function icon(node: IconNode): string {
-  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' }).outerHTML
+  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' })
+    .outerHTML
 }
 
 const ARROW_ICON = icon(ArrowLeft)
@@ -68,11 +87,15 @@ function cardClass(hasImage: boolean, extra = ''): string {
 }
 
 function imgTag(url?: string): string {
-  return url ? `<img class="card-img" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />` : ''
+  return url
+    ? `<img class="card-img" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />`
+    : ''
 }
 
 function sceneVideoTag(url?: string): string {
-  return url ? `<video class="card-video" src="${escapeHtml(url)}?v=${cacheBuster}" preload="metadata" playsinline></video>` : ''
+  return url
+    ? `<video class="card-video" src="${escapeHtml(url)}?v=${cacheBuster}" preload="metadata" playsinline></video>`
+    : ''
 }
 
 function playOverlayTag(audioUrl?: string): string {
@@ -153,10 +176,7 @@ function stripCaptionMarkup(text: string): string {
 
 function getCaptionLines(caption?: string): string[] {
   if (!caption) return []
-  return caption
-    .split('\n')
-    .map(stripCaptionMarkup)
-    .filter(Boolean)
+  return caption.split('\n').map(stripCaptionMarkup).filter(Boolean)
 }
 
 function getCaptionSizeClass(lines: string[]): string {
@@ -197,17 +217,17 @@ function renderCaptions(scene: DialogueScene): string {
     .map((l) => `<div class="caption-line">${formatCaption(l)}</div>`)
     .join('')
 
-  const classes = [
-    'caption',
-    getCaptionSizeClass(lines),
-    isLeft ? 'caption-left' : '',
-  ].filter(Boolean).join(' ')
+  const classes = ['caption', getCaptionSizeClass(lines), isLeft ? 'caption-left' : '']
+    .filter(Boolean)
+    .join(' ')
 
   const captionHtml = hasCaption
     ? `<div class="${classes}">${captionLinesHtml}</div>`
     : ''
 
-  const initial = hasSpeaker ? escapeHtml(scene.speaker!.trim()[0]?.toUpperCase() ?? '') : ''
+  const initial = hasSpeaker
+    ? escapeHtml(scene.speaker!.trim()[0]?.toUpperCase() ?? '')
+    : ''
   const speakerHtml = hasSpeaker
     ? `<div class="speaker"><span class="avatar"><span class="avatar-letter">${initial}</span></span><span>${escapeHtml(scene.speaker!)}</span></div>`
     : ''
@@ -220,7 +240,12 @@ function sceneCard(index: number, hasImage: boolean, body: string): string {
   return `<div class="${cardClass(hasImage)} scene-card${on}" data-scene="${index}" style="--i:${index}">${body}</div>`
 }
 
-function renderImageScene(scene: ImageScene, assets: Story['assets'], storyId: string, index: number): string {
+function renderImageScene(
+  scene: ImageScene,
+  assets: Story['assets'],
+  storyId: string,
+  index: number,
+): string {
   const asset = findAsset(assets, scene.name)
   return sceneCard(
     index,
@@ -229,14 +254,30 @@ function renderImageScene(scene: ImageScene, assets: Story['assets'], storyId: s
   )
 }
 
-function renderDialogueScene(scene: DialogueScene, assets: Story['assets'], storyId: string, index: number): string {
+function renderDialogueScene(
+  scene: DialogueScene,
+  assets: Story['assets'],
+  storyId: string,
+  index: number,
+): string {
   const asset = findAsset(assets, scene.background)
   const captions = renderCaptions(scene)
-  const overlayHtml = scene.speech?.key ? playOverlayTag(speechSrc(storyId, scene.speech.key)) : ''
-  return sceneCard(index, Boolean(asset?.url), `${imgTag(asset?.url)}${overlayHtml}${captions}`)
+  const overlayHtml = scene.speech?.key
+    ? playOverlayTag(speechSrc(storyId, scene.speech.key))
+    : ''
+  return sceneCard(
+    index,
+    Boolean(asset?.url),
+    `${imgTag(asset?.url)}${overlayHtml}${captions}`,
+  )
 }
 
-function renderVideoScene(scene: VideoScene, assets: Story['assets'], storyId: string, index: number): string {
+function renderVideoScene(
+  scene: VideoScene,
+  assets: Story['assets'],
+  storyId: string,
+  index: number,
+): string {
   const asset = findAsset(assets, scene.name)
   const url = asset?.url
   return sceneCard(
@@ -246,7 +287,12 @@ function renderVideoScene(scene: VideoScene, assets: Story['assets'], storyId: s
   )
 }
 
-function renderScene(scene: Scene, assets: Story['assets'], storyId: string, index: number): string {
+function renderScene(
+  scene: Scene,
+  assets: Story['assets'],
+  storyId: string,
+  index: number,
+): string {
   switch (scene.type) {
     case 'image':
       return renderImageScene(scene, assets, storyId, index)
@@ -281,7 +327,9 @@ function sortAttrEntries(entries: [string, unknown][]): [string, unknown][] {
 }
 
 function renderAttrTile(label: string, value: unknown): string {
-  const valueStr = Array.isArray(value) ? value.map(String).join(' ') : String(value ?? '')
+  const valueStr = Array.isArray(value)
+    ? value.map(String).join(' ')
+    : String(value ?? '')
   const wide = valueStr.length > 42
   const showLabel = !hideAttrLabel(label)
   return `<div class="attr-tile${wide ? ' attr-wide' : ''}">${
@@ -448,12 +496,16 @@ function sceneAsset(story: Story, scene: Scene): Asset | undefined {
 
 function relatedCard(story: Story, scene: Scene): Card | undefined {
   if (scene.type === 'dialogue' && scene.speaker) {
-    const speaker = story.cards.find((card) => card.name.toLowerCase() === scene.speaker?.toLowerCase())
+    const speaker = story.cards.find(
+      (card) => card.name.toLowerCase() === scene.speaker?.toLowerCase(),
+    )
     if (speaker) return speaker
   }
   const name = scene.type === 'dialogue' ? scene.background : scene.name
   return story.cards.find(
-    (card) => card.cover?.toLowerCase() === name.toLowerCase() || card.name.toLowerCase() === name.toLowerCase(),
+    (card) =>
+      card.cover?.toLowerCase() === name.toLowerCase() ||
+      card.name.toLowerCase() === name.toLowerCase(),
   )
 }
 
@@ -573,24 +625,30 @@ async function refresh(): Promise<void> {
   const route = currentRoute()
 
   if (!pathname) {
-    const worlds = (await fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json())) as Array<
-      string | World
-    >
+    const worlds = (await fetch('/api/stories', { cache: 'no-store' }).then((res) =>
+      res.json(),
+    )) as Array<string | World>
     if (currentRoute() !== route) return
     renderOnce(JSON.stringify({ pathname, worlds }), () => renderIndex(worlds))
     return
   }
 
-  const res = await fetch(`/api/stories/${encodeURIComponent(pathname)}`, { cache: 'no-store' })
+  const res = await fetch(`/api/stories/${encodeURIComponent(pathname)}`, {
+    cache: 'no-store',
+  })
   if (currentRoute() !== route) return
   if (!res.ok) {
-    renderOnce(JSON.stringify({ pathname, missing: true }), () => renderNotFound(pathname))
+    renderOnce(JSON.stringify({ pathname, missing: true }), () =>
+      renderNotFound(pathname),
+    )
     return
   }
 
   const story = (await res.json()) as Story
   if (currentRoute() !== route) return
-  renderOnce(JSON.stringify({ pathname, search: location.search, story }), () => renderStory(story))
+  renderOnce(JSON.stringify({ pathname, search: location.search, story }), () =>
+    renderStory(story),
+  )
 }
 
 const generating = new Set<string>()
@@ -624,13 +682,24 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
       const body = (await res.json().catch(() => ({}))) as { error?: string }
       throw new Error(body.error ?? `Generate failed (${res.status})`)
     }
-    console.error('asset gen ok', { storyId, name, type, ms: Math.round(performance.now() - started) })
+    console.error('asset gen ok', {
+      storyId,
+      name,
+      type,
+      ms: Math.round(performance.now() - started),
+    })
     cacheBuster = Date.now()
     lastPayload = ''
     await refresh()
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('asset gen error', { storyId, name, type, ms: Math.round(performance.now() - started), error: message })
+    console.error('asset gen error', {
+      storyId,
+      name,
+      type,
+      ms: Math.round(performance.now() - started),
+      error: message,
+    })
     button.disabled = false
     if (isIcon) {
       button.classList.remove('is-generating')
@@ -689,7 +758,6 @@ document.addEventListener('click', (event) => {
   if (rewind instanceof HTMLButtonElement) {
     event.preventDefault()
     const at = Number(rewind.dataset.at)
-    const storyId = currentPathname()
     const input = document.querySelector('.composer input')
     if (!Number.isInteger(at) || !(input instanceof HTMLInputElement)) return
     const pre = rewind.parentElement?.querySelector('pre')
@@ -722,11 +790,17 @@ document.addEventListener('click', (event) => {
     return
   }
   const row = target.closest('.event')
-  if (row instanceof HTMLElement && row.dataset.scene !== undefined && !target.closest('button, a')) {
+  if (
+    row instanceof HTMLElement &&
+    row.dataset.scene !== undefined &&
+    !target.closest('button, a')
+  ) {
     const index = Number(row.dataset.scene)
     if (Number.isInteger(index)) {
       chooseScene(index, event.shiftKey)
-      document.querySelector(`.scene-card[data-scene="${index}"]`)?.scrollIntoView({ block: 'nearest' })
+      document
+        .querySelector(`.scene-card[data-scene="${index}"]`)
+        ?.scrollIntoView({ block: 'nearest' })
     }
   }
   const scene = target.closest('.scene-card')
@@ -750,7 +824,14 @@ document.addEventListener('click', (event) => {
 })
 
 document.addEventListener('keydown', (event) => {
-  if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+  if (
+    event.key !== '/' ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.shiftKey
+  )
+    return
   const target = event.target
   if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return
   if (target instanceof HTMLElement && target.isContentEditable) return

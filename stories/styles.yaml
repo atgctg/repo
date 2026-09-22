@@ -6,14 +6,14 @@ events:
   - type: image
     name: Ghibli Anime
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -38,14 +38,14 @@ events:
   - type: image
     name: Retro Pixel Art
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -70,14 +70,14 @@ events:
   - type: image
     name: Blocky Minecraft
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -87,14 +87,14 @@ events:
       Shot: Cinematic low-angle wide shot looking down a curved asphalt highway
         through rolling grass fields toward a distant horizon under a vast
         dramatic sky.
-      Style: "Blocky Minecraft style, 3D voxel sandbox aesthetic, cubic geometry.
+      Style: 'Blocky Minecraft style, 3D voxel sandbox aesthetic, cubic geometry.
         Everything is constructed entirely of textured cubes and voxels: blocky
         1980s sports car built of smooth voxel blocks, cubic traveler character
         with classic blocky limbs and head, voxel foliage and cubic leaves on
         the solitary tree, stepped dirt and grass blocks with 16x16 pixel
         textures, massive wall built of giant cobblestone and stone blocks,
         square sun and cubic volumetric clouds in the sky, iconic blocky game
-        aesthetic."
+        aesthetic.'
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
@@ -105,14 +105,14 @@ events:
   - type: image
     name: Dreamlike Wholesome Watercolor
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -138,14 +138,14 @@ events:
   - type: image
     name: Painterly Concept Art
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -172,14 +172,14 @@ events:
   - type: image
     name: Surreal 3D Grass Field
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -205,14 +205,14 @@ events:
   - type: image
     name: Synthwave Retro Futuristic
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.
@@ -239,14 +239,14 @@ events:
   - type: image
     name: Impressionist Oil Painting
     prompt:
-      Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
+      Composition: 'Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
         traveler standing by the door in a jacket. Midground: Winding road
         curving through an expansive rolling grass field with wildflowers, a
         solitary gnarled tree on a gentle hill beside a weathered signpost.
         Background: Massive imposing monolithic wall and jagged mountain peaks
         stretching across the far horizon, vast atmospheric sky with layered
-        volumetric clouds and radiant sunset glow."
+        volumetric clouds and radiant sunset glow.'
       Horizon: Colossal ancient monolithic wall barrier in the far distance, towering
         mountain peaks behind it, glowing horizon sun casting long dramatic
         shadows.

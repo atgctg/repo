@@ -230,7 +230,7 @@ events:
         gravel banks in midground, distant green ridges and thin
         semi-transparent orbital elevator ribbon in cerulean sky
       Subject:
-        - "Botanist (screen-left, facing screen-right): 26-year-old female
+        - 'Botanist (screen-left, facing screen-right): 26-year-old female
           botanist with raven-black hair in a single neat three-strand braid
           draped over her right shoulder; sun-warmed skin, freckles on nose;
           wearing brass-framed circular goggles with amber lenses pushed up on
@@ -238,7 +238,7 @@ events:
           unbleached beige cotton crewneck undershirt; dark charcoal canvas
           utility trousers with brass-riveted cargo pockets; brown leather field
           boots; diagonal leather strap across chest carrying a tan canvas
-          satchel with brass clasp"
+          satchel with brass clasp'
   - type: dialogue
     background: Botanist greeting traveler
     speaker: Botanist
@@ -258,13 +258,13 @@ events:
         gravel banks in midground, distant green ridges and thin
         semi-transparent orbital elevator ribbon in cerulean sky
       Subject:
-        - "Traveler (screen-right, facing screen-left): 38-year-old male
+        - 'Traveler (screen-right, facing screen-left): 38-year-old male
           wanderer with weathered face and salt-and-pepper jaw stubble; wearing
           wide-brimmed flat-topped dark charcoal wool felt hat; long dark
           charcoal-grey heavy canvas duster coat worn open; slate-grey
           collarless linen button-up shirt; charcoal trail trousers tucked into
           tall lace-up dark brown boots; holding 5-foot ash-wood surveyor
-          walking staff topped with a circular brass astrolabe dial"
+          walking staff topped with a circular brass astrolabe dial'
   - type: dialogue
     background: Traveler inquiring
     speaker: Traveler
@@ -283,7 +283,7 @@ events:
         gravel banks in midground, distant green ridges and thin
         semi-transparent orbital elevator ribbon in cerulean sky
       Subject:
-        - "Botanist (screen-left, facing screen-right): 26-year-old female
+        - 'Botanist (screen-left, facing screen-right): 26-year-old female
           botanist with raven-black hair in a single neat three-strand braid
           draped over her right shoulder; sun-warmed skin, freckles on nose;
           wearing brass-framed circular goggles with amber lenses pushed up on
@@ -291,7 +291,7 @@ events:
           unbleached beige cotton crewneck undershirt; dark charcoal canvas
           utility trousers with brass-riveted cargo pockets; brown leather field
           boots; diagonal leather strap across chest carrying a tan canvas
-          satchel with brass clasp"
+          satchel with brass clasp'
   - type: dialogue
     background: Botanist explaining cable
     speaker: Botanist
@@ -312,13 +312,13 @@ events:
         gravel banks in midground, distant green ridges and thin
         semi-transparent orbital elevator ribbon in cerulean sky
       Subject:
-        - "Traveler (screen-right, facing screen-left): 38-year-old male
+        - 'Traveler (screen-right, facing screen-left): 38-year-old male
           wanderer with weathered face and salt-and-pepper jaw stubble; wearing
           wide-brimmed flat-topped dark charcoal wool felt hat; long dark
           charcoal-grey heavy canvas duster coat worn open; slate-grey
           collarless linen button-up shirt; charcoal trail trousers tucked into
           tall lace-up dark brown boots; holding 5-foot ash-wood surveyor
-          walking staff topped with a circular brass astrolabe dial"
+          walking staff topped with a circular brass astrolabe dial'
   - type: dialogue
     background: Traveler amazed
     speaker: Traveler
@@ -338,7 +338,7 @@ events:
         gravel banks in midground, distant green ridges and thin
         semi-transparent orbital elevator ribbon in cerulean sky
       Subject:
-        - "Botanist (screen-left, facing screen-right): 26-year-old female
+        - 'Botanist (screen-left, facing screen-right): 26-year-old female
           botanist with raven-black hair in a single neat three-strand braid
           draped over her right shoulder; sun-warmed skin, freckles on nose;
           wearing brass-framed circular goggles with amber lenses pushed up on
@@ -346,7 +346,7 @@ events:
           unbleached beige cotton crewneck undershirt; dark charcoal canvas
           utility trousers with brass-riveted cargo pockets; brown leather field
           boots; diagonal leather strap across chest carrying a tan canvas
-          satchel with brass clasp"
+          satchel with brass clasp'
   - type: dialogue
     background: Botanist sharing tea
     speaker: Botanist
@@ -414,6 +414,6 @@ events:
       Environment: Sunlit golden grass plain, river in midground, distant blue
         mountain ridge, cerulean sky
       Subject:
-        - "Botanist: young woman with braided dark hair, wearing loose olive
+        - 'Botanist: young woman with braided dark hair, wearing loose olive
           linen tunic, dark canvas field trousers, brass-rimmed goggles pushed
-          up on her forehead, canvas utility satchel, friendly expression"
+          up on her forehead, canvas utility satchel, friendly expression'

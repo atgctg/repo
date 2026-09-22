@@ -16,7 +16,7 @@ events:
     cover: Yuki
     attributes:
       Info:
-        Age: "22"
+        Age: '22'
         Role: UCLA grad
         From: Sapporo
       Look:
@@ -31,7 +31,7 @@ events:
     cover: Keiko
     attributes:
       Info:
-        Age: "43"
+        Age: '43'
         Role: Homemaker
         From: Sapporo
       Look:
@@ -46,7 +46,7 @@ events:
     cover: Haruma
     attributes:
       Info:
-        Age: "48"
+        Age: '48'
         Role: Engineer
         From: Sapporo
       Look:
@@ -60,7 +60,7 @@ events:
     name: Takeshi
     attributes:
       Info:
-        Age: "24"
+        Age: '24'
         Role: Family friend
         Job: LA corp
       Look:
@@ -73,7 +73,7 @@ events:
     name: Summer
     attributes:
       Info:
-        Age: "23"
+        Age: '23'
         Role: Best friend
         Job: UCLA comms
       Look:
@@ -126,7 +126,7 @@ events:
         Details: Family sushi booth, soy dishes, chopsticks, lanterns behind her
       Characters:
         Keiko Sakurai:
-          Age: "43"
+          Age: '43'
           Hair: Short wavy chestnut-brown bob, tucked behind the ears, no bangs over the
             eyes, no glasses
           Eyes: Warm brown
@@ -154,7 +154,7 @@ events:
         Details: Wooden booth, sushi plate, soy dish, chopsticks in her hand
       Characters:
         Yuki Sakurai:
-          Age: "22"
+          Age: '22'
           Hair: Long slightly wavy dark brown hair worn half-up with a large white satin
             ribbon at the back of her head
           Eyes: Dark brown, wide and round
@@ -169,7 +169,7 @@ events:
   - type: dialogue
     background: Yuki
     speaker: Yuki
-    caption: "*Chopsticks stop halfway to the plate.*"
+    caption: '*Chopsticks stop halfway to the plate.*'
   - type: image
     name: Haruma
     prompt:
@@ -184,7 +184,7 @@ events:
         Details: Wooden booth, beer glass, sushi plates, lanterns in the background
       Characters:
         Haruma Sakurai:
-          Age: "48"
+          Age: '48'
           Hair: Short salt-and-pepper gray hair, neatly trimmed
           Eyes: Dark brown, behind thin rectangular wire-rim glasses
           Face: Angular, faint stubble
@@ -214,7 +214,7 @@ events:
           her
       Characters:
         Yuki Sakurai:
-          Age: "22"
+          Age: '22'
           Hair: Long slightly wavy dark brown hair worn half-up with a large white satin
             ribbon at the back of her head
           Eyes: Dark brown, wide and round
@@ -228,8 +228,8 @@ events:
         lips parted
   - type: dialogue
     background: Eyes Lock On You
-    caption: "*Eyes dart frantically around the restaurant until they lock onto you
-      passing by.*"
+    caption: '*Eyes dart frantically around the restaurant until they lock onto you
+      passing by.*'
   - type: image
     name: The Arm Grab
     prompt:
@@ -245,7 +245,7 @@ events:
         Details: Wooden booth and sushi table behind her, she has left her seat
       Characters:
         Yuki Sakurai:
-          Age: "22"
+          Age: '22'
           Hair: Long slightly wavy dark brown hair worn half-up with a large white satin
             ribbon at the back of her head
           Eyes: Dark brown, wide and round
@@ -261,7 +261,7 @@ events:
   - type: dialogue
     background: The Arm Grab
     speaker: Yuki
-    caption: "*Stands up and catches your sleeve.*"
+    caption: '*Stands up and catches your sleeve.*'
   - type: image
     name: POV There You Are
     prompt:
@@ -278,7 +278,7 @@ events:
         Details: Wooden booth behind Yuki with both parents fully visible at the table
       Characters:
         Yuki Sakurai:
-          Age: "22"
+          Age: '22'
           Hair: Long slightly wavy dark brown hair worn half-up with a large white satin
             ribbon at the back of her head
           Eyes: Dark brown, wide and round
@@ -289,7 +289,7 @@ events:
         Viewer:
           Wardrobe: Dark charcoal wool jacket sleeve that she is clinging to
         Keiko Sakurai:
-          Age: "43"
+          Age: '43'
           Hair: Short wavy chestnut-brown bob, tucked behind the ears, no bangs over the
             eyes, no glasses
           Eyes: Warm brown
@@ -297,7 +297,7 @@ events:
           Wardrobe: Peach knit cardigan over a simple cream blouse, small gold stud
             earrings
         Haruma Sakurai:
-          Age: "48"
+          Age: '48'
           Hair: Short salt-and-pepper gray hair, neatly trimmed
           Eyes: Dark brown, behind thin rectangular wire-rim glasses
           Face: Angular, faint stubble

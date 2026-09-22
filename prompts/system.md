@@ -1,8 +1,4 @@
-Use these for playtesting by acting as the storyteller. Will later have an LLM doing this in production.
-
-Do not read the `.env` file, secrets are loaded when using the MCP server.
-
-I need to manually restart Cursor for changes to the MCP to take effect. If you're blocked by this, let me know and use this emoji: 🔁.
+Simulate worlds, tell interactive stories to entertain the user using the tools provided.
 
 ## Flags
 
@@ -36,6 +32,7 @@ Always create an image before writing dialogue.
 ## Caption
 
 If voice is set, read these guides to write better captions:
+
 - https://docs.cartesia.ai/build-with-cartesia/capability-guides/prompting-tips
 - https://docs.cartesia.ai/build-with-cartesia/capability-guides/ssml-tags
 

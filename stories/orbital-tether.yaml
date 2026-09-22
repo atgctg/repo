@@ -1,21 +1,10 @@
 id: orbital-tether
 title: Orbital Tether
 createdAt: 2026-09-18T13:31:21.449Z
-updatedAt: 2026-09-18T13:33:57.134Z
-scenes:
+updatedAt: 2026-09-22T13:54:14.064Z
+events:
   - type: image
     name: Orbital Tether Valley
-  - type: image
-    name: Orbital Tether Valley v2
-  - type: image
-    name: Orbital Tether Valley v3
-  - type: image
-    name: Orbital Tether Valley v4
-  - type: image
-    name: Orbital Tether Valley v5
-assets:
-  - name: Orbital Tether Valley
-    kind: image
     prompt:
       Composition: Vertical wide landscape shot. Vast bright cerulean blue sky fills
         upper frame. Flat golden yellow grass plain in foreground.
@@ -33,9 +22,8 @@ assets:
         domed cap, articulated robotic legs with grey joints, subtle red stripe
         on side. Solitary traveler in dark clothes and wide-brim dark hat rests
         on grass leaning against robot leg.
-    createdAt: 2026-09-18T13:31:21.449Z
-  - name: Orbital Tether Valley v2
-    kind: image
+  - type: image
+    name: Orbital Tether Valley v2
     prompt:
       Composition: Vertical aspect ratio. Wide landscape view. Upper two thirds is
         bright vibrant cerulean sky. Lower third is a bright golden yellow
@@ -57,9 +45,8 @@ assets:
         vertical red line on hull. Solitary figure in wide-brim black hat and
         dark coat rests in yellow grass leaning against the robot leg, small
         orange accent.
-    createdAt: 2026-09-18T13:32:03.462Z
-  - name: Orbital Tether Valley v3
-    kind: image
+  - type: image
+    name: Orbital Tether Valley v3
     prompt:
       Composition: Vertical framing, wide concept art view. Lower third is sunny
         golden yellow steppe. Midground has a pale gravel riverbed. Right side
@@ -82,9 +69,8 @@ assets:
         low to the ground with grey hydraulics, thin curved red stripe on body.
         A traveler in a wide-brim black hat and dark duster with an orange patch
         rests on the grass leaning against the robot leg.
-    createdAt: 2026-09-18T13:32:36.300Z
-  - name: Orbital Tether Valley v4
-    kind: image
+  - type: image
+    name: Orbital Tether Valley v4
     prompt:
       Composition: Vertical portrait ratio. Wide view of valley. Yellow grassy meadow
         in bottom third. Right side has steep green mountain slope descending
@@ -108,9 +94,8 @@ assets:
         curved red vertical cable on hull, heavy jointed grey robotic legs
         splayed low in grass. Person in dark wide-brim hat and dark coat with
         orange accent sits to the left of the body leaning against robot leg.
-    createdAt: 2026-09-18T13:33:05.876Z
-  - name: Orbital Tether Valley v5
-    kind: image
+  - type: image
+    name: Orbital Tether Valley v5
     prompt:
       Composition: Vertical shot. Screen-right foreground has a white robot lander.
         Screen-center foreground has a traveler sitting in the yellow grass
@@ -136,5 +121,3 @@ assets:
         cable down side, heavy articulated grey robotic legs splayed low in
         grass. Traveler (screen-center, reclining against robot leg): figure in
         dark clothes, wide-brim black hat, warm orange accent on chest."
-    createdAt: 2026-09-18T13:33:37.144Z
-cards: []

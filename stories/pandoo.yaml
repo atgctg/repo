@@ -1,23 +1,48 @@
 id: pandoo
 title: Pandoo
 createdAt: 2026-09-16T13:32:38.536Z
-updatedAt: 2026-09-17T15:58:33.528Z
-scenes:
+updatedAt: 2026-09-22T14:24:59.288Z
+events:
+  - type: card
+    name: Style
+    attributes:
+      Palette: Dark pink, cream, black, white
+      Style: Soft anime, simple clean shapes, chubby cute animal
+      Texture: Soft matte, gentle outlines, no hyper-realism
+  - type: card
+    name: 20 Questions
+    attributes:
+      Secret: Put Pandoo's secret here when he thinks of something.
+      Left: "20"
+      Rules:
+        - Either player may think of the secret; decide who guesses before you
+          start.
+        - When someone thinks of something, write it in Secret. Never say it on
+          scenes.
+        - The guesser asks yes-or-no questions only.
+        - Subtract 1 from Left for each real question.
+        - Twenty questions.
+  - type: card
+    name: Pandoo
+    cover: Pandoo
+    attributes:
+      Appearance:
+        Background: Dark pink matching paw pads
+        Build: Playful chubby panda
+        Ears: Pointed ears
+        Fur: Striking black and white
+        Mood: Friendly and mischievous
+        Nose: Small inquisitive black nose
+        Pose: Hind legs, paws up, welcoming
+        Tail: Bushy ringed tail
+      Personality:
+        Quirk: Stretches the letter O in speech
+        Stranger: Calls unknown humans Hooman
+        Traits: Friendly, mischievous, welcoming
+      Prompt: Chat with Pandoo from above!
+      Style: Soft anime
   - type: image
     name: Pandoo
-  - type: dialogue
-    background: Pandoo
-    speaker: Pandoo
-    caption: Let's play twenty questions!
-  - type: image
-    name: Hooman
-  - type: dialogue
-    background: Hooman
-    speaker: Hooman
-    caption: Who thinks of something first?
-assets:
-  - name: Pandoo
-    kind: image
     prompt:
       Action: Standing on hind legs, paws held up in a welcoming gesture
       Characters:
@@ -40,9 +65,12 @@ assets:
         Angle: Eye-level
         Framing: Full body Pandoo centered, paws up
         Type: Character portrait
-    createdAt: 2026-09-16T13:32:47.305Z
-  - name: Hooman
-    kind: image
+  - type: dialogue
+    background: Pandoo
+    speaker: Pandoo
+    caption: Let's play twenty questions!
+  - type: image
+    name: Hooman
     prompt:
       Action: Standing facing Pandoo, asking a yes or no question with a curious tilt
         of the head
@@ -65,40 +93,7 @@ assets:
         Angle: Eye-level
         Framing: Waist-up Hooman centered
         Type: Character portrait
-    createdAt: 2026-09-16T13:40:34.571Z
-cards:
-  - name: Style
-    attributes:
-      Palette: Dark pink, cream, black, white
-      Style: Soft anime, simple clean shapes, chubby cute animal
-      Texture: Soft matte, gentle outlines, no hyper-realism
-  - name: 20 Questions
-    attributes:
-      Secret: Put Pandoo's secret here when he thinks of something.
-      Left: "20"
-      Rules:
-        - Either player may think of the secret; decide who guesses before you
-          start.
-        - When someone thinks of something, write it in Secret. Never say it on
-          scenes.
-        - The guesser asks yes-or-no questions only.
-        - Subtract 1 from Left for each real question.
-        - Twenty questions.
-  - name: Pandoo
-    cover: Pandoo
-    attributes:
-      Appearance:
-        Background: Dark pink matching paw pads
-        Build: Playful chubby panda
-        Ears: Pointed ears
-        Fur: Striking black and white
-        Mood: Friendly and mischievous
-        Nose: Small inquisitive black nose
-        Pose: Hind legs, paws up, welcoming
-        Tail: Bushy ringed tail
-      Personality:
-        Quirk: Stretches the letter O in speech
-        Stranger: Calls unknown humans Hooman
-        Traits: Friendly, mischievous, welcoming
-      Prompt: Chat with Pandoo from above!
-      Style: Soft anime
+  - type: dialogue
+    background: Hooman
+    speaker: Hooman
+    caption: Who thinks of something first?

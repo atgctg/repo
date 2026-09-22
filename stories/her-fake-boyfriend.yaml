@@ -1,177 +1,105 @@
 id: her-fake-boyfriend
 title: Her Fake Boyfriend
 createdAt: 2026-09-15T21:31:43.922Z
-updatedAt: 2026-09-18T12:28:00.596Z
-scenes:
+updatedAt: 2026-09-22T14:24:59.273Z
+events:
+  - type: card
+    name: Style
+    attributes:
+      Style: Soft 2D anime illustration, clean lineart, soft cel shading
+      Palette: Warm amber lantern light, honey wood, cozy restaurant tones, soft
+        evening glow
+      Texture: Gentle lighting, soft depth of field, warm atmosphere
+      Brushwork: Clean readable lines, not photoreal
+  - type: card
+    name: Yuki
+    cover: Yuki
+    attributes:
+      Info:
+        Age: "22"
+        Role: UCLA grad
+        From: Sapporo
+      Look:
+        Hair: Dark, white ribbon
+        Eyes: Warm brown
+        Build: 5'4 slim
+        Wear: Cream knit
+      Vibe: Warm, panicky
+      Lie: Fake bf, 8 months
+  - type: card
+    name: Keiko
+    cover: Keiko
+    attributes:
+      Info:
+        Age: "43"
+        Role: Homemaker
+        From: Sapporo
+      Look:
+        Hair: Chestnut bob
+        Eyes: Warm brown
+        Build: 5'3
+        Wear: Pink cardigan
+      Vibe: Sweet, nosy
+      Want: Grandkids
+  - type: card
+    name: Haruma
+    cover: Haruma
+    attributes:
+      Info:
+        Age: "48"
+        Role: Engineer
+        From: Sapporo
+      Look:
+        Hair: Salt-and-pepper
+        Eyes: Wire rims
+        Build: 5'9
+        Wear: Navy shirt
+      Vibe: Easy, teasing
+      Hold: Family, marriage
+  - type: card
+    name: Takeshi
+    attributes:
+      Info:
+        Age: "24"
+        Role: Family friend
+        Job: LA corp
+      Look:
+        Hair: Tousled black
+        Build: 5'11 lean
+        Wear: Quiet luxury
+      Vibe: Polite, sharp
+      Aim: Expose the lie
+  - type: card
+    name: Summer
+    attributes:
+      Info:
+        Age: "23"
+        Role: Best friend
+        Job: UCLA comms
+      Look:
+        Hair: Blonde
+        Eyes: Green
+        Build: 5'6
+        Wear: CA casual
+      Vibe: Blunt, witty
+      Knows: The lie is fake
+  - type: card
+    name: Tenno Sushi
+    cover: Tenno Sushi
+    attributes:
+      Scene:
+        Type: Izakaya booth
+        Lights: Warm paper lanterns
+        Walls: Honey wood slats
+      Seating:
+        Left: Haruma & Keiko (face right)
+        Right: Leo & Yuki (face left)
+        Couple: Side-by-side on red bench
+      Camera:
+        Axis: Cross-table (left vs right)
+        Vantage: Front view for faces
   - type: image
     name: Tenno Sushi
-  - type: image
-    name: Keiko
-  - type: dialogue
-    background: Keiko
-    speaker: Keiko
-    caption: So, Yuki... when are we finally meeting him?
-  - type: image
-    name: Yuki
-  - type: dialogue
-    background: Yuki
-    speaker: Yuki
-    caption: "*Chopsticks stop halfway to the plate.*"
-  - type: image
-    name: Haruma
-  - type: dialogue
-    background: Haruma
-    speaker: Haruma
-    caption: |-
-      Your boyfriend.
-      The one who has apparently been keeping our daughter in America.
-  - type: image
-    name: Eyes Lock On You
-  - type: dialogue
-    background: Eyes Lock On You
-    caption: "*Eyes dart frantically around the restaurant until they lock onto you
-      passing by.*"
-  - type: image
-    name: The Arm Grab
-  - type: dialogue
-    background: The Arm Grab
-    speaker: Yuki
-    caption: "*Stands up and catches your sleeve.*"
-  - type: image
-    name: POV There You Are
-  - type: dialogue
-    background: POV There You Are
-    speaker: Yuki
-    caption: There you are! Mom, Dad... this is my boyfriend!
-  - type: image
-    name: Whispering In Your Ear
-  - type: dialogue
-    background: Whispering In Your Ear
-    speaker: Yuki
-    caption: |-
-      *Leans in close to your ear*
-      Please. Pretend you're my boyfriend.
-      I told them we've been together for eight months.
-  - type: image
-    name: Leo's Introduction
-  - type: dialogue
-    background: Leo's Introduction
-    speaker: Leo
-    caption: |-
-      *Nods*
-      Riiight, it's nice to finally meet you all! I'm Leo!
-  - type: dialogue
-    background: Eyes Lock On You
-    speaker: Yuki
-    caption: |-
-      *Exhales in relief*
-      Yes! See, Mom? I told you he wasn't standing us up!
-  - type: image
-    name: Parents Reaction
-  - type: dialogue
-    background: Parents Reaction
-    speaker: Keiko
-    caption: Oh my goodness! Leo! Sit down, sit down!
-  - type: dialogue
-    background: Haruma
-    speaker: Haruma
-    caption: Leo, is it? Eight months, and she's only just showing you off.
-  - type: image
-    name: Leo Awkward Laugh
-  - type: dialogue
-    background: Leo Awkward Laugh
-    speaker: Leo
-    caption: |-
-      Well.. You all live so far away..
-      *Laughs nervously*
-  - type: dialogue
-    background: Yuki
-    speaker: Yuki
-    caption: |-
-      *Squeezes your hand fiercely under the table*
-      Tokyo isn't that far, silly! But he works so hard, Dad.
-  - type: image
-    name: Leo Exclaims at Yuki
-  - type: dialogue
-    background: Leo Exclaims at Yuki
-    speaker: Leo
-    caption: |-
-      *Stares incredulously at Yuki*
-      Not that far?! From LA? Are you crazy?
-  - type: image
-    name: Parents Stunned Silence
-  - type: dialogue
-    background: Parents Stunned Silence
-    speaker: Keiko
-    caption: |-
-      *Blinks*
-      LA...? Yuki, didn't you say he lived across town in Shibuya?
-  - type: dialogue
-    background: Yuki
-    speaker: Yuki
-    caption: |-
-      *Kicks Leo under the table*
-      Little America! He means the diner in Shibuya, right honey?!
-  - type: image
-    name: Haruma Eyeing Them
-  - type: dialogue
-    background: Haruma Eyeing Them
-    speaker: Haruma
-    caption: |-
-      *Narrows eyes*
-      Is that what you meant, Leo? Los Angeles or a diner?
-  - type: image
-    name: Leo Digs Deeper Hole
-  - type: dialogue
-    background: Leo Digs Deeper Hole
-    speaker: Leo
-    caption: |-
-      Wait, you also live in Tokyo?
-      I thought you moved here with her... uh recently!
-  - type: dialogue
-    background: Parents Stunned Silence
-    speaker: Haruma
-    caption: |-
-      *Haruma frowns*
-      We live in Sapporo, Leo.
-      We took a twelve-hour flight just to see her.
-  - type: dialogue
-    background: Whispering In Your Ear
-    speaker: Yuki
-    caption: |-
-      *Leans in to whisper*
-      Sapporo! They live in Hokkaido!
-      Stop guessing before you kill me!
-  - type: image
-    name: Leo Whispering
-  - type: dialogue
-    background: Leo Whispering
-    speaker: Leo
-    caption: |-
-      *Whispers back*
-      What do you mean? Which is it?
-      Sapporo or Hokkaido?
-  - type: dialogue
-    background: Whispering In Your Ear
-    speaker: Yuki
-    caption: |-
-      *Pinches bridge of nose*
-      Sapporo is the capital city of Hokkaido..
-      It's the same place you idiot!
-  - type: dialogue
-    background: Parents Reaction
-    speaker: Keiko
-    caption: |-
-      *Chuckles*
-      Look at them, Haruma.
-      They already have their little private secrets.
-  - type: dialogue
-    background: Haruma Eyeing Them
-    speaker: Haruma
-    caption: Eight months together... and you didn't know where Yuki grew up?
-assets:
-  - name: Tenno Sushi
-    kind: image
     prompt:
       Shot:
         Type: Establishing exterior
@@ -184,9 +112,8 @@ assets:
         Details: Traditional wooden facade, dark cloth noren curtain in the doorway,
           glowing paper lanterns, wooden sign clearly reading "Tenno Sushi"
       Action: Quiet night street outside a cozy sushi restaurant, no people in focus
-    createdAt: 2026-09-15T21:31:49.403Z
-  - name: Keiko
-    kind: image
+  - type: image
+    name: Keiko
     prompt:
       Shot:
         Type: Close-up
@@ -208,9 +135,12 @@ assets:
             earrings
       Action: Leaning forward across the table, chin resting on folded hands
       Expression: Sweet, curious, slightly intrusive smile
-    createdAt: 2026-09-15T21:31:57.333Z
-  - name: Yuki
-    kind: image
+  - type: dialogue
+    background: Keiko
+    speaker: Keiko
+    caption: So, Yuki... when are we finally meeting him?
+  - type: image
+    name: Yuki
     prompt:
       Shot:
         Type: Medium close-up
@@ -236,9 +166,40 @@ assets:
         chopsticks frozen halfway to her mouth, body still facing the table
       Expression: Startled, eyes wide, cheeks flushed, staring ahead in shock, not
         looking at the viewer
-    createdAt: 2026-09-15T21:32:16.285Z
-  - name: Eyes Lock On You
-    kind: image
+  - type: dialogue
+    background: Yuki
+    speaker: Yuki
+    caption: "*Chopsticks stop halfway to the plate.*"
+  - type: image
+    name: Haruma
+    prompt:
+      Shot:
+        Type: Medium shot
+        Angle: Across the table at booth height
+        Framing: Haruma seated in the booth, beer glass in hand, table in the foreground
+      Scene:
+        Location: Tenno Sushi interior booth
+        Time: Night
+        Lighting: Warm amber paper lantern light on honey wood
+        Details: Wooden booth, beer glass, sushi plates, lanterns in the background
+      Characters:
+        Haruma Sakurai:
+          Age: "48"
+          Hair: Short salt-and-pepper gray hair, neatly trimmed
+          Eyes: Dark brown, behind thin rectangular wire-rim glasses
+          Face: Angular, faint stubble
+          Wardrobe: Navy blue collared button-down shirt, top button open, sleeves rolled
+            to the mid-forearm, no tie
+      Action: Holding a glass of beer, pausing mid-drink at the wooden table
+      Expression: Amused, teasing smirk
+  - type: dialogue
+    background: Haruma
+    speaker: Haruma
+    caption: |-
+      Your boyfriend.
+      The one who has apparently been keeping our daughter in America.
+  - type: image
+    name: Eyes Lock On You
     prompt:
       Shot:
         Type: Close-up
@@ -265,32 +226,12 @@ assets:
         turned over her shoulder, body still seated facing the table
       Expression: Eyes locked on the viewer, startled recognition, flushed cheeks,
         lips parted
-    createdAt: 2026-09-16T07:05:00.000Z
-  - name: Haruma
-    kind: image
-    prompt:
-      Shot:
-        Type: Medium shot
-        Angle: Across the table at booth height
-        Framing: Haruma seated in the booth, beer glass in hand, table in the foreground
-      Scene:
-        Location: Tenno Sushi interior booth
-        Time: Night
-        Lighting: Warm amber paper lantern light on honey wood
-        Details: Wooden booth, beer glass, sushi plates, lanterns in the background
-      Characters:
-        Haruma Sakurai:
-          Age: "48"
-          Hair: Short salt-and-pepper gray hair, neatly trimmed
-          Eyes: Dark brown, behind thin rectangular wire-rim glasses
-          Face: Angular, faint stubble
-          Wardrobe: Navy blue collared button-down shirt, top button open, sleeves rolled
-            to the mid-forearm, no tie
-      Action: Holding a glass of beer, pausing mid-drink at the wooden table
-      Expression: Amused, teasing smirk
-    createdAt: 2026-09-15T21:32:07.308Z
-  - name: The Arm Grab
-    kind: image
+  - type: dialogue
+    background: Eyes Lock On You
+    caption: "*Eyes dart frantically around the restaurant until they lock onto you
+      passing by.*"
+  - type: image
+    name: The Arm Grab
     prompt:
       Shot:
         Type: Medium action shot
@@ -317,9 +258,12 @@ assets:
       Action: Standing up in the aisle, both small hands tightly clutching the
         viewer's charcoal jacket sleeve
       Expression: High urgency, desperate, looking up at the viewer
-    createdAt: 2026-09-15T21:32:25.593Z
-  - name: POV There You Are
-    kind: image
+  - type: dialogue
+    background: The Arm Grab
+    speaker: Yuki
+    caption: "*Stands up and catches your sleeve.*"
+  - type: image
+    name: POV There You Are
     prompt:
       Shot:
         Type: Medium shot
@@ -364,9 +308,12 @@ assets:
         her, watching.
       Expression: Yuki has a tight, desperately forced smile, flushed pink cheeks,
         eyes locked on the viewer. Parents look shocked.
-    createdAt: 2026-09-15T21:32:35.760Z
-  - name: Whispering In Your Ear
-    kind: image
+  - type: dialogue
+    background: POV There You Are
+    speaker: Yuki
+    caption: There you are! Mom, Dad... this is my boyfriend!
+  - type: image
+    name: Whispering In Your Ear
     prompt:
       Action: Yuki on screen-left leaning toward screen-right to whisper urgently into
         Leo's ear. Leo is on screen-right listening in surprise.
@@ -389,9 +336,15 @@ assets:
       Scene: Tenno Sushi booth, Little Tokyo, warm lantern glow, honey wooden wall in
         soft blur
       Shot: Intimate side view, Yuki on screen-left, Leo on screen-right
-    createdAt: 2026-09-15T21:32:45.302Z
-  - name: Leo's Introduction
-    kind: image
+  - type: dialogue
+    background: Whispering In Your Ear
+    speaker: Yuki
+    caption: |-
+      *Leans in close to your ear*
+      Please. Pretend you're my boyfriend.
+      I told them we've been together for eight months.
+  - type: image
+    name: Leo's Introduction
     prompt:
       Action: Leo standing at the aisle beside booth on screen right, looking left
         toward table and nodding with charming smile
@@ -408,9 +361,20 @@ assets:
       Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
       Shot: Medium shot along axis of action, parents on screen-left facing right, Leo
         and Yuki on screen-right facing left
-    createdAt: 2026-09-17T22:05:41.353Z
-  - name: Parents Reaction
-    kind: image
+  - type: dialogue
+    background: Leo's Introduction
+    speaker: Leo
+    caption: |-
+      *Nods*
+      Riiight, it's nice to finally meet you all! I'm Leo!
+  - type: dialogue
+    background: Eyes Lock On You
+    speaker: Yuki
+    caption: |-
+      *Exhales in relief*
+      Yes! See, Mom? I told you he wasn't standing us up!
+  - type: image
+    name: Parents Reaction
     prompt:
       Action: Haruma and Keiko seated together on screen-left of the booth, both
         smiling warmly and looking toward screen-right across the table to
@@ -429,9 +393,16 @@ assets:
       Scene: Tenno Sushi booth, Little Tokyo, warm lantern glow, wooden table with
         sushi plates and beer glass
       Shot: Medium shot of parents on screen-left, looking toward screen-right
-    createdAt: 2026-09-17T22:05:41.916Z
-  - name: Leo Awkward Laugh
-    kind: image
+  - type: dialogue
+    background: Parents Reaction
+    speaker: Keiko
+    caption: Oh my goodness! Leo! Sit down, sit down!
+  - type: dialogue
+    background: Haruma
+    speaker: Haruma
+    caption: Leo, is it? Eight months, and she's only just showing you off.
+  - type: image
+    name: Leo Awkward Laugh
     prompt:
       Action: Leo and Yuki seated together in the booth on screen-right. Leo laughs
         sheepishly with one hand behind his head, looking toward screen-left at
@@ -449,9 +420,20 @@ assets:
       Scene: Tenno Sushi booth, Little Tokyo, warm lantern glow, wooden table
       Shot: Medium shot from parents' side looking across table at couple on
         screen-right
-    createdAt: 2026-09-17T22:16:35.808Z
-  - name: Leo Exclaims at Yuki
-    kind: image
+  - type: dialogue
+    background: Leo Awkward Laugh
+    speaker: Leo
+    caption: |-
+      Well.. You all live so far away..
+      *Laughs nervously*
+  - type: dialogue
+    background: Yuki
+    speaker: Yuki
+    caption: |-
+      *Squeezes your hand fiercely under the table*
+      Tokyo isn't that far, silly! But he works so hard, Dad.
+  - type: image
+    name: Leo Exclaims at Yuki
     prompt:
       Action: Leo on screen-right turning head to look directly at Yuki sitting right
         next to him with utter disbelief
@@ -462,9 +444,14 @@ assets:
       Expression: Leo jaw dropped in disbelief staring at Yuki
       Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
       Shot: Medium close-up on screen-right booth, Leo turning toward Yuki
-    createdAt: 2026-09-17T22:18:25.225Z
-  - name: Parents Stunned Silence
-    kind: image
+  - type: dialogue
+    background: Leo Exclaims at Yuki
+    speaker: Leo
+    caption: |-
+      *Stares incredulously at Yuki*
+      Not that far?! From LA? Are you crazy?
+  - type: image
+    name: Parents Stunned Silence
     prompt:
       Action: Haruma and Keiko seated on screen-left frozen in booth, staring
         rightward at the couple in shock
@@ -478,9 +465,20 @@ assets:
       Eyeline: Haruma stunned staring right, Keiko eyes wide in disbelief looking right
       Scene: Tenno Sushi booth, Little Tokyo LA, warm lantern glow
       Shot: Medium shot facing parents on screen-left, looking rightward across table
-    createdAt: 2026-09-17T22:18:32.662Z
-  - name: Haruma Eyeing Them
-    kind: image
+  - type: dialogue
+    background: Parents Stunned Silence
+    speaker: Keiko
+    caption: |-
+      *Blinks*
+      LA...? Yuki, didn't you say he lived across town in Shibuya?
+  - type: dialogue
+    background: Yuki
+    speaker: Yuki
+    caption: |-
+      *Kicks Leo under the table*
+      Little America! He means the diner in Shibuya, right honey?!
+  - type: image
+    name: Haruma Eyeing Them
     prompt:
       Action: Father Haruma on screen-left leaning back against wooden booth with arms
         crossed, narrowing his eyes in cold suspicion as he stares toward
@@ -497,9 +495,14 @@ assets:
         screen-left, facing screen-right"
       Scene: Tenno Sushi booth, Little Tokyo, warm lantern light, wooden table
       Shot: Over-the-shoulder medium close-up reverse shot
-    createdAt: 2026-09-17T22:18:49.499Z
-  - name: Leo Digs Deeper Hole
-    kind: image
+  - type: dialogue
+    background: Haruma Eyeing Them
+    speaker: Haruma
+    caption: |-
+      *Narrows eyes*
+      Is that what you meant, Leo? Los Angeles or a diner?
+  - type: image
+    name: Leo Digs Deeper Hole
     prompt:
       Action: Leo on screen-right raising his hands defensively as he babbles an
         awkward excuse, facing toward screen-left. Yuki on screen-left beside
@@ -515,9 +518,28 @@ assets:
         facing screen-left; Yuki on screen-left beside him turning toward Leo
       Scene: Tenno Sushi booth, Little Tokyo, warm lantern glow, wooden table
       Shot: Medium close-up two-shot
-    createdAt: 2026-09-17T22:35:48.549Z
-  - name: Leo Whispering
-    kind: image
+  - type: dialogue
+    background: Leo Digs Deeper Hole
+    speaker: Leo
+    caption: |-
+      Wait, you also live in Tokyo?
+      I thought you moved here with her... uh recently!
+  - type: dialogue
+    background: Parents Stunned Silence
+    speaker: Haruma
+    caption: |-
+      *Haruma frowns*
+      We live in Sapporo, Leo.
+      We took a twelve-hour flight just to see her.
+  - type: dialogue
+    background: Whispering In Your Ear
+    speaker: Yuki
+    caption: |-
+      *Leans in to whisper*
+      Sapporo! They live in Hokkaido!
+      Stop guessing before you kill me!
+  - type: image
+    name: Leo Whispering
     prompt:
       Action: Leo cupping his right hand beside his mouth, leaning in to whisper
         directly into Yuki's ear. Leo is speaking with lips parted, Yuki
@@ -539,93 +561,28 @@ assets:
       Scene: Tenno Sushi booth, Little Tokyo, warm lantern glow, wooden wall
       Shot: Intimate side view on the booth seat, clearly showing them sitting next to
         each other
-    createdAt: 2026-09-18T12:02:12.002Z
-cards:
-  - name: Style
-    attributes:
-      Style: Soft 2D anime illustration, clean lineart, soft cel shading
-      Palette: Warm amber lantern light, honey wood, cozy restaurant tones, soft
-        evening glow
-      Texture: Gentle lighting, soft depth of field, warm atmosphere
-      Brushwork: Clean readable lines, not photoreal
-  - name: Yuki
-    cover: Yuki
-    attributes:
-      Info:
-        Age: "22"
-        Role: UCLA grad
-        From: Sapporo
-      Look:
-        Hair: Dark, white ribbon
-        Eyes: Warm brown
-        Build: 5'4 slim
-        Wear: Cream knit
-      Vibe: Warm, panicky
-      Lie: Fake bf, 8 months
-  - name: Keiko
-    cover: Keiko
-    attributes:
-      Info:
-        Age: "43"
-        Role: Homemaker
-        From: Sapporo
-      Look:
-        Hair: Chestnut bob
-        Eyes: Warm brown
-        Build: 5'3
-        Wear: Pink cardigan
-      Vibe: Sweet, nosy
-      Want: Grandkids
-  - name: Haruma
-    cover: Haruma
-    attributes:
-      Info:
-        Age: "48"
-        Role: Engineer
-        From: Sapporo
-      Look:
-        Hair: Salt-and-pepper
-        Eyes: Wire rims
-        Build: 5'9
-        Wear: Navy shirt
-      Vibe: Easy, teasing
-      Hold: Family, marriage
-  - name: Takeshi
-    attributes:
-      Info:
-        Age: "24"
-        Role: Family friend
-        Job: LA corp
-      Look:
-        Hair: Tousled black
-        Build: 5'11 lean
-        Wear: Quiet luxury
-      Vibe: Polite, sharp
-      Aim: Expose the lie
-  - name: Summer
-    attributes:
-      Info:
-        Age: "23"
-        Role: Best friend
-        Job: UCLA comms
-      Look:
-        Hair: Blonde
-        Eyes: Green
-        Build: 5'6
-        Wear: CA casual
-      Vibe: Blunt, witty
-      Knows: The lie is fake
-  - name: Tenno Sushi
-    cover: Tenno Sushi
-    attributes:
-      Scene:
-        Type: Izakaya booth
-        Lights: Warm paper lanterns
-        Walls: Honey wood slats
-      Seating:
-        Left: Haruma & Keiko (face right)
-        Right: Leo & Yuki (face left)
-        Couple: Side-by-side on red bench
-      Camera:
-        Axis: Cross-table (left vs right)
-        Vantage: Front view for faces
+  - type: dialogue
+    background: Leo Whispering
+    speaker: Leo
+    caption: |-
+      *Whispers back*
+      What do you mean? Which is it?
+      Sapporo or Hokkaido?
+  - type: dialogue
+    background: Whispering In Your Ear
+    speaker: Yuki
+    caption: |-
+      *Pinches bridge of nose*
+      Sapporo is the capital city of Hokkaido..
+      It's the same place you idiot!
+  - type: dialogue
+    background: Parents Reaction
+    speaker: Keiko
+    caption: |-
+      *Chuckles*
+      Look at them, Haruma.
+      They already have their little private secrets.
+  - type: dialogue
+    background: Haruma Eyeing Them
+    speaker: Haruma
+    caption: Eight months together... and you didn't know where Yuki grew up?

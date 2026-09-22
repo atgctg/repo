@@ -1,59 +1,10 @@
 id: styles
 title: Styles
 createdAt: 2026-09-17T13:16:06.362Z
-updatedAt: 2026-09-17T15:58:33.538Z
-scenes:
+updatedAt: 2026-09-22T13:54:14.045Z
+events:
   - type: image
     name: Ghibli Anime
-  - type: dialogue
-    background: Ghibli Anime
-    speaker: Style
-    caption: Studio Ghibli Anime Style
-  - type: image
-    name: Retro Pixel Art
-  - type: dialogue
-    background: Retro Pixel Art
-    speaker: Style
-    caption: Retro Game Pixelated Art Style
-  - type: image
-    name: Blocky Minecraft
-  - type: dialogue
-    background: Blocky Minecraft
-    speaker: Style
-    caption: Blocky Minecraft Voxel Style
-  - type: image
-    name: Dreamlike Wholesome Watercolor
-  - type: dialogue
-    background: Dreamlike Wholesome Watercolor
-    speaker: Style
-    caption: Dreamlike Wonder Hand-Painted Wholesome
-  - type: image
-    name: Painterly Concept Art
-  - type: dialogue
-    background: Painterly Concept Art
-    speaker: Style
-    caption: Painterly Digital Painting Style
-  - type: image
-    name: Surreal 3D Grass Field
-  - type: dialogue
-    background: Surreal 3D Grass Field
-    speaker: Style
-    caption: Surreal 3D Art (Grass Field)
-  - type: image
-    name: Synthwave Retro Futuristic
-  - type: dialogue
-    background: Synthwave Retro Futuristic
-    speaker: Style
-    caption: 80s Synthwave Retro-Futuristic
-  - type: image
-    name: Impressionist Oil Painting
-  - type: dialogue
-    background: Impressionist Oil Painting
-    speaker: Style
-    caption: Claude Monet Impressionist Oil Painting
-assets:
-  - name: Ghibli Anime
-    kind: image
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -80,9 +31,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:16:02.725Z
-  - name: Retro Pixel Art
-    kind: image
+  - type: dialogue
+    background: Ghibli Anime
+    speaker: Style
+    caption: Studio Ghibli Anime Style
+  - type: image
+    name: Retro Pixel Art
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -109,9 +63,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:16:34.343Z
-  - name: Blocky Minecraft
-    kind: image
+  - type: dialogue
+    background: Retro Pixel Art
+    speaker: Style
+    caption: Retro Game Pixelated Art Style
+  - type: image
+    name: Blocky Minecraft
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -141,9 +98,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:17:06.913Z
-  - name: Dreamlike Wholesome Watercolor
-    kind: image
+  - type: dialogue
+    background: Blocky Minecraft
+    speaker: Style
+    caption: Blocky Minecraft Voxel Style
+  - type: image
+    name: Dreamlike Wholesome Watercolor
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -171,9 +131,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:17:32.426Z
-  - name: Painterly Concept Art
-    kind: image
+  - type: dialogue
+    background: Dreamlike Wholesome Watercolor
+    speaker: Style
+    caption: Dreamlike Wonder Hand-Painted Wholesome
+  - type: image
+    name: Painterly Concept Art
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -202,9 +165,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:18:06.653Z
-  - name: Surreal 3D Grass Field
-    kind: image
+  - type: dialogue
+    background: Painterly Concept Art
+    speaker: Style
+    caption: Painterly Digital Painting Style
+  - type: image
+    name: Surreal 3D Grass Field
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -232,9 +198,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:18:33.975Z
-  - name: Synthwave Retro Futuristic
-    kind: image
+  - type: dialogue
+    background: Surreal 3D Grass Field
+    speaker: Style
+    caption: Surreal 3D Art (Grass Field)
+  - type: image
+    name: Synthwave Retro Futuristic
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -263,9 +232,12 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:18:54.743Z
-  - name: Impressionist Oil Painting
-    kind: image
+  - type: dialogue
+    background: Synthwave Retro Futuristic
+    speaker: Style
+    caption: 80s Synthwave Retro-Futuristic
+  - type: image
+    name: Impressionist Oil Painting
     prompt:
       Composition: "Foreground: Wet asphalt highway with tire tracks and reflections,
         parked classic 1980s sports car with glowing taillights, solitary
@@ -293,5 +265,7 @@ assets:
       Subjects: Classic retro 1980s sports car parked on road shoulder with sleek
         wedge silhouette, solitary traveler standing beside the car gazing
         toward the horizon with wind blowing hair and jacket hem.
-    createdAt: 2026-09-17T13:19:19.672Z
-cards: []
+  - type: dialogue
+    background: Impressionist Oil Painting
+    speaker: Style
+    caption: Claude Monet Impressionist Oil Painting

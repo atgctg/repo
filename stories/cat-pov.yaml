@@ -1,10 +1,40 @@
 id: cat-pov
 title: Cat POV
 createdAt: 2026-09-19T13:39:24.807Z
-updatedAt: 2026-09-19T14:14:45.832Z
-scenes:
+updatedAt: 2026-09-22T14:24:59.256Z
+events:
+  - type: card
+    name: Style
+    attributes:
+      Lighting: Soft natural ambient indoor lighting, gentle floor reflections, no
+        flash, no shadows of people holding phones
+      Scale: "Colossal human world from floor level: chairs and tables look like giant
+        pillars, humans in distance are seen only from feet to calves"
+      Vantage: Ground-level view 5 centimeters above the floor, looking horizontally
+        forward across the room
+      Optics: Wide-angle 140-degree field of view with slight curved perspective, deep
+        focus from floor textures to background. No camera hardware, lenses, or
+        devices visible
+      Subjectivity: Pure first-person subjective POV looking forward from 5
+        centimeters above the floor. The viewer is looking directly at the room
+        ahead. No cats, dogs, or pets visible in the scene
+  - type: card
+    name: Tall One
+    attributes:
+      Role: Human roommate and primary food dispenser
   - type: image
     name: Morning Patrol
+    prompt:
+      Subject: Extreme low-angle first-person cat perspective across the floor. At the
+        very bottom edge of frame, two small white furry paws rest on the wooden
+        planks. In the background, human legs in gray sweatpants walk past
+        kitchen counters, cropped at mid-thigh.
+      Behavior: Screen-left, towering dining chair legs recede into distance like a
+        wooden colonnade. Center, looking straight ahead down the sunlit
+        floorboards towards the kitchen. Screen-right, a stainless steel water
+        bowl sits five feet away.
+      Environment: Bright morning sunlight streaming across polished hardwood floor
+        planks, long dramatic shadows, floating golden dust motes.
   - type: dialogue
     background: Morning Patrol
     caption: |-
@@ -16,28 +46,14 @@ scenes:
     caption: |-
       Hey little guy.
       Already plotting your morning mission?
-    speech:
-      key: d7fbfdc51d749953.wav
-      words:
-        - Hey
-        - little
-        - guy.
-        - Already
-        - plotting
-        - your
-        - morning
-        - mission?
-      t:
-        - 119
-        - 360
-        - 600
-        - 1208
-        - 1560
-        - 1960
-        - 2040
-        - 2200
   - type: image
     name: Under The Couch
+    prompt:
+      Subject: A colorful felt toy mouse resting on the carpet three feet ahead.
+      Behavior: Creeping forward from beneath the dark edge of the sofa into the
+        living room.
+      Environment: Softly lit living room carpet under a gray sofa overhang, cozy
+        indoor morning ambience.
   - type: dialogue
     background: Under The Couch
     caption: |-
@@ -45,30 +61,28 @@ scenes:
       *Distance to wool mouse: three paws*
   - type: image
     name: Food Station Approach
+    prompt:
+      Subject: A shallow ceramic bowl filled with brown kibble resting on a black
+        rubber mat three feet ahead.
+      Behavior: Looking forward while advancing across the kitchen floorboards toward
+        the food bowl. A person's ankles and wool slippers stand to the right
+        near the kitchen island.
+      Environment: Bright modern kitchen with warm wooden floors, soft ambient morning
+        light, giant cabinet baseboards in background.
   - type: dialogue
     background: Food Station Approach
     speaker: Tall One
     caption: |-
       Fresh crunchies served.
       Eat up, commander.
-    speech:
-      key: b42568d7a2e2a24a.wav
-      words:
-        - Fresh
-        - crunchies
-        - served.
-        - Eat
-        - up,
-        - commander.
-      t:
-        - 120
-        - 440
-        - 920
-        - 1714
-        - 1880
-        - 1976
   - type: image
     name: The Feather Wand
+    prompt:
+      Subject: A bright feathered teaser wand toy lying on the rug four feet ahead.
+      Behavior: Looking forward across the living room carpet through a wooden
+        chair-leg colonnade at the feather toy ahead.
+      Environment: Sunlit living room floor, light oak floorboards meeting a textured
+        rug, tall furniture looming overhead.
   - type: dialogue
     background: The Feather Wand
     caption: |-
@@ -76,8 +90,33 @@ scenes:
       *Preparing wiggle-butt sequence*
   - type: video
     name: Tipping The Crunchies
+    prompt:
+      Action: "Second 0 to 1: Cat approaches the ceramic food bowl. Second 1 to 3: A
+        furry cat paw bats and flips the ceramic bowl upside down, scattering
+        kibble across the hardwood floor. Second 3 to 5: In the background, the
+        human jumps back, leans down into view pointing at the floor, shouting
+        Hey! What are you doing?!"
+      Audio: Loud ceramic bowl flipping and clattering on the floor, kibble bouncing
+        across wood floorboards, human shouting Hey! What are you doing?!, no
+        music.
+      Camera: Floor-level first-person perspective, low-angle view looking upward at
+        the startled human.
+      Environment: Sunlit kitchen with polished wooden floor and tall cabinetry.
+      Lighting: Natural soft morning kitchen light.
+      Subject: First-person cat POV looking at a ceramic bowl of cat crunchies on a
+        rubber mat, with human legs standing in background.
+    firstFrame: Food Station Approach
+    duration: 5
   - type: image
     name: Demanding Wet Food
+    prompt:
+      Subject: Towering human legs in sweatpants standing at an open lower kitchen
+        cabinet, where stacks of shiny cat food cans and gravy pouches sit on
+        the bottom shelf.
+      Behavior: Looking up from floor level right between the human's fuzzy slippers
+        toward the open lower cabinet door.
+      Environment: Sunlit kitchen floorboards with scattered brown kibble visible
+        across the floor in the background.
   - type: dialogue
     background: Demanding Wet Food
     caption: |-
@@ -97,44 +136,8 @@ scenes:
       *Pops the metal pull-tab*
       Fine. Salmon paté with extra gravy.
       Do not look at me like that.
-assets:
-  - name: Morning Patrol
-    createdAt: 2026-09-19T13:39:38.736Z
-    kind: image
-    prompt:
-      Subject: Extreme low-angle first-person cat perspective across the floor. At the
-        very bottom edge of frame, two small white furry paws rest on the wooden
-        planks. In the background, human legs in gray sweatpants walk past
-        kitchen counters, cropped at mid-thigh.
-      Behavior: Screen-left, towering dining chair legs recede into distance like a
-        wooden colonnade. Center, looking straight ahead down the sunlit
-        floorboards towards the kitchen. Screen-right, a stainless steel water
-        bowl sits five feet away.
-      Environment: Bright morning sunlight streaming across polished hardwood floor
-        planks, long dramatic shadows, floating golden dust motes.
-  - name: Under The Couch
-    createdAt: 2026-09-19T13:43:13.590Z
-    kind: image
-    prompt:
-      Subject: A colorful felt toy mouse resting on the carpet three feet ahead.
-      Behavior: Creeping forward from beneath the dark edge of the sofa into the
-        living room.
-      Environment: Softly lit living room carpet under a gray sofa overhang, cozy
-        indoor morning ambience.
-  - name: Food Station Approach
-    createdAt: 2026-09-19T13:47:32.618Z
-    kind: image
-    prompt:
-      Subject: A shallow ceramic bowl filled with brown kibble resting on a black
-        rubber mat three feet ahead.
-      Behavior: Looking forward while advancing across the kitchen floorboards toward
-        the food bowl. A person's ankles and wool slippers stand to the right
-        near the kitchen island.
-      Environment: Bright modern kitchen with warm wooden floors, soft ambient morning
-        light, giant cabinet baseboards in background.
-  - name: The Red Dot
-    createdAt: 2026-09-19T13:47:33.353Z
-    kind: image
+  - type: image
+    name: The Red Dot
     prompt:
       Subject: A bright red laser dot projected onto the wooden floorboards three feet
         ahead.
@@ -142,61 +145,3 @@ assets:
         red dot. Looming chair legs form a tunnel ahead.
       Environment: Indoor apartment room with soft natural daylight across hardwood
         flooring, deep furniture shadows.
-  - name: The Feather Wand
-    createdAt: 2026-09-19T13:48:19.751Z
-    kind: image
-    prompt:
-      Subject: A bright feathered teaser wand toy lying on the rug four feet ahead.
-      Behavior: Looking forward across the living room carpet through a wooden
-        chair-leg colonnade at the feather toy ahead.
-      Environment: Sunlit living room floor, light oak floorboards meeting a textured
-        rug, tall furniture looming overhead.
-  - name: Tipping The Crunchies
-    createdAt: 2026-09-19T13:54:39.538Z
-    kind: video
-    prompt:
-      Action: "Second 0 to 1: Cat approaches the ceramic food bowl. Second 1 to 3: A
-        furry cat paw bats and flips the ceramic bowl upside down, scattering
-        kibble across the hardwood floor. Second 3 to 5: In the background, the
-        human jumps back, leans down into view pointing at the floor, shouting
-        Hey! What are you doing?!"
-      Audio: Loud ceramic bowl flipping and clattering on the floor, kibble bouncing
-        across wood floorboards, human shouting Hey! What are you doing?!, no
-        music.
-      Camera: Floor-level first-person perspective, low-angle view looking upward at
-        the startled human.
-      Environment: Sunlit kitchen with polished wooden floor and tall cabinetry.
-      Lighting: Natural soft morning kitchen light.
-      Subject: First-person cat POV looking at a ceramic bowl of cat crunchies on a
-        rubber mat, with human legs standing in background.
-    firstFrame: Food Station Approach
-    duration: 5
-  - name: Demanding Wet Food
-    kind: image
-    prompt:
-      Subject: Towering human legs in sweatpants standing at an open lower kitchen
-        cabinet, where stacks of shiny cat food cans and gravy pouches sit on
-        the bottom shelf.
-      Behavior: Looking up from floor level right between the human's fuzzy slippers
-        toward the open lower cabinet door.
-      Environment: Sunlit kitchen floorboards with scattered brown kibble visible
-        across the floor in the background.
-    createdAt: 2026-09-19T14:14:01.166Z
-cards:
-  - name: Style
-    attributes:
-      Lighting: Soft natural ambient indoor lighting, gentle floor reflections, no
-        flash, no shadows of people holding phones
-      Scale: "Colossal human world from floor level: chairs and tables look like giant
-        pillars, humans in distance are seen only from feet to calves"
-      Vantage: Ground-level view 5 centimeters above the floor, looking horizontally
-        forward across the room
-      Optics: Wide-angle 140-degree field of view with slight curved perspective, deep
-        focus from floor textures to background. No camera hardware, lenses, or
-        devices visible
-      Subjectivity: Pure first-person subjective POV looking forward from 5
-        centimeters above the floor. The viewer is looking directly at the room
-        ahead. No cats, dogs, or pets visible in the scene
-  - name: Tall One
-    attributes:
-      Role: Human roommate and primary food dispenser

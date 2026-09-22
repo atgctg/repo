@@ -1,121 +1,107 @@
-import { z } from 'zod'
-import { normalizeRecord } from './records'
+export type Attributes = Record<string, unknown>
 
-export const JsonRecord = z.record(z.string(), z.json())
+interface StoryEventBase {
+  user?: string
+  error?: string
+}
 
-const AssetBase = z.object({
-  name: z.string(),
-  createdAt: z.string(),
-  url: z.string().optional(),
-})
+interface InsertEvent extends StoryEventBase {
+  index?: number
+  replace?: boolean
+}
 
-export const ImageAssetSchema = AssetBase.extend({
-  kind: z.literal('image'),
-  prompt: z.record(z.string(), z.unknown()).optional(),
-  references: z.array(z.string()).max(5).optional(),
-})
+interface AssetBase {
+  name: string
+  prompt?: Attributes
+  width?: number
+  height?: number
+  dominantColor?: string
+  references?: string[]
+}
 
-export const VideoAssetSchema = AssetBase.extend({
-  kind: z.literal('video'),
-  prompt: z.record(z.string(), z.unknown()).optional(),
-  firstFrame: z.string().optional(),
-  lastFrame: z.string().optional(),
-  duration: z.number().int().min(5).max(15).optional(),
-})
+export type ImageAsset = AssetBase & { type: 'image' }
 
-export const AssetSchema = z.discriminatedUnion('kind', [
-  ImageAssetSchema,
-  VideoAssetSchema,
-])
+export type VideoAsset = AssetBase & {
+  type: 'video'
+  firstFrame?: string
+  lastFrame?: string
+  duration?: number
+}
 
-export type ImageAsset = z.infer<typeof ImageAssetSchema>
-export type VideoAsset = z.infer<typeof VideoAssetSchema>
-export type Asset = z.infer<typeof AssetSchema>
-export type AssetKind = Asset['kind']
+export type Asset = (ImageAsset | VideoAsset) & { url?: string }
+
+export interface MessageEvent extends StoryEventBase {
+  type: 'message'
+  text: string
+}
+
+export interface ImageEvent extends InsertEvent, AssetBase {
+  type: 'image'
+}
+
+export interface DialogueEvent extends InsertEvent {
+  type: 'dialogue'
+  background: string
+  caption?: string
+  speaker?: string
+}
+
+export interface VideoEvent extends InsertEvent, AssetBase {
+  type: 'video'
+  firstFrame?: string
+  lastFrame?: string
+  duration?: number
+}
+
+export interface CardEvent extends StoryEventBase {
+  type: 'card'
+  name: string
+  cover?: string | null
+  voice?: string | null
+  attributes?: Attributes
+}
+
+export interface DeleteEvent extends StoryEventBase {
+  type: 'delete'
+  indices: number[]
+}
+
+export type StoryEvent = MessageEvent | ImageEvent | DialogueEvent | VideoEvent | CardEvent | DeleteEvent
 
 export type Card = {
   name: string
   cover?: string
   voice?: string
-  attributes?: Record<string, unknown>
+  attributes?: Attributes
 }
 
-const MAX_PROMPT_CHARS = 2000
-export const PromptSchema = z.preprocess(
-  (val) => (val === undefined ? undefined : normalizeRecord(val)),
-  JsonRecord.refine(
-    (val) => JSON.stringify(val).length <= MAX_PROMPT_CHARS,
-    { message: `Prompt object must be ${MAX_PROMPT_CHARS} characters or less when serialized` },
-  ),
-)
-
-const AssetNames = z.union([z.string(), z.array(z.string()).max(5)]).transform((value) =>
-  (Array.isArray(value) ? value : [value]).map((s) => s.trim()).filter(Boolean),
-).pipe(z.array(z.string()).max(5))
-
-export const SpeechSchema = z.object({
-  key: z.string(),
-  words: z.array(z.string()).optional(),
-  t: z.array(z.number().int().nonnegative()).optional(),
-})
-
-export const ImageSceneSchema = z.object({
-  type: z.literal('image'),
-  name: z.string(),
-})
-
-export const DialogueSceneSchema = z.object({
-  type: z.literal('dialogue'),
-  background: z.string(),
-  speaker: z.string().optional(),
-  caption: z.string().optional(),
-  speech: SpeechSchema.optional(),
-})
-
-export const VideoSceneSchema = z.object({
-  type: z.literal('video'),
-  name: z.string(),
-})
-
-export const SceneSchema = z.discriminatedUnion('type', [
-  ImageSceneSchema,
-  DialogueSceneSchema,
-  VideoSceneSchema,
-])
-
-export const InsertImageSceneSchema = ImageSceneSchema.omit({ type: true }).extend({
-  prompt: PromptSchema.optional(),
-  references: AssetNames.optional(),
-})
-
-export const InsertDialogueSceneSchema = DialogueSceneSchema.omit({ type: true, speech: true })
-
-export const InsertVideoSceneSchema = VideoSceneSchema.omit({ type: true }).extend({
-  prompt: PromptSchema.optional(),
-  firstFrame: z.string().optional(),
-  lastFrame: z.string().optional(),
-  duration: z.number().int().min(5).max(15).default(5),
-})
-
-export type Speech = z.infer<typeof SpeechSchema>
-export type ImageScene = z.infer<typeof ImageSceneSchema>
-export type DialogueScene = z.infer<typeof DialogueSceneSchema>
-export type VideoScene = z.infer<typeof VideoSceneSchema>
-export type Scene = z.infer<typeof SceneSchema>
-export type InsertImageScene = z.infer<typeof InsertImageSceneSchema>
-export type InsertDialogueScene = z.infer<typeof InsertDialogueSceneSchema>
-export type InsertVideoScene = z.infer<typeof InsertVideoSceneSchema>
-
-export type NumberedScene = Scene & {
-  index: number
-  prompt?: Record<string, unknown>
+export type Speech = {
+  key: string
+  words?: string[]
+  t?: number[]
 }
+
+export type ImageScene = { type: 'image'; name: string; event: number }
+
+export type DialogueScene = {
+  type: 'dialogue'
+  background: string
+  event: number
+  speaker?: string
+  caption?: string
+  speech?: Speech
+}
+
+export type VideoScene = { type: 'video'; name: string; event: number }
+
+export type Scene = ImageScene | DialogueScene | VideoScene
 
 export type Story = {
   id: string
   title: string
   createdAt: string
   updatedAt: string
+  events: StoryEvent[]
   scenes: Scene[]
   assets: Asset[]
   cards: Card[]

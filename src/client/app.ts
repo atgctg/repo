@@ -1,4 +1,7 @@
+import { ArrowLeft, MousePointerClick, Pause, Play, PlayingCardsFan, X, createElement, type IconNode } from 'lucide'
+import { formatRanges } from '../project'
 import { isPlainObject } from '../records'
+import { logHtml } from './log'
 import type { Asset, Card, DialogueScene, ImageScene, Scene, Story, VideoScene, World } from '../types'
 
 {
@@ -25,15 +28,15 @@ function findAsset(assets: Story['assets'], name?: string): Asset | undefined {
   return assets.find((item) => item.name.toLowerCase() === name.toLowerCase())
 }
 
-function canGenerate(asset?: Asset): boolean {
+function canGenerate(asset: Asset | undefined): boolean {
   if (!asset || asset.url) return false
   return canPrompt(asset)
 }
 
-function canPrompt(asset?: Asset): boolean {
+function canPrompt(asset: Asset | undefined): boolean {
   if (!asset) return false
   const prompted = Boolean(asset.prompt && Object.keys(asset.prompt).length > 0)
-  switch (asset.kind) {
+  switch (asset.type) {
     case 'image':
       return prompted
     case 'video':
@@ -50,19 +53,22 @@ function speechSrc(storyId: string, file?: string): string | undefined {
   return `/assets/${encodeURIComponent(storyId)}/${encodeURIComponent(file)}`
 }
 
-const REFRESH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`
-const PLAY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>`
-const PAUSE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>`
+function icon(node: IconNode): string {
+  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' }).outerHTML
+}
+
+const ARROW_ICON = icon(ArrowLeft)
+const X_ICON = icon(X)
+const CARDS_ICON = icon(PlayingCardsFan)
+const POINTER_ICON = icon(MousePointerClick)
+const PLAY_ICON = icon(Play)
+const PAUSE_ICON = icon(Pause)
 function cardClass(hasImage: boolean, extra = ''): string {
   return ['card', extra, hasImage ? 'has-image' : ''].filter(Boolean).join(' ')
 }
 
 function imgTag(url?: string): string {
   return url ? `<img class="card-img" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />` : ''
-}
-
-function videoTag(url?: string): string {
-  return url ? `<video class="card-video" src="${escapeHtml(url)}?v=${cacheBuster}" controls autoplay muted loop playsinline></video>` : ''
 }
 
 function sceneVideoTag(url?: string): string {
@@ -131,9 +137,9 @@ function fullscreenSceneVideo(button: HTMLButtonElement): void {
   else void video.requestFullscreen().catch(() => {})
 }
 
-function renderGenerateBtn(storyId: string, asset?: Asset): string {
+function renderGenerateBtn(storyId: string, asset: Asset | undefined): string {
   if (!canGenerate(asset) || !asset) return ''
-  return `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-kind="${escapeHtml(asset.kind)}">Generate</button>`
+  return `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-type="${asset.type}">Generate</button>`
 }
 
 function stripCaptionMarkup(text: string): string {
@@ -209,50 +215,45 @@ function renderCaptions(scene: DialogueScene): string {
   return `<div class="card-caption">${captionHtml}${speakerHtml}</div>`
 }
 
-function renderImageScene(scene: ImageScene, assets: Story['assets'], storyId: string): string {
-  const asset = findAsset(assets, scene.name)
-  return `
-    <div class="${cardClass(Boolean(asset?.url))}">
-      ${imgTag(asset?.url)}
-      <div class="card-title">${escapeHtml(scene.name)}</div>
-      ${renderGenerateBtn(storyId, asset)}
-    </div>
-  `
+function sceneCard(index: number, hasImage: boolean, body: string): string {
+  const on = selected.has(index) ? ' is-selected' : ''
+  return `<div class="${cardClass(hasImage)} scene-card${on}" data-scene="${index}" style="--i:${index}">${body}</div>`
 }
 
-function renderDialogueScene(scene: DialogueScene, assets: Story['assets'], storyId: string): string {
+function renderImageScene(scene: ImageScene, assets: Story['assets'], storyId: string, index: number): string {
+  const asset = findAsset(assets, scene.name)
+  return sceneCard(
+    index,
+    Boolean(asset?.url),
+    `${imgTag(asset?.url)}<div class="card-title">${escapeHtml(scene.name)}</div>${renderGenerateBtn(storyId, asset)}`,
+  )
+}
+
+function renderDialogueScene(scene: DialogueScene, assets: Story['assets'], storyId: string, index: number): string {
   const asset = findAsset(assets, scene.background)
   const captions = renderCaptions(scene)
   const overlayHtml = scene.speech?.key ? playOverlayTag(speechSrc(storyId, scene.speech.key)) : ''
-  return `
-    <div class="${cardClass(Boolean(asset?.url))}">
-      ${imgTag(asset?.url)}
-      ${overlayHtml}
-      ${captions}
-    </div>
-  `
+  return sceneCard(index, Boolean(asset?.url), `${imgTag(asset?.url)}${overlayHtml}${captions}`)
 }
 
-function renderVideoScene(scene: VideoScene, assets: Story['assets'], storyId: string): string {
+function renderVideoScene(scene: VideoScene, assets: Story['assets'], storyId: string, index: number): string {
   const asset = findAsset(assets, scene.name)
   const url = asset?.url
-  return `
-    <div class="${cardClass(Boolean(url))}">
-      ${url ? `${sceneVideoTag(url)}${playOverlayTag()}` : ''}
-      <div class="card-title">${escapeHtml(scene.name)}</div>
-      ${renderGenerateBtn(storyId, asset)}
-    </div>
-  `
+  return sceneCard(
+    index,
+    Boolean(url),
+    `${url ? `${sceneVideoTag(url)}${playOverlayTag()}` : ''}<div class="card-title">${escapeHtml(scene.name)}</div>${renderGenerateBtn(storyId, asset)}`,
+  )
 }
 
-function renderScene(scene: Scene, assets: Story['assets'], storyId: string): string {
+function renderScene(scene: Scene, assets: Story['assets'], storyId: string, index: number): string {
   switch (scene.type) {
     case 'image':
-      return renderImageScene(scene, assets, storyId)
+      return renderImageScene(scene, assets, storyId, index)
     case 'dialogue':
-      return renderDialogueScene(scene, assets, storyId)
+      return renderDialogueScene(scene, assets, storyId, index)
     case 'video':
-      return renderVideoScene(scene, assets, storyId)
+      return renderVideoScene(scene, assets, storyId, index)
     default: {
       const _exhaustive: never = scene
       return _exhaustive
@@ -331,47 +332,13 @@ function renderCard(card: Card, assets: Story['assets'], storyId: string): strin
   `
 }
 
-function renderAsset(asset: Asset, storyId: string): string {
-  const kind = asset.kind
-  const hasVisual = Boolean(asset.url)
-  let visualHtml = ''
-  switch (kind) {
-    case 'video':
-      visualHtml = videoTag(asset.url)
-      break
-    case 'image':
-      visualHtml = imgTag(asset.url)
-      break
-    default: {
-      const _exhaustive: never = kind
-      return _exhaustive
-    }
-  }
-
-  const canPromptAsset = canPrompt(asset)
-  const regenBtnHtml = canPromptAsset && hasVisual
-    ? `<button type="button" class="gen-btn regen-btn regen-icon" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-kind="${escapeHtml(kind)}" aria-label="Regenerate" title="Regenerate">${REFRESH_ICON}</button>`
-    : ''
-  const actionsHtml = regenBtnHtml
-    ? `<div class="asset-actions">${regenBtnHtml}</div>`
-    : ''
-  const genBtnHtml = canPromptAsset && !asset.url
-    ? `<button type="button" class="gen-btn" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-kind="${escapeHtml(kind)}">Generate</button>`
-    : ''
-
-  return `
-    <div class="${cardClass(hasVisual, 'card-asset')}">
-      ${visualHtml}
-      <div class="card-topblur"></div>
-      <div class="card-title">${escapeHtml(asset.name)}</div>
-      ${actionsHtml}
-      ${genBtnHtml}
-    </div>
-  `
-}
-
 function renderIndex(worlds: Array<string | World>): void {
   document.title = 'Studio'
+  document.body.classList.remove('in-story', 'show-drawer')
+  const chat = document.querySelector('.chat')
+  const drawer = document.querySelector('.drawer')
+  if (chat instanceof HTMLElement) chat.hidden = true
+  if (drawer instanceof HTMLElement) drawer.hidden = true
   const header = document.querySelector('header')
   const main = document.querySelector('main')
   if (!header || !main) return
@@ -382,13 +349,13 @@ function renderIndex(worlds: Array<string | World>): void {
   `
 
   if (!worlds.length) {
-    main.className = 'list'
-    main.innerHTML = '<span class="muted">no worlds</span>'
+    main.className = ''
+    main.innerHTML = '<div class="list"><span class="muted">no worlds</span></div>'
     return
   }
 
-  main.className = 'grid'
-  main.innerHTML = worlds
+  main.className = ''
+  main.innerHTML = `<div class="grid">${worlds
     .map((item) => {
       const id = typeof item === 'string' ? item : item.id
       const title = typeof item === 'string' ? item : item.title || item.id
@@ -401,118 +368,165 @@ function renderIndex(worlds: Array<string | World>): void {
         </a>
       `
     })
-    .join('\n')
+    .join('\n')}</div>`
 }
 
-type StoryTab = 'scenes' | 'cards' | 'assets'
+const selected = new Set<number>()
 
-function getStoryTab(): StoryTab {
-  const tab = new URLSearchParams(location.search).get('tab')
-  if (tab === 'cards' || tab === 'assets') return tab
-  return 'scenes'
+function showCards(): boolean {
+  return new URLSearchParams(location.search).get('cards') === '1'
 }
 
-function storyTabHref(storyId: string, tab: StoryTab): string {
+function sceneIndex(): number | undefined {
+  const raw = new URLSearchParams(location.search).get('scene')
+  if (raw === null || !/^\d+$/.test(raw)) return undefined
+  return Number(raw)
+}
+
+function storyHref(storyId: string, query?: { cards?: boolean; scene?: number }): string {
   const path = `/${encodeURIComponent(storyId)}`
-  if (tab === 'scenes') return path
-  return `${path}?tab=${tab}`
+  const params = new URLSearchParams()
+  if (query?.cards) params.set('cards', '1')
+  if (query?.scene !== undefined) params.set('scene', String(query.scene))
+  const search = params.toString()
+  return search ? `${path}?${search}` : path
 }
 
-function tabLabel(tab: StoryTab): string {
-  switch (tab) {
-    case 'scenes':
-      return 'Scenes'
-    case 'cards':
-      return 'Cards'
-    case 'assets':
-      return 'Assets'
+function renderLog(story: Story): void {
+  const log = document.querySelector('.log')
+  if (!log) return
+  log.innerHTML = logHtml(story, selected, cacheBuster)
+}
+
+function paintSelection(): void {
+  document.querySelectorAll('.scene-card').forEach((el) => {
+    if (!(el instanceof HTMLElement)) return
+    el.classList.toggle('is-selected', selected.has(Number(el.dataset.scene)))
+  })
+  document.querySelectorAll('.event[data-scene]').forEach((el) => {
+    if (!(el instanceof HTMLElement)) return
+    el.classList.toggle('is-selected', selected.has(Number(el.dataset.scene)))
+  })
+  const indicator = document.querySelector('.selection-indicator')
+  if (indicator instanceof HTMLElement) {
+    indicator.hidden = selected.size === 0
+    indicator.innerHTML = `${POINTER_ICON}<span>${selected.size}</span>`
+  }
+}
+
+function chooseScene(index: number, toggle: boolean): void {
+  if (toggle) {
+    if (selected.has(index)) selected.delete(index)
+    else selected.add(index)
+  } else {
+    selected.clear()
+    selected.add(index)
+  }
+  paintSelection()
+}
+
+function messageText(input: string): string {
+  const body = input.replace(/^<selected>\n[\s\S]*?\n<\/selected>\n?/, '').trim()
+  if (!body) return ''
+  if (selected.size === 0) return body
+  return `<selected>\n${formatRanges([...selected])}\n</selected>\n${body}`
+}
+
+function sceneAsset(story: Story, scene: Scene): Asset | undefined {
+  switch (scene.type) {
+    case 'image':
+    case 'video':
+      return findAsset(story.assets, scene.name)
+    case 'dialogue':
+      return findAsset(story.assets, scene.background)
     default: {
-      const _exhaustive: never = tab
+      const _exhaustive: never = scene
       return _exhaustive
     }
   }
 }
 
-function renderTabs(story: Story, active: StoryTab): string {
-  const tabs: StoryTab[] = ['scenes', 'cards', 'assets']
-  return `<nav class="tabs">${tabs
-    .map((tab) => {
-      const activeClass = tab === active ? ' tab-active' : ''
-      return `<a class="tab${activeClass}" href="${storyTabHref(story.id, tab)}"><span class="tab-count">${tabCount(story, tab)}</span>${tabLabel(tab)}</a>`
-    })
-    .join('')}</nav>`
+function relatedCard(story: Story, scene: Scene): Card | undefined {
+  if (scene.type === 'dialogue' && scene.speaker) {
+    const speaker = story.cards.find((card) => card.name.toLowerCase() === scene.speaker?.toLowerCase())
+    if (speaker) return speaker
+  }
+  const name = scene.type === 'dialogue' ? scene.background : scene.name
+  return story.cards.find(
+    (card) => card.cover?.toLowerCase() === name.toLowerCase() || card.name.toLowerCase() === name.toLowerCase(),
+  )
 }
 
-function tabCount(story: Story, tab: StoryTab): number {
-  switch (tab) {
-    case 'scenes':
-      return story.scenes?.length ?? 0
-    case 'cards':
-      return story.cards?.length ?? 0
-    case 'assets':
-      return story.assets?.length ?? 0
-    default: {
-      const _exhaustive: never = tab
-      return _exhaustive
-    }
+function renderDrawer(story: Story, index: number | undefined): void {
+  const drawer = document.querySelector('.drawer')
+  if (!(drawer instanceof HTMLElement)) return
+  const scene = index === undefined ? undefined : story.scenes[index]
+  const open = Boolean(scene)
+  drawer.hidden = !open
+  document.body.classList.toggle('show-drawer', open)
+  if (!scene || index === undefined) {
+    drawer.innerHTML = ''
+    return
   }
+  const asset = sceneAsset(story, scene)
+  const card = relatedCard(story, scene)
+  const prompt = asset?.prompt ? JSON.stringify(asset.prompt, null, 2) : ''
+  drawer.innerHTML = `
+    <div class="drawer-head">
+      <div class="drawer-title">${escapeHtml(scene.type === 'dialogue' ? scene.background : scene.name)}</div>
+      <a class="icon-btn drawer-close" href="${storyHref(story.id, showCards() ? { cards: true } : undefined)}" aria-label="Close">${X_ICON}</a>
+    </div>
+    ${prompt ? `<pre class="drawer-prompt">${escapeHtml(prompt)}</pre>` : '<span class="muted">no prompt</span>'}
+    ${card ? `<div class="drawer-card">${renderCard(card, story.assets, story.id)}</div>` : ''}
+    ${renderDrawerGen(story.id, asset)}
+  `
+}
+
+function renderDrawerGen(storyId: string, asset?: Asset): string {
+  if (!canPrompt(asset) || !asset) return ''
+  const label = asset.url ? 'Regenerate' : 'Generate'
+  return `<button type="button" class="gen-btn drawer-gen" data-story="${escapeHtml(storyId)}" data-name="${escapeHtml(asset.name)}" data-type="${asset.type}">${label}</button>`
 }
 
 function renderStory(story: Story): void {
   document.title = story.title || story.id
+  document.body.classList.add('in-story')
+  const chat = document.querySelector('.chat')
+  if (chat instanceof HTMLElement) chat.hidden = false
   const header = document.querySelector('header')
   const main = document.querySelector('main')
   if (!header || !main) return
 
-  const tab = getStoryTab()
-
+  const cards = showCards()
   header.innerHTML = `
-    <a href="/" class="tab story-back"><span>←</span>${escapeHtml(story.title || story.id)}</a>
-    ${renderTabs(story, tab)}
+    <a href="/" class="icon-btn story-back" aria-label="Worlds">${ARROW_ICON}</a>
+    <span class="story-title">${escapeHtml(story.title || story.id)}</span>
+    <a class="cards-link${cards ? ' tab-active' : ''}" href="${storyHref(story.id, { cards: true })}">${CARDS_ICON}<span class="tab-count">${story.cards.length}</span></a>
   `
+  renderLog(story)
+  main.className = ''
 
-  switch (tab) {
-    case 'scenes': {
-      if (!story.scenes?.length) {
-        main.className = 'list'
-        main.innerHTML = '<span class="muted">No scenes</span>'
-        break
-      }
-      main.className = 'grid'
-      main.innerHTML = story.scenes
-        .map((s) => renderScene(s, story.assets, story.id))
-        .join('\n')
-      break
-    }
-    case 'cards': {
-      if (!story.cards.length) {
-        main.className = 'list'
-        main.innerHTML = '<span class="muted">no cards</span>'
-        break
-      }
-      main.className = 'grid'
-      main.innerHTML = story.cards.map((c) => renderCard(c, story.assets, story.id)).join('\n')
-      break
-    }
-    case 'assets': {
-      if (!story.assets.length) {
-        main.className = 'list'
-        main.innerHTML = '<span class="muted">no assets</span>'
-        break
-      }
-      main.className = 'grid'
-      main.innerHTML = story.assets.map((m) => renderAsset(m, story.id)).join('\n')
-      break
-    }
-    default: {
-      const _exhaustive: never = tab
-      throw new Error(`Unhandled tab: ${_exhaustive}`)
-    }
+  if (cards) {
+    main.innerHTML = story.cards.length
+      ? `<div class="grid cards">${story.cards.map((card) => renderCard(card, story.assets, story.id)).join('\n')}</div>`
+      : '<div class="list"><span class="muted">no cards</span></div>'
+  } else if (!story.scenes?.length) {
+    main.innerHTML = '<div class="list"><span class="muted">No scenes</span></div>'
+  } else {
+    main.innerHTML = `<div class="grid scenes">${story.scenes.map((scene, index) => renderScene(scene, story.assets, story.id, index)).join('\n')}</div>`
   }
+
+  renderDrawer(story, cards ? undefined : sceneIndex())
+  paintSelection()
 }
 
 function renderNotFound(id: string): void {
   document.title = id
+  document.body.classList.remove('in-story', 'show-drawer')
+  const chat = document.querySelector('.chat')
+  const drawer = document.querySelector('.drawer')
+  if (chat instanceof HTMLElement) chat.hidden = true
+  if (drawer instanceof HTMLElement) drawer.hidden = true
   const header = document.querySelector('header')
   const main = document.querySelector('main')
   if (!header || !main) return
@@ -520,8 +534,8 @@ function renderNotFound(id: string): void {
   header.innerHTML = `
     <a href="/" class="tab story-back"><span>←</span>${escapeHtml(id)}</a>
   `
-  main.className = 'list'
-  main.innerHTML = '<span class="muted">not found</span>'
+  main.className = ''
+  main.innerHTML = '<div class="list"><span class="muted">not found</span></div>'
 }
 
 function currentPathname(): string {
@@ -585,8 +599,8 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
   const storyId = button.dataset.story
   const name = button.dataset.name
   if (!storyId || !name) return
-  const kind = button.dataset.kind ?? 'image'
-  const job = `${storyId}:${name}:${kind}`
+  const type = button.dataset.type === 'video' ? 'video' : 'image'
+  const job = `${storyId}:${name}:${type}`
   if (generating.has(job)) return
   generating.add(job)
   button.disabled = true
@@ -597,9 +611,9 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
     button.textContent = 'Generating…'
   }
   const started = performance.now()
-  const endpoint = kind === 'video' ? 'generate-video' : 'generate-image'
-  const payload = kind === 'video' ? { name, duration: 5 } : { name }
-  console.error('asset gen start', { storyId, name, kind })
+  const endpoint = type === 'video' ? 'generate-video' : 'generate-image'
+  const payload = type === 'video' ? { name, duration: 5 } : { name }
+  console.error('asset gen start', { storyId, name, type })
   try {
     const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}/${endpoint}`, {
       method: 'POST',
@@ -610,13 +624,13 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
       const body = (await res.json().catch(() => ({}))) as { error?: string }
       throw new Error(body.error ?? `Generate failed (${res.status})`)
     }
-    console.error('asset gen ok', { storyId, name, kind, ms: Math.round(performance.now() - started) })
+    console.error('asset gen ok', { storyId, name, type, ms: Math.round(performance.now() - started) })
     cacheBuster = Date.now()
     lastPayload = ''
     await refresh()
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('asset gen error', { storyId, name, kind, ms: Math.round(performance.now() - started), error: message })
+    console.error('asset gen error', { storyId, name, type, ms: Math.round(performance.now() - started), error: message })
     button.disabled = false
     if (isIcon) {
       button.classList.remove('is-generating')
@@ -629,9 +643,63 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
   }
 }
 
+let draftAt: number | undefined
+
+document.querySelector('.composer')?.addEventListener('submit', (event) => {
+  event.preventDefault()
+  const form = event.currentTarget
+  if (!(form instanceof HTMLFormElement)) return
+  const input = form.querySelector('input')
+  if (!(input instanceof HTMLInputElement)) return
+  const text = messageText(input.value)
+  const storyId = currentPathname()
+  if (!text || !storyId) return
+  const at = draftAt
+  input.disabled = true
+  void fetch(`/api/stories/${encodeURIComponent(storyId)}/turn`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(at === undefined ? { text } : { text, at }),
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        throw new Error(body.error ?? `Turn failed (${res.status})`)
+      }
+      input.value = ''
+      draftAt = undefined
+      input.placeholder = 'Message'
+      cacheBuster = Date.now()
+      lastPayload = ''
+      await refresh()
+    })
+    .catch((error: unknown) => {
+      input.placeholder = error instanceof Error ? error.message : String(error)
+    })
+    .finally(() => {
+      input.disabled = false
+      input.focus()
+    })
+})
+
 document.addEventListener('click', (event) => {
   const target = event.target
   if (!(target instanceof Element)) return
+  const rewind = target.closest('button.rewind')
+  if (rewind instanceof HTMLButtonElement) {
+    event.preventDefault()
+    const at = Number(rewind.dataset.at)
+    const storyId = currentPathname()
+    const input = document.querySelector('.composer input')
+    if (!Number.isInteger(at) || !(input instanceof HTMLInputElement)) return
+    const pre = rewind.parentElement?.querySelector('pre')
+    const parsed = pre ? (JSON.parse(pre.textContent ?? '{}') as { text?: string }) : {}
+    draftAt = at
+    input.value = rewind.textContent ?? parsed.text ?? ''
+    input.placeholder = 'Rewind'
+    input.focus()
+    return
+  }
   const overlay = target.closest('button.play-overlay')
   if (overlay instanceof HTMLButtonElement) {
     event.preventDefault()
@@ -653,10 +721,45 @@ document.addEventListener('click', (event) => {
     void generateFromButton(gen)
     return
   }
+  const row = target.closest('.event')
+  if (row instanceof HTMLElement && row.dataset.scene !== undefined && !target.closest('button, a')) {
+    const index = Number(row.dataset.scene)
+    if (Number.isInteger(index)) {
+      chooseScene(index, event.shiftKey)
+      document.querySelector(`.scene-card[data-scene="${index}"]`)?.scrollIntoView({ block: 'nearest' })
+    }
+  }
+  const scene = target.closest('.scene-card')
+  if (scene instanceof HTMLElement && !target.closest('button, video')) {
+    const index = Number(scene.dataset.scene)
+    const storyId = currentPathname()
+    if (Number.isInteger(index) && storyId) {
+      event.preventDefault()
+      if (event.shiftKey) {
+        chooseScene(index, true)
+        return
+      }
+      navigate(storyHref(storyId, { scene: index }))
+      return
+    }
+  }
   const link = target.closest('a')
   if (!link || !isSpaLink(link, event)) return
   event.preventDefault()
   navigate(`${link.pathname}${link.search}`)
+})
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+  const target = event.target
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return
+  if (target instanceof HTMLElement && target.isContentEditable) return
+  const input = document.querySelector('.composer input')
+  const chat = input?.closest('.chat')
+  if (!(input instanceof HTMLInputElement) || input.disabled) return
+  if (chat instanceof HTMLElement && chat.hidden) return
+  event.preventDefault()
+  input.focus()
 })
 
 window.addEventListener('popstate', () => {

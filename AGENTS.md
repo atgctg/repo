@@ -3,13 +3,14 @@
 - Use Bun over Node (including file system operations).
 - Do not write comments.
 - Greenfield project, no backwards compatibility needed.
-- Read `./prompts` before using Studio MCP
+- 1k+ lines are fine if they make sense (e.g. styles.css)
 
 # About
 
 Interactive visual storytelling app.
 
 UI:
+
 - Fullscreen background with caption on top, timeline at the bottom
 - Pinch out: grid view of the scenes
 - Similar to Slideshow in Photos, have a mode that auto plays the images/videos

@@ -1,10 +1,10 @@
 import { stringify } from 'yaml'
-import type { AssetKind, Speech, Story } from './types'
+import { assetDiskPath, assetFileName, assetUrl, speechFileName, storyAssetPath } from './files'
+import type { Speech, Story } from './types'
 
 const PRUNA_MODEL = 'p-image' as const
 const PRUNA_EDIT_MODEL = 'p-image-edit' as const
 const IMAGE_ASPECT_RATIO = '9:16' as const
-const STORIES_DIR = `${import.meta.dir}/../stories`
 
 export const PRUNA_VIDEO_MODEL = 'p-video-2-pro' as const
 export const VIDEO_RESOLUTION = '480p' as const
@@ -45,42 +45,6 @@ export function captionToTranscript(caption?: string): string {
     .map((line) => line.replace(/\*/g, ' ').replace(/\s+/g, ' ').trim())
     .filter(Boolean)
     .join(' ')
-}
-
-export function safeStoryId(id: string): string {
-  return id.replace(/[^a-zA-Z0-9_-]/g, '_')
-}
-
-export function slugify(name: string): string {
-  const slug = name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return slug || 'asset'
-}
-
-const ASSET_EXT: Record<AssetKind, string> = { image: 'jpg', video: 'mp4' }
-
-export function assetFileName(name: string, kind: AssetKind): string {
-  return `${slugify(name)}.${ASSET_EXT[kind]}`
-}
-
-export function storyAssetPath(storyId: string, file: string): string {
-  return `${STORIES_DIR}/assets/${safeStoryId(storyId)}/${file}`
-}
-
-export function assetDiskPath(storyId: string, name: string, kind: AssetKind): string {
-  return storyAssetPath(storyId, assetFileName(name, kind))
-}
-
-export function assetUrl(storyId: string, name: string, kind: AssetKind): string {
-  return `/assets/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(assetFileName(name, kind))}`
-}
-
-export function speechFileName(voice: string, caption: string): string {
-  const hex = new Bun.CryptoHasher('sha256').update(`${voice.trim()}\n${caption}`).digest('hex').slice(0, 16)
-  return `${hex}.wav`
 }
 
 function promptWithStyle(story: Story, prompt: Record<string, unknown>): string {
@@ -323,7 +287,7 @@ async function uploadNamedImages(story: Story, names: string[]): Promise<string[
 
 async function uploadFrame(story: Story, frameName: string): Promise<string | undefined> {
   const storyId = story.id
-  const ref = story.assets.find((m) => m.kind === 'image' && m.name.toLowerCase() === frameName.toLowerCase())
+  const ref = story.assets.find((asset) => asset.name.toLowerCase() === frameName.toLowerCase())
   const diskName = ref?.name ?? frameName
   const file = Bun.file(assetDiskPath(storyId, diskName, 'image'))
   if (!(await file.exists())) return undefined

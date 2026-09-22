@@ -1,6 +1,8 @@
 import studio from './client/index.html'
-import { errorMessage, safeStoryId, storyAssetPath } from './generate'
+import { safeStoryId, storyAssetPath } from './files'
+import { errorMessage } from './media'
 import { generateImage, generateVideo, listStories, loadStory, storyExists } from './stories'
+import { reply } from './turn'
 
 function jsonError(error: unknown, status = 500): Response {
   return Response.json({ error: errorMessage(error) }, { status })
@@ -29,6 +31,26 @@ const server = Bun.serve({
           return new Response('Not found', { status: 404 })
         }
         return Response.json(await loadStory(id))
+      },
+    },
+    '/api/stories/:id/turn': {
+      POST: async (req) => {
+        const { id } = req.params
+        if (!(await storyExists(id))) {
+          return new Response('Not found', { status: 404 })
+        }
+        const body = (await req.json()) as { text?: unknown; at?: unknown }
+        if (typeof body.text !== 'string' || !body.text.trim()) {
+          return Response.json({ error: 'text is required' }, { status: 400 })
+        }
+        if (body.at !== undefined && (typeof body.at !== 'number' || !Number.isInteger(body.at) || body.at < 0)) {
+          return Response.json({ error: 'at must be an index' }, { status: 400 })
+        }
+        try {
+          return Response.json(await reply(id, { text: body.text, at: body.at }))
+        } catch (error) {
+          return jsonError(error)
+        }
       },
     },
     '/api/stories/:id/generate-image': {

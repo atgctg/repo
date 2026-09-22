@@ -8,7 +8,19 @@
   </head>
   <body>
     <header></header>
+    <aside class="chat" hidden>
+      <div class="log"></div>
+      <div class="composer-wrap">
+        <form class="composer">
+          <div class="pillow composer-field">
+            <span class="selection-indicator" hidden></span>
+            <input type="text" placeholder="Message" autocomplete="off" />
+          </div>
+        </form>
+      </div>
+    </aside>
     <main></main>
+    <aside class="drawer" hidden></aside>
     <script type="module" src="./app.ts"></script>
   </body>
 </html>

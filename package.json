@@ -1,15 +1,13 @@
 {
-  "name": "@studio/mcp",
+  "name": "studio",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/server.ts",
-    "inspector": "bunx @modelcontextprotocol/inspector bun run src/mcp.ts"
+    "dev": "bun --hot src/server.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "^2.0.0",
-    "yaml": "^2.9.1",
-    "zod": "^4.4.3"
+    "lucide": "^1.47.0",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "bun-types": "^1.3.14"

@@ -1,70 +1,384 @@
 import {
+  AudioLines,
   IdCard,
   Image as ImageIcon,
+  MessageCircle,
   MessageSquare,
-  MessageSquareText,
   Trash,
-  Video,
+  User,
+  Play,
   createElement,
   type IconNode,
 } from 'lucide'
 import { formatRanges } from '@/project'
-import type { Attributes, Story, StoryEvent } from '@/types'
+import { isPlainObject } from '@/records'
+import type { Asset, Attributes, Card, Scene, Story, StoryEvent } from '@/types'
+import { renderAttrs } from './attrs'
+import { escapeHtml } from './html'
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
+type DetailBlock =
+  | { type: 'quote'; text: string }
+  | { type: 'voice'; name: string }
+  | { type: 'speaker'; name: string }
+  | { type: 'meta'; text: string }
+  | { type: 'error'; text: string }
+  | { type: 'swatch'; color: string }
+  | { type: 'figure'; url: string; label?: string }
+  | { type: 'frames'; items: { url: string; label: string }[] }
+  | { type: 'refs'; items: { url?: string; label: string }[] }
+  | { type: 'attrs'; value: Attributes }
 
 function icon(node: IconNode): string {
   return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' })
     .outerHTML
 }
 
-function findAsset(story: Story, name?: string | null): string | undefined {
+function richText(text: string): string {
+  return escapeHtml(text)
+    .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
+}
+
+function findAsset(story: Story, name?: string | null): Asset | undefined {
   if (typeof name !== 'string' || !name) return undefined
-  return story.assets.find((item) => item.name.toLowerCase() === name.toLowerCase())?.url
+  return story.assets.find((item) => item.name.toLowerCase() === name.toLowerCase())
 }
 
-function thumb(url: string | undefined, cacheBuster: number, avatar: boolean): string {
-  if (!url) return ''
-  const cls = avatar ? 'event-avatar' : 'event-thumb'
-  return `<img class="${cls}" src="${escapeHtml(url)}?v=${cacheBuster}" alt="" />`
+function mediaSrc(url: string, cacheBuster: number): string {
+  return `${escapeHtml(url)}?v=${cacheBuster}`
 }
 
-function field(
-  label: string,
-  value: string | number | boolean | null | undefined,
-): string {
-  if (value === undefined || value === null || value === '') return ''
-  return `<div class="event-field"><span class="event-key">${escapeHtml(label)}</span><span>${escapeHtml(String(value))}</span></div>`
+function push(blocks: DetailBlock[], block: DetailBlock | undefined): void {
+  if (block) blocks.push(block)
 }
 
-function jsonBlock(value: Attributes | undefined): string {
-  if (!value || Object.keys(value).length === 0) return ''
-  return `<pre class="event-json">${escapeHtml(JSON.stringify(value, null, 2))}</pre>`
+function sizeBlock(width?: number, height?: number): DetailBlock | undefined {
+  if (width && height) return { type: 'meta', text: `${width} × ${height}` }
+  if (width) return { type: 'meta', text: `${width} wide` }
+  if (height) return { type: 'meta', text: `${height} tall` }
+  return undefined
 }
 
-function placement(event: { index?: number; replace?: boolean }): string {
-  return [field('index', event.index), event.replace ? field('replace', 'yes') : ''].join(
-    '',
+function placementBlock(event: {
+  index?: number
+  replace?: boolean
+}): DetailBlock | undefined {
+  if (event.replace && event.index !== undefined)
+    return { type: 'meta', text: `Replaces scene ${event.index}` }
+  if (event.index !== undefined)
+    return { type: 'meta', text: `Inserted at ${event.index}` }
+  return undefined
+}
+
+function refBlock(
+  story: Story,
+  names: string[] | undefined,
+  cacheBuster: number,
+): DetailBlock | undefined {
+  if (!names || names.length === 0) return undefined
+  const items = names.map((name) => {
+    const url = findAsset(story, name)?.url
+    return { label: name, ...(url ? { url: mediaSrc(url, cacheBuster) } : {}) }
+  })
+  return { type: 'refs', items }
+}
+
+function frameBlock(
+  story: Story,
+  first: string | undefined,
+  last: string | undefined,
+  cacheBuster: number,
+): DetailBlock | undefined {
+  const items = [
+    { label: 'First', name: first },
+    { label: 'Last', name: last },
+  ].flatMap((frame) => {
+    const url = findAsset(story, frame.name)?.url
+    return url ? [{ label: frame.label, url: mediaSrc(url, cacheBuster) }] : []
+  })
+  if (items.length === 0) return undefined
+  return { type: 'frames', items }
+}
+
+function mediaBlocks(
+  story: Story,
+  media: {
+    type: 'image' | 'video'
+    width?: number
+    height?: number
+    dominantColor?: string
+    duration?: number
+    references?: string[]
+    prompt?: Attributes
+  },
+  cacheBuster: number,
+  frames?: DetailBlock,
+): DetailBlock[] {
+  const blocks: DetailBlock[] = []
+  push(blocks, sizeBlock(media.width, media.height))
+  if (media.dominantColor) blocks.push({ type: 'swatch', color: media.dominantColor })
+  if (media.type === 'video' && media.duration)
+    blocks.push({ type: 'meta', text: `${media.duration}s` })
+  push(blocks, frames)
+  push(blocks, refBlock(story, media.references, cacheBuster))
+  if (isPlainObject(media.prompt)) blocks.push({ type: 'attrs', value: media.prompt })
+  return blocks
+}
+
+function assetBlocks(
+  story: Story,
+  asset: Asset | undefined,
+  cacheBuster: number,
+): DetailBlock[] {
+  if (!asset) return []
+  return mediaBlocks(
+    story,
+    asset,
+    cacheBuster,
+    asset.type === 'video'
+      ? frameBlock(story, asset.firstFrame, asset.lastFrame, cacheBuster)
+      : undefined,
   )
 }
 
-function speakerAvatar(
+function figureHtml(block: Extract<DetailBlock, { type: 'figure' }>): string {
+  return `<figure class="detail-figure"><img src="${block.url}" alt="" />${
+    block.label ? `<figcaption>${escapeHtml(block.label)}</figcaption>` : ''
+  }</figure>`
+}
+
+function stillHtml(
   story: Story,
-  speaker: string | undefined,
+  event: Extract<StoryEvent, { type: 'image' | 'video' }>,
+  asset: Asset | undefined,
   cacheBuster: number,
 ): string {
-  if (!speaker) return ''
-  const card = story.cards.find(
-    (item) => item.name.toLowerCase() === speaker.toLowerCase(),
+  if (asset?.url) {
+    const src = mediaSrc(asset.url, cacheBuster)
+    const media =
+      event.type === 'video'
+        ? `<video class="detail-video" src="${src}" preload="metadata" playsinline controls></video>`
+        : figureHtml({ type: 'figure', url: src })
+    return `<div class="event-still">${media}</div>`
+  }
+  if (event.type !== 'video') return ''
+  const name = event.firstFrame ?? event.lastFrame
+  const url = findAsset(story, name)?.url
+  if (!url) return ''
+  return `<div class="event-still">${figureHtml({
+    type: 'figure',
+    url: mediaSrc(url, cacheBuster),
+    label: event.firstFrame ? 'First' : 'Last',
+  })}</div>`
+}
+
+function renderBlocks(blocks: DetailBlock[]): string {
+  return blocks
+    .map((block) => {
+      switch (block.type) {
+        case 'quote':
+          return `<p class="detail-quote">${richText(block.text)}</p>`
+        case 'voice':
+          return `<div class="detail-chip">${icon(AudioLines)}<span>${escapeHtml(block.name)}</span></div>`
+        case 'speaker':
+          return `<div class="detail-chip">${icon(User)}<span>${escapeHtml(block.name)}</span></div>`
+        case 'meta':
+          return `<p class="detail-meta">${escapeHtml(block.text)}</p>`
+        case 'error':
+          return `<p class="detail-error">${escapeHtml(block.text)}</p>`
+        case 'swatch':
+          return `<div class="detail-chip"><i class="detail-swatch" style="background:${escapeHtml(block.color)}"></i><span>${escapeHtml(block.color)}</span></div>`
+        case 'figure':
+          return figureHtml(block)
+        case 'frames':
+          return `<div class="detail-frames">${block.items
+            .map(
+              (item) =>
+                `<figure class="detail-figure"><img src="${item.url}" alt="" /><figcaption>${escapeHtml(item.label)}</figcaption></figure>`,
+            )
+            .join('')}</div>`
+        case 'refs':
+          return `<div class="detail-group"><h3>References</h3><div class="detail-refs">${block.items
+            .map((item) =>
+              item.url
+                ? `<img src="${item.url}" alt="${escapeHtml(item.label)}" title="${escapeHtml(item.label)}" />`
+                : `<span class="detail-ref">${escapeHtml(item.label)}</span>`,
+            )
+            .join('')}</div></div>`
+        case 'attrs':
+          return renderAttrs(block.value)
+        default: {
+          const _exhaustive: never = block
+          return _exhaustive
+        }
+      }
+    })
+    .join('')
+}
+
+function detailHtml(blocks: DetailBlock[]): string {
+  if (blocks.length === 0) return ''
+  return `<div class="detail">${renderBlocks(blocks)}</div>`
+}
+
+function eventLead(event: StoryEvent): string {
+  switch (event.type) {
+    case 'message':
+      return ''
+    case 'image':
+    case 'video':
+    case 'card':
+      return event.name
+    case 'dialogue':
+      return event.speaker || event.background
+    case 'delete':
+      return formatRanges(event.indices)
+    default: {
+      const _exhaustive: never = event
+      return _exhaustive
+    }
+  }
+}
+
+function eventIcon(event: StoryEvent): IconNode {
+  switch (event.type) {
+    case 'message':
+      return MessageSquare
+    case 'image':
+      return ImageIcon
+    case 'dialogue':
+      return MessageCircle
+    case 'video':
+      return Play
+    case 'card':
+      return IdCard
+    case 'delete':
+      return Trash
+    default: {
+      const _exhaustive: never = event
+      return _exhaustive
+    }
+  }
+}
+
+function stillBlocks(
+  story: Story,
+  event: Extract<StoryEvent, { type: 'image' | 'video' }>,
+  asset: Asset | undefined,
+  cacheBuster: number,
+): DetailBlock[] {
+  let frames: DetailBlock | undefined
+  if (event.type === 'video' && asset?.url) {
+    frames = frameBlock(story, event.firstFrame, event.lastFrame, cacheBuster)
+  } else if (
+    event.type === 'video' &&
+    event.firstFrame &&
+    event.lastFrame &&
+    !asset?.url
+  ) {
+    const url = findAsset(story, event.lastFrame)?.url
+    if (url) frames = { type: 'figure', url: mediaSrc(url, cacheBuster), label: 'Last' }
+  }
+  const blocks = mediaBlocks(story, event, cacheBuster, frames)
+  push(blocks, placementBlock(event))
+  push(blocks, event.error ? { type: 'error', text: event.error } : undefined)
+  return blocks
+}
+
+function eventBody(
+  story: Story,
+  event: StoryEvent,
+  cacheBuster: number,
+): { still: string; blocks: DetailBlock[] } {
+  switch (event.type) {
+    case 'message':
+      return { still: '', blocks: [] }
+    case 'image':
+    case 'video': {
+      const asset = findAsset(story, event.name)
+      return {
+        still: stillHtml(story, event, asset, cacheBuster),
+        blocks: stillBlocks(story, event, asset, cacheBuster),
+      }
+    }
+    case 'dialogue': {
+      const blocks: DetailBlock[] = []
+      if (event.caption) blocks.push({ type: 'quote', text: event.caption })
+      push(blocks, placementBlock(event))
+      push(blocks, event.error ? { type: 'error', text: event.error } : undefined)
+      return { still: '', blocks }
+    }
+    case 'card': {
+      const blocks: DetailBlock[] = []
+      if (event.voice) blocks.push({ type: 'voice', name: event.voice })
+      const cover = findAsset(story, event.cover)
+      if (cover?.url)
+        blocks.push({ type: 'figure', url: mediaSrc(cover.url, cacheBuster) })
+      else if (event.cover) blocks.push({ type: 'attrs', value: { Cover: event.cover } })
+      if (isPlainObject(event.attributes))
+        blocks.push({ type: 'attrs', value: event.attributes })
+      push(blocks, event.error ? { type: 'error', text: event.error } : undefined)
+      return { still: '', blocks }
+    }
+    case 'delete':
+      return {
+        still: '',
+        blocks: event.error ? [{ type: 'error', text: event.error }] : [],
+      }
+    default: {
+      const _exhaustive: never = event
+      return _exhaustive
+    }
+  }
+}
+
+function relatedCard(story: Story, scene: Scene): Card | undefined {
+  if (scene.type === 'dialogue' && scene.speaker) {
+    const speaker = story.cards.find(
+      (card) => card.name.toLowerCase() === scene.speaker?.toLowerCase(),
+    )
+    if (speaker) return speaker
+  }
+  const name = scene.type === 'dialogue' ? scene.background : scene.name
+  return story.cards.find(
+    (card) =>
+      card.cover?.toLowerCase() === name.toLowerCase() ||
+      card.name.toLowerCase() === name.toLowerCase(),
   )
-  return thumb(findAsset(story, card?.cover), cacheBuster, true)
+}
+
+export function sceneDetailHtml(story: Story, scene: Scene, cacheBuster: number): string {
+  const name = scene.type === 'dialogue' ? scene.background : scene.name
+  const asset = findAsset(story, name)
+  const card = relatedCard(story, scene)
+  const source = story.events[scene.event]
+  const fromEvent =
+    source && (source.type === 'image' || source.type === 'video') ? source : undefined
+  const media = asset
+    ? {
+        ...asset,
+        ...(fromEvent?.width !== undefined ? { width: fromEvent.width } : {}),
+        ...(fromEvent?.height !== undefined ? { height: fromEvent.height } : {}),
+        ...(fromEvent?.dominantColor ? { dominantColor: fromEvent.dominantColor } : {}),
+      }
+    : fromEvent
+  const blocks: DetailBlock[] = []
+  if (scene.type === 'dialogue' && scene.speaker && scene.speaker !== name)
+    blocks.push({ type: 'speaker', name: scene.speaker })
+  if (scene.type === 'dialogue' && scene.caption)
+    blocks.push({ type: 'quote', text: scene.caption })
+  if (
+    scene.type === 'dialogue' &&
+    scene.speech?.words?.length &&
+    scene.speech.words.join(' ') !== scene.caption
+  ) {
+    blocks.push({ type: 'meta', text: scene.speech.words.join(' ') })
+  }
+  if (card?.voice) blocks.push({ type: 'voice', name: card.voice })
+  blocks.push(...assetBlocks(story, media, cacheBuster))
+  if (card?.attributes) blocks.push({ type: 'attrs', value: card.attributes })
+  return `<div class="detail-title">${escapeHtml(name)}</div>${detailHtml(blocks)}`
 }
 
 function sceneByEvent(story: Story): (number | undefined)[] {
@@ -75,16 +389,10 @@ function sceneByEvent(story: Story): (number | undefined)[] {
   return byEvent
 }
 
-export function logHtml(
-  story: Story,
-  selected: ReadonlySet<number>,
-  cacheBuster: number,
-): string {
+export function logHtml(story: Story, cacheBuster: number): string {
   const scenes = sceneByEvent(story)
   return story.events
-    .map((event, index) =>
-      renderEvent(story, event, index, scenes[index], selected, cacheBuster),
-    )
+    .map((event, index) => renderEvent(story, event, index, scenes[index], cacheBuster))
     .join('')
 }
 
@@ -93,99 +401,27 @@ function renderEvent(
   event: StoryEvent,
   index: number,
   scene: number | undefined,
-  selected: ReadonlySet<number>,
   cacheBuster: number,
 ): string {
   const sceneAttr = scene === undefined ? '' : ` data-scene="${scene}"`
-  const selectedClass = scene !== undefined && selected.has(scene) ? ' is-selected' : ''
-  let mark = ''
-  let lead = ''
-  let avatar = ''
-  let picture = ''
-  let body = ''
-  let extra = ''
-  switch (event.type) {
-    case 'message':
-      mark = icon(MessageSquare)
-      body = event.user
-        ? `<button type="button" class="event-copy rewind" data-at="${index}">${escapeHtml(event.text)}</button>`
-        : `<div class="event-copy">${escapeHtml(event.text)}</div>`
-      extra = field('error', event.error)
-      break
-    case 'image':
-      mark = icon(ImageIcon)
-      lead = event.name
-      picture = thumb(findAsset(story, event.name), cacheBuster, false)
-      extra = [
-        field('references', event.references?.join(', ')),
-        placement(event),
-        field('width', event.width),
-        field('height', event.height),
-        field('color', event.dominantColor),
-        field('error', event.error),
-        jsonBlock(event.prompt),
-      ].join('')
-      break
-    case 'dialogue':
-      mark = icon(MessageSquareText)
-      lead = event.speaker ?? ''
-      avatar = speakerAvatar(story, event.speaker, cacheBuster)
-      body = event.caption
-        ? `<div class="event-copy">${escapeHtml(event.caption)}</div>`
-        : ''
-      extra = [
-        event.speaker || event.caption ? field('background', event.background) : '',
-        placement(event),
-        field('error', event.error),
-      ].join('')
-      break
-    case 'video':
-      mark = icon(Video)
-      lead = event.name
-      picture = thumb(
-        event.firstFrame ? findAsset(story, event.firstFrame) : undefined,
-        cacheBuster,
-        false,
-      )
-      extra = [
-        field('first frame', event.firstFrame),
-        field('last frame', event.lastFrame),
-        field('duration', event.duration),
-        field('references', event.references?.join(', ')),
-        placement(event),
-        field('width', event.width),
-        field('height', event.height),
-        field('color', event.dominantColor),
-        field('error', event.error),
-        jsonBlock(event.prompt),
-      ].join('')
-      break
-    case 'card':
-      mark = icon(IdCard)
-      lead = event.name
-      avatar = thumb(findAsset(story, event.cover), cacheBuster, true)
-      extra = [
-        field('cover', event.cover),
-        field('voice', event.voice),
-        field('error', event.error),
-        jsonBlock(event.attributes),
-      ].join('')
-      break
-    case 'delete':
-      mark = icon(Trash)
-      lead = formatRanges(event.indices)
-      extra = field('error', event.error)
-      break
-    default: {
-      const _exhaustive: never = event
-      return _exhaustive
-    }
+  if (event.type === 'message') {
+    const error = event.error
+      ? `<p class="detail-error">${escapeHtml(event.error)}</p>`
+      : ''
+    const body = event.user
+      ? `<div class="pillow user-msg" data-at="${index}">${escapeHtml(event.text)}</div>`
+      : escapeHtml(event.text)
+    const user = event.user ? ' event-user' : ''
+    return `<div class="event event-message${user}${event.error ? ' event-error' : ''}" data-event="${index}">${body}${error}</div>`
   }
-  const who = `${avatar}${lead ? `<span class="event-label">${escapeHtml(lead)}</span>` : ''}`
-  const head = `<span class="event-head"><span class="event-type" title="${event.type}">${mark}</span>${who ? `<span class="event-who">${who}</span>` : ''}${picture}</span>`
-  const shown = `${head}${body}`
-  const cls = `event event-${event.type}${event.error ? ' event-error' : ''}${selectedClass}`
-  if (!extra)
-    return `<div class="${cls}" data-event="${index}"${sceneAttr}>${shown}</div>`
-  return `<details class="${cls}" data-event="${index}"${sceneAttr}><summary>${shown}</summary><div class="event-body">${extra}</div></details>`
+  const lead = eventLead(event)
+  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${icon(eventIcon(event))}</span>${
+    lead ? `<span class="event-label">${escapeHtml(lead)}</span>` : ''
+  }</span>`
+  const { still, blocks } = eventBody(story, event, cacheBuster)
+  const cls = `event event-${event.type}${event.error ? ' event-error' : ''}${still ? ' has-still' : ''}`
+  if (blocks.length === 0 && !still) {
+    return `<div class="${cls}" data-event="${index}"${sceneAttr}>${line}</div>`
+  }
+  return `<details class="${cls}" data-event="${index}"${sceneAttr}><summary>${still}${line}</summary>${detailHtml(blocks)}</details>`
 }

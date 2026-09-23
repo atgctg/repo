@@ -57,6 +57,9 @@ body {
     'Open Sans',
     'Helvetica Neue',
     sans-serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   padding: 0;
   min-height: 100vh;
   min-height: 100dvh;
@@ -115,9 +118,11 @@ header {
   line-height: 1;
   color: var(--text);
   background: transparent;
+  cursor: pointer;
+  font: inherit;
 }
 
-.icon-btn svg {
+.icon-btn ion-icon {
   width: 1rem;
   height: 1rem;
 }
@@ -315,7 +320,7 @@ a.card:hover {
 
 .card-title {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--fg);
   z-index: 2;
@@ -387,7 +392,8 @@ a.card:hover {
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.1;
   color: var(--fg);
   letter-spacing: -0.015em;
   align-items: center;
@@ -418,29 +424,16 @@ a.card:hover {
   font-weight: 700;
 }
 
-.caption-xl {
-  font-size: 1.5rem;
-  line-height: 1.25;
-}
-
 .caption-lg {
-  font-size: 1.375rem;
-  line-height: 1.3;
+  font-size: 1.5rem;
 }
 
 .caption-md {
   font-size: 1.25rem;
-  line-height: 1.35;
 }
 
 .caption-sm {
-  font-size: 1rem;
-  line-height: 1.4;
-}
-
-.caption-xs {
   font-size: 0.875rem;
-  line-height: 1.45;
 }
 
 .speaker {
@@ -520,7 +513,6 @@ a.card:hover {
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  cursor: pointer;
 }
 
 .card-video:fullscreen {
@@ -547,7 +539,7 @@ a.card:hover {
   background: var(--tint);
 }
 
-.play-btn svg {
+.play-btn ion-icon {
   display: block;
   width: 1.125rem;
   height: 1.125rem;
@@ -560,9 +552,10 @@ a.card:hover {
   transform: translate(-50%, -50%);
   width: 3rem;
   height: 3rem;
+  color: #fff;
 }
 
-.play-btn.play-overlay svg {
+.play-btn.play-overlay ion-icon {
   width: 1.5rem;
   height: 1.5rem;
 }
@@ -704,33 +697,28 @@ body.in-story .drawer {
   margin-top: 0.5rem;
 }
 
-.event.has-still[open] {
+.event-line details {
+  flex: none;
+  min-width: 0;
+}
+
+.event-line details[open] {
+  flex: 1;
   display: flow-root;
 }
 
-.event.has-still[open] > summary {
-  display: contents;
+.event-line:has(details[open]) {
+  align-items: flex-start;
 }
 
-.event.has-still:not([open]) .event-still {
+.event-line details[open] ~ .event-preview {
   display: none;
 }
 
-.event.has-still[open] .event-still {
+.event details[open] .event-still {
   float: right;
   width: 33.333%;
   margin: 0 0 0.5rem 0.75rem;
-}
-
-.event.has-still[open] .event-line {
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.event.has-still[open] .event-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .event:not(.event-message) {
@@ -752,7 +740,7 @@ body.in-story .drawer {
   color: color-mix(in srgb, var(--text) 68%, transparent);
 }
 
-.event-type svg {
+.event-type ion-icon {
   width: 0.875rem;
   height: 0.875rem;
   display: block;
@@ -791,10 +779,6 @@ body.in-story .drawer {
   opacity: 0.45;
 }
 
-.event-dialogue[open] .event-preview {
-  display: none;
-}
-
 .event-dialogue .detail-quote {
   font-size: 1rem;
 }
@@ -830,26 +814,9 @@ body.in-story .drawer {
   line-height: inherit;
 }
 
-.event[data-scene] {
-  cursor: pointer;
-}
-
 .event summary {
-  display: block;
-  margin: -0.5rem -0.75rem;
-  padding: 0.5rem 0.75rem;
   cursor: pointer;
   list-style: none;
-}
-
-@media (hover: hover) {
-  .event:hover {
-    background: var(--chip);
-  }
-
-  .event-user:hover {
-    background: transparent;
-  }
 }
 
 .event summary::-webkit-details-marker {
@@ -927,7 +894,7 @@ button.pillow {
   display: none;
 }
 
-.selection-indicator svg {
+.selection-indicator ion-icon {
   width: 0.875rem;
   height: 0.875rem;
   display: block;
@@ -950,9 +917,10 @@ button.pillow {
   cursor: pointer;
 }
 
-.cards-link svg {
+.cards-link ion-icon {
   width: 1rem;
   height: 1rem;
+  transform: rotate(90deg);
 }
 
 .cards-link.tab-active {
@@ -1036,14 +1004,14 @@ button.pillow {
   cursor: pointer;
 }
 
-.drawer-btn svg {
+.drawer-btn ion-icon {
   width: 0.875rem;
   height: 0.875rem;
   display: block;
 }
 
-.drawer-btn.is-generating svg,
-.drawer-btn:disabled svg {
+.drawer-btn.is-generating ion-icon,
+.drawer-btn:disabled ion-icon {
   animation: spin 0.8s linear infinite;
 }
 
@@ -1095,7 +1063,7 @@ button.pillow {
   line-height: 1.2;
 }
 
-.detail-chip svg {
+.detail-chip ion-icon {
   width: 0.875rem;
   height: 0.875rem;
   color: var(--text-soft);

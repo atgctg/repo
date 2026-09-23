@@ -1,20 +1,10 @@
-import {
-  AudioLines,
-  PlayingCard,
-  Image as ImageIcon,
-  Trash,
-  User,
-  Play,
-  createElement,
-  type IconNode,
-} from 'lucide'
 import { formatRanges } from '@/project'
 import { isPlainObject } from '@/records'
 import type { Asset, Attributes, Card, Scene, Story, StoryEvent } from '@/types'
 import { renderAttrs } from './attrs'
 import { avatarHtml, portraitUrl } from './avatar'
 import { stripSpeechTags } from './caption'
-import { escapeHtml } from './html'
+import { escapeHtml, icon, richText } from './html'
 
 type DetailBlock =
   | { type: 'quote'; text: string }
@@ -27,18 +17,6 @@ type DetailBlock =
   | { type: 'frames'; items: { url: string; label: string }[] }
   | { type: 'refs'; items: { url?: string; label: string }[] }
   | { type: 'attrs'; value: Attributes }
-
-function icon(node: IconNode): string {
-  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' })
-    .outerHTML
-}
-
-function richText(text: string): string {
-  return escapeHtml(text)
-    .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
-}
 
 function findAsset(story: Story, name?: string | null): Asset | undefined {
   if (typeof name !== 'string' || !name) return undefined
@@ -194,9 +172,9 @@ function renderBlocks(blocks: DetailBlock[]): string {
         case 'quote':
           return `<p class="detail-quote">${richText(block.text)}</p>`
         case 'voice':
-          return `<div class="detail-chip">${icon(AudioLines)}<span>${escapeHtml(block.name)}</span></div>`
+          return `<div class="detail-chip">${icon('mic')}<span>${escapeHtml(block.name)}</span></div>`
         case 'speaker':
-          return `<div class="detail-chip">${icon(User)}<span>${escapeHtml(block.name)}</span></div>`
+          return `<div class="detail-chip">${icon('person-outline')}<span>${escapeHtml(block.name)}</span></div>`
         case 'meta':
           return `<p class="detail-meta">${escapeHtml(block.text)}</p>`
         case 'error':
@@ -261,14 +239,14 @@ function eventLead(event: StoryEvent): string {
 
 function eventIcon(
   event: Extract<StoryEvent, { type: 'video' | 'card' | 'delete' }>,
-): IconNode {
+): string {
   switch (event.type) {
     case 'video':
-      return Play
+      return 'play'
     case 'card':
-      return PlayingCard
+      return 'scan-outline'
     case 'delete':
-      return Trash
+      return 'trash-outline'
     default: {
       const _exhaustive: never = event
       return _exhaustive
@@ -288,7 +266,7 @@ function eventMark(
       return avatarHtml(name, portraitUrl(faces, name), cacheBuster)
     }
     case 'image':
-      return imageThumb(story, event, cacheBuster) ?? icon(ImageIcon)
+      return imageThumb(story, event, cacheBuster) ?? icon('image-outline')
     case 'video':
     case 'card':
     case 'delete':
@@ -463,13 +441,18 @@ function renderEvent(
   const preview =
     event.type === 'dialogue' && event.caption ? dialoguePreview(event.caption) : ''
   const mark = eventMark(story, event, faces, cacheBuster)
-  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${mark}</span>${
-    lead ? `<span class="event-label">${escapeHtml(lead)}</span>` : ''
-  }${preview ? `<span class="event-preview">${escapeHtml(preview)}</span>` : ''}</span>`
   const { still, blocks } = eventBody(story, event, cacheBuster)
-  const cls = `event event-${event.type}${event.error ? ' event-error' : ''}${still ? ' has-still' : ''}`
-  if (blocks.length === 0 && !still) {
-    return `<div class="${cls}" data-event="${index}"${sceneAttr}>${line}</div>`
-  }
-  return `<details class="${cls}" data-event="${index}"${sceneAttr}><summary>${still}${line}</summary>${detailHtml(blocks)}</details>`
+  const title = escapeHtml(lead)
+  const fold = `${still}${detailHtml(blocks)}`
+  const name = fold
+    ? `<details><summary class="event-label">${title}</summary>${fold}</details>`
+    : title
+      ? `<span class="event-label">${title}</span>`
+      : ''
+  const previewHtml = preview
+    ? `<span class="event-preview">${escapeHtml(preview)}</span>`
+    : ''
+  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${mark}</span>${name}${previewHtml}</span>`
+  const cls = `event event-${event.type}${event.error ? ' event-error' : ''}`
+  return `<div class="${cls}" data-event="${index}"${sceneAttr}>${line}</div>`
 }

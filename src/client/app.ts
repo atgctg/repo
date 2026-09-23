@@ -1,14 +1,3 @@
-import {
-  ArrowLeft,
-  MousePointerClick,
-  Pause,
-  Play,
-  PlayingCardsFan,
-  RefreshCw,
-  X,
-  createElement,
-  type IconNode,
-} from 'lucide'
 import { formatRanges } from '@/project'
 import type {
   Asset,
@@ -23,7 +12,7 @@ import type {
 import { renderAttrs } from './attrs'
 import { avatarHtml, portraitIndex, portraitUrl } from './avatar'
 import { stripSpeechTags } from './caption'
-import { escapeHtml } from './html'
+import { escapeHtml, icon, richText } from './html'
 import { logHtml, sceneDetailHtml } from './log'
 
 {
@@ -66,18 +55,11 @@ function speechSrc(storyId: string, file?: string): string | undefined {
   return `/assets/${encodeURIComponent(storyId)}/${encodeURIComponent(file)}`
 }
 
-function icon(node: IconNode): string {
-  return createElement(node, { width: '18', height: '18', 'aria-hidden': 'true' })
-    .outerHTML
-}
-
-const ARROW_ICON = icon(ArrowLeft)
-const X_ICON = icon(X)
-const CARDS_ICON = icon(PlayingCardsFan)
-const POINTER_ICON = icon(MousePointerClick)
-const PLAY_ICON = icon(Play)
-const PAUSE_ICON = icon(Pause)
-const REFRESH_ICON = icon(RefreshCw)
+const ARROW_ICON = icon('arrow-back-outline')
+const X_ICON = icon('close-outline')
+const CARDS_ICON = icon('albums-outline')
+const POINTER_ICON = icon('hand-left-outline')
+const REFRESH_ICON = icon('refresh-outline')
 function cardClass(hasImage: boolean): string {
   return hasImage ? 'card has-image' : 'card'
 }
@@ -96,20 +78,21 @@ function sceneVideoTag(url?: string): string {
 
 function playOverlayTag(audioUrl?: string): string {
   const src = audioUrl ? ` data-src="${escapeHtml(audioUrl)}?v=${cacheBuster}"` : ''
-  return `<button type="button" class="play-btn play-overlay"${src} aria-label="Play" title="Play">${PLAY_ICON}</button>`
+  return `<button type="button" class="play-btn play-overlay"${src} aria-label="Play" title="Play">${icon('play')}</button>`
 }
 
 let voiceAudio: HTMLAudioElement | null = null
 let voiceButton: HTMLButtonElement | null = null
 
 function setPlayIcon(button: HTMLButtonElement, playing: boolean): void {
-  button.innerHTML = playing ? PAUSE_ICON : PLAY_ICON
-  button.title = playing ? 'Pause' : 'Play'
-  button.setAttribute('aria-label', playing ? 'Pause' : 'Play')
+  button.querySelector('ion-icon')?.setAttribute('name', playing ? 'pause' : 'play')
+  const label = playing ? 'Pause' : 'Play'
+  button.title = label
+  button.setAttribute('aria-label', label)
 }
 
 function videoForButton(button: HTMLButtonElement): HTMLVideoElement | null {
-  const found = button.closest('.card')?.querySelector('video.card-video')
+  const found = button.parentElement?.querySelector('video.card-video')
   return found instanceof HTMLVideoElement ? found : null
 }
 
@@ -175,28 +158,13 @@ function getCaptionLines(caption?: string): string[] {
 function getCaptionSizeClass(lines: string[]): string {
   const totalClean = lines.map((l) => l.replace(/\*/g, '').trim())
   const totalLen = totalClean.reduce((sum, l) => sum + l.length, 0)
-  const count = lines.length
 
-  if (count > 1) {
-    if (totalLen <= 60) return 'caption-md'
-    if (totalLen <= 120) return 'caption-sm'
-    return 'caption-xs'
-  }
+  if (lines.length > 1) return totalLen <= 80 ? 'caption-md' : 'caption-sm'
 
   const len = totalClean[0]?.length ?? 0
-  if (len <= 25) return 'caption-xl'
   if (len <= 50) return 'caption-lg'
-  if (len <= 90) return 'caption-md'
-  if (len <= 140) return 'caption-sm'
-  return 'caption-xs'
-}
-
-function formatCaption(text: string): string {
-  const escaped = escapeHtml(text)
-  return escaped
-    .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
+  if (len <= 100) return 'caption-md'
+  return 'caption-sm'
 }
 
 function renderCaptions(scene: DialogueScene, faces: Map<string, string>): string {
@@ -206,7 +174,7 @@ function renderCaptions(scene: DialogueScene, faces: Map<string, string>): strin
   if (!hasCaption && !hasSpeaker) return ''
 
   const captionLinesHtml = lines
-    .map((l) => `<div class="caption-line">${formatCaption(l)}</div>`)
+    .map((l) => `<div class="caption-line">${richText(l)}</div>`)
     .join('')
   const classes = ['caption', getCaptionSizeClass(lines), 'caption-left']
     .filter(Boolean)
@@ -228,7 +196,7 @@ function renderCaptions(scene: DialogueScene, faces: Map<string, string>): strin
 }
 
 function sceneMarked(index: number): boolean {
-  return selected.has(index) || index === sceneIndex()
+  return selected.has(index)
 }
 
 function sceneCard(index: number, hasImage: boolean, body: string): string {
@@ -359,24 +327,37 @@ function renderIndex(worlds: Array<string | World>): void {
 const selected = new Set<number>()
 let anchor: number | undefined
 let selectedStory = ''
+let viewStory: Story | undefined
+let openScene: number | undefined
 
-function showCards(): boolean {
-  return new URLSearchParams(location.search).get('cards') === '1'
+function pathParts(): string[] {
+  return location.pathname
+    .split('/')
+    .filter(Boolean)
+    .map((part) => {
+      try {
+        return decodeURIComponent(part)
+      } catch {
+        return part
+      }
+    })
 }
 
-function sceneIndex(): number | undefined {
-  const raw = new URLSearchParams(location.search).get('scene')
-  if (raw === null || !/^\d+$/.test(raw)) return undefined
-  return Number(raw)
+function storyRoute(parts = pathParts()): { id: string; cards: boolean } | undefined {
+  if (parts.length === 1) return { id: parts[0], cards: false }
+  if (parts.length === 2 && parts[1] === 'cards') return { id: parts[0], cards: true }
+  return undefined
 }
 
-function storyHref(storyId: string, query?: { cards?: boolean; scene?: number }): string {
+function storyHref(storyId: string, cards = false): string {
   const path = `/${encodeURIComponent(storyId)}`
-  const params = new URLSearchParams()
-  if (query?.cards) params.set('cards', '1')
-  if (query?.scene !== undefined) params.set('scene', String(query.scene))
-  const search = params.toString()
-  return search ? `${path}?${search}` : path
+  return cards ? `${path}/cards` : path
+}
+
+function showScene(index: number | undefined): void {
+  openScene = index
+  if (!viewStory || storyRoute()?.cards) return
+  renderDrawer(viewStory, openScene)
 }
 
 function updateLogFades(): void {
@@ -470,7 +451,7 @@ function renderDrawer(story: Story, index: number | undefined): void {
   drawer.innerHTML = `
     <div class="drawer-bar">
       ${renderDrawerGen(story.id, asset)}
-      <a class="icon-btn drawer-close" href="${storyHref(story.id, showCards() ? { cards: true } : undefined)}" aria-label="Close">${X_ICON}</a>
+      <button type="button" class="icon-btn drawer-close" aria-label="Close">${X_ICON}</button>
     </div>
     ${drawerPreview(story, scene, asset)}
     ${sceneDetailHtml(story, scene, cacheBuster)}
@@ -488,7 +469,10 @@ function renderStory(story: Story): void {
     selectedStory = story.id
     selected.clear()
     anchor = undefined
+    openScene = undefined
   }
+  viewStory = story
+  if (openScene !== undefined && openScene >= story.scenes.length) openScene = undefined
   document.title = story.title || story.id
   document.body.classList.add('in-story')
   const chat = document.querySelector('.chat')
@@ -498,13 +482,13 @@ function renderStory(story: Story): void {
   if (!header || !main) return
 
   header.hidden = false
-  const cards = showCards()
+  const cards = storyRoute()?.cards === true
   const itemCount = cards ? story.cards.length : story.scenes.length
   header.innerHTML = `
     <a href="/" class="icon-btn story-back" aria-label="Worlds">${ARROW_ICON}</a>
     <span class="story-title">${escapeHtml(story.title || story.id)}</span>
     <span class="tab-count">${itemCount}</span>
-    <a class="cards-link${cards ? ' tab-active' : ''}" href="${storyHref(story.id, cards ? undefined : { cards: true })}">${CARDS_ICON}<span class="tab-count">${story.cards.length}</span></a>
+    <a class="cards-link${cards ? ' tab-active' : ''}" href="${storyHref(story.id, !cards)}">${CARDS_ICON}<span class="tab-count">${story.cards.length}</span></a>
   `
   const faces = portraitIndex(story)
   renderLog(story, faces)
@@ -520,7 +504,7 @@ function renderStory(story: Story): void {
     main.innerHTML = `<div class="grid scenes">${story.scenes.map((scene, index) => renderScene(scene, story, index, faces)).join('\n')}</div>`
   }
 
-  renderDrawer(story, cards ? undefined : sceneIndex())
+  renderDrawer(story, cards ? undefined : openScene)
   paintSelection()
 }
 
@@ -543,14 +527,6 @@ function renderNotFound(id: string): void {
   main.innerHTML = '<div class="list"><span class="muted">not found</span></div>'
 }
 
-function currentPathname(): string {
-  return decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, ''))
-}
-
-function currentRoute(): string {
-  return `${location.pathname}${location.search}`
-}
-
 function isSpaLink(link: HTMLAnchorElement, event: MouseEvent): boolean {
   if (event.defaultPrevented || event.button !== 0) return false
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false
@@ -561,7 +537,7 @@ function isSpaLink(link: HTMLAnchorElement, event: MouseEvent): boolean {
 }
 
 function navigate(url: string): void {
-  if (url === currentRoute()) return
+  if (url === location.pathname) return
   history.pushState(null, '', url)
   lastPayload = ''
   void refresh()
@@ -574,34 +550,42 @@ function renderOnce(payload: string, render: () => void): void {
   render()
 }
 async function refresh(): Promise<void> {
-  const pathname = currentPathname()
-  const route = currentRoute()
+  const route = location.pathname
+  const parts = pathParts()
+  const view = storyRoute(parts)
 
-  if (!pathname) {
+  if (parts.length === 0) {
     const worlds = (await fetch('/api/stories', { cache: 'no-store' }).then((res) =>
       res.json(),
     )) as Array<string | World>
-    if (currentRoute() !== route) return
-    renderOnce(JSON.stringify({ pathname, worlds }), () => renderIndex(worlds))
+    if (location.pathname !== route) return
+    renderOnce(JSON.stringify({ pathname: route, worlds }), () => renderIndex(worlds))
     return
   }
 
-  const res = await fetch(`/api/stories/${encodeURIComponent(pathname)}`, {
+  const storyId = view?.id
+  if (!storyId) {
+    if (location.pathname !== route) return
+    renderOnce(JSON.stringify({ pathname: route, missing: true }), () =>
+      renderNotFound(parts.join('/')),
+    )
+    return
+  }
+
+  const res = await fetch(`/api/stories/${encodeURIComponent(storyId)}`, {
     cache: 'no-store',
   })
-  if (currentRoute() !== route) return
+  if (location.pathname !== route) return
   if (!res.ok) {
-    renderOnce(JSON.stringify({ pathname, missing: true }), () =>
-      renderNotFound(pathname),
+    renderOnce(JSON.stringify({ pathname: route, missing: true }), () =>
+      renderNotFound(storyId),
     )
     return
   }
 
   const story = (await res.json()) as Story
-  if (currentRoute() !== route) return
-  renderOnce(JSON.stringify({ pathname, search: location.search, story }), () =>
-    renderStory(story),
-  )
+  if (location.pathname !== route) return
+  renderOnce(JSON.stringify({ pathname: route, story }), () => renderStory(story))
 }
 
 const generating = new Set<string>()
@@ -704,7 +688,7 @@ function editUserMessage(bubble: HTMLElement): void {
     event.preventDefault()
     const next = area.value.trim()
     const at = Number(bubble.dataset.at)
-    const storyId = currentPathname()
+    const storyId = storyRoute()?.id
     if (!next || !storyId || !Number.isInteger(at)) return
     bubble.textContent = next
     void postTurn(storyId, next, at).catch((error: unknown) => {
@@ -740,11 +724,11 @@ document.querySelector('.composer')?.addEventListener('submit', (event) => {
   const input = form.querySelector('textarea')
   if (!(input instanceof HTMLTextAreaElement)) return
   const text = messageText(input.value)
-  const storyId = currentPathname()
+  const storyId = storyRoute()?.id
   if (!text || !storyId) return
   const draft = input.value
   input.value = ''
-  input.placeholder = 'Message'
+  input.placeholder = 'Message...'
   void postTurn(storyId, text)
     .catch((error: unknown) => {
       input.value = draft
@@ -763,21 +747,19 @@ document.addEventListener('click', (event) => {
     editUserMessage(userMsg)
     return
   }
+  const close = target.closest('button.drawer-close')
+  if (close) {
+    event.preventDefault()
+    showScene(undefined)
+    return
+  }
   const overlay = target.closest('button.play-overlay')
   if (overlay instanceof HTMLButtonElement) {
     event.preventDefault()
     toggleScenePlay(overlay)
     return
   }
-  const vid = target.closest('video.card-video')
-  if (vid instanceof HTMLVideoElement) {
-    const cardButton = vid.closest('.card')?.querySelector('button.play-overlay')
-    if (cardButton instanceof HTMLButtonElement) {
-      event.preventDefault()
-      toggleScenePlay(cardButton)
-    }
-    return
-  }
+  if (target.closest('video.card-video')) event.preventDefault()
   const gen = target.closest('button.gen-btn, button.drawer-btn')
   if (gen instanceof HTMLButtonElement) {
     event.preventDefault()
@@ -794,32 +776,25 @@ document.addEventListener('click', (event) => {
     if (Number.isInteger(index)) {
       if (event.shiftKey) event.preventDefault()
       chooseScene(index, event.shiftKey)
-      if (
-        row instanceof HTMLDetailsElement &&
-        !event.shiftKey &&
-        !target.closest('summary, .detail')
-      )
-        row.open = !row.open
       document
         .querySelector(`.scene-card[data-scene="${index}"]`)
         ?.scrollIntoView({ block: 'nearest' })
     }
   }
   const scene = target.closest('.scene-card')
-  if (scene instanceof HTMLElement && !target.closest('button, video')) {
+  if (scene instanceof HTMLElement && !target.closest('button')) {
     const index = Number(scene.dataset.scene)
-    const storyId = currentPathname()
-    if (Number.isInteger(index) && storyId) {
+    if (Number.isInteger(index) && storyRoute()) {
       event.preventDefault()
       chooseScene(index, event.shiftKey)
-      navigate(storyHref(storyId, { scene: index }))
+      showScene(index)
       return
     }
   }
   const link = target.closest('a')
   if (!link || !isSpaLink(link, event)) return
   event.preventDefault()
-  navigate(`${link.pathname}${link.search}`)
+  navigate(link.pathname)
 })
 
 document.addEventListener('keydown', (event) => {
@@ -850,7 +825,7 @@ window.addEventListener('popstate', () => {
 document.addEventListener('dblclick', (event) => {
   const target = event.target
   if (!(target instanceof Element)) return
-  const scope = target.closest('button.play-overlay, video.card-video')
+  const scope = target.closest('button.play-overlay')
   if (!scope) return
   const card = scope.closest('.card')
   const button = card?.querySelector('button.play-overlay')

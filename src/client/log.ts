@@ -140,31 +140,6 @@ function figureHtml(block: Extract<DetailBlock, { type: 'figure' }>): string {
   }</figure>`
 }
 
-function stillHtml(
-  story: Story,
-  event: Extract<StoryEvent, { type: 'image' | 'video' }>,
-  asset: Asset | undefined,
-  cacheBuster: number,
-): string {
-  if (asset?.url) {
-    const src = mediaSrc(asset.url, cacheBuster)
-    const media =
-      event.type === 'video'
-        ? `<video class="detail-video" src="${src}" preload="metadata" playsinline controls></video>`
-        : figureHtml({ type: 'figure', url: src })
-    return `<div class="event-still">${media}</div>`
-  }
-  if (event.type !== 'video') return ''
-  const name = event.firstFrame ?? event.lastFrame
-  const url = findAsset(story, name)?.url
-  if (!url) return ''
-  return `<div class="event-still">${figureHtml({
-    type: 'figure',
-    url: mediaSrc(url, cacheBuster),
-    label: event.firstFrame ? 'First' : 'Last',
-  })}</div>`
-}
-
 function renderBlocks(blocks: DetailBlock[]): string {
   return blocks
     .map((block) => {
@@ -214,20 +189,17 @@ function detailHtml(blocks: DetailBlock[]): string {
   return `<div class="detail">${renderBlocks(blocks)}</div>`
 }
 
-function dialoguePreview(caption: string): string {
-  return stripSpeechTags(caption).replace(/\*/g, '').replace(/\s+/g, ' ').trim()
+function dialogueCopy(caption: string): string {
+  return richText(stripSpeechTags(caption))
 }
 
-function eventLead(event: StoryEvent): string {
+function eventLead(
+  event: Extract<StoryEvent, { type: 'video' | 'card' | 'delete' }>,
+): string {
   switch (event.type) {
-    case 'message':
-      return ''
-    case 'image':
     case 'video':
     case 'card':
       return event.name
-    case 'dialogue':
-      return event.speaker || event.background
     case 'delete':
       return formatRanges(event.indices)
     default: {
@@ -254,76 +226,36 @@ function eventIcon(
   }
 }
 
-function eventMark(
-  story: Story,
-  event: Exclude<StoryEvent, { type: 'message' }>,
-  faces: Map<string, string>,
-  cacheBuster: number,
-): string {
-  switch (event.type) {
-    case 'dialogue': {
-      const name = eventLead(event)
-      return avatarHtml(name, portraitUrl(faces, name), cacheBuster)
-    }
-    case 'image':
-      return imageThumb(story, event, cacheBuster) ?? icon('image-outline')
-    case 'video':
-    case 'card':
-    case 'delete':
-      return icon(eventIcon(event))
-    default: {
-      const _exhaustive: never = event
-      return _exhaustive
-    }
-  }
-}
-
 function stillBlocks(
   story: Story,
   event: Extract<StoryEvent, { type: 'image' | 'video' }>,
   asset: Asset | undefined,
   cacheBuster: number,
 ): DetailBlock[] {
-  let frames: DetailBlock | undefined
-  if (event.type === 'video' && asset?.url) {
-    frames = frameBlock(story, event.firstFrame, event.lastFrame, cacheBuster)
-  } else if (
-    event.type === 'video' &&
-    event.firstFrame &&
-    event.lastFrame &&
-    !asset?.url
-  ) {
-    const url = findAsset(story, event.lastFrame)?.url
-    if (url) frames = { type: 'figure', url: mediaSrc(url, cacheBuster), label: 'Last' }
-  }
-  const blocks = mediaBlocks(story, event, cacheBuster, frames)
+  const blocks = mediaBlocks(story, event, cacheBuster)
   push(blocks, placementBlock(event))
   push(blocks, event.error ? { type: 'error', text: event.error } : undefined)
   return blocks
 }
 
+function videoStill(asset: Asset | undefined, cacheBuster: number): string {
+  if (!asset?.url) return ''
+  const src = mediaSrc(asset.url, cacheBuster)
+  return `<div class="event-still"><video class="detail-video" src="${src}" preload="metadata" playsinline controls></video></div>`
+}
+
 function eventBody(
   story: Story,
-  event: StoryEvent,
+  event: Extract<StoryEvent, { type: 'video' | 'card' | 'delete' }>,
   cacheBuster: number,
 ): { still: string; blocks: DetailBlock[] } {
   switch (event.type) {
-    case 'message':
-      return { still: '', blocks: [] }
-    case 'image':
     case 'video': {
       const asset = findAsset(story, event.name)
       return {
-        still: stillHtml(story, event, asset, cacheBuster),
+        still: videoStill(asset, cacheBuster),
         blocks: stillBlocks(story, event, asset, cacheBuster),
       }
-    }
-    case 'dialogue': {
-      const blocks: DetailBlock[] = []
-      if (event.caption) blocks.push({ type: 'quote', text: event.caption })
-      push(blocks, placementBlock(event))
-      push(blocks, event.error ? { type: 'error', text: event.error } : undefined)
-      return { still: '', blocks }
     }
     case 'card': {
       const blocks: DetailBlock[] = []
@@ -418,29 +350,55 @@ export function logHtml(
     .join('')
 }
 
-function renderEvent(
-  story: Story,
-  event: StoryEvent,
+function sceneAttr(scene: number | undefined): string {
+  return scene === undefined ? '' : ` data-scene="${scene}"`
+}
+
+function dialogueEvent(
+  event: Extract<StoryEvent, { type: 'dialogue' }>,
   index: number,
   scene: number | undefined,
   cacheBuster: number,
   faces: Map<string, string>,
 ): string {
-  const sceneAttr = scene === undefined ? '' : ` data-scene="${scene}"`
-  if (event.type === 'message') {
-    const error = event.error
-      ? `<p class="detail-error">${escapeHtml(event.error)}</p>`
-      : ''
-    const body = event.user
-      ? `<div class="pillow user-msg" data-at="${index}">${escapeHtml(event.text)}</div>`
-      : escapeHtml(event.text)
-    const user = event.user ? ' event-user' : ''
-    return `<div class="event event-message${user}${event.error ? ' event-error' : ''}" data-event="${index}">${body}${error}</div>`
-  }
+  const lead = event.speaker || event.background
+  const copy = event.caption
+    ? `<p class="event-copy">${dialogueCopy(event.caption)}</p>`
+    : ''
+  const blocks: DetailBlock[] = []
+  push(blocks, placementBlock(event))
+  push(blocks, event.error ? { type: 'error', text: event.error } : undefined)
+  const detail = detailHtml(blocks)
+  const fold = copy || detail ? ' data-fold' : ''
+  const cls = `event event-dialogue${event.error ? ' event-error' : ''}`
+  return `<div class="${cls}" data-event="${index}"${sceneAttr(scene)}${fold}><span class="event-type" title="dialogue">${avatarHtml(lead, portraitUrl(faces, lead), cacheBuster)}</span><span class="event-label">${escapeHtml(lead)}</span>${copy}${detail}</div>`
+}
+
+function imageEvent(
+  story: Story,
+  event: Extract<StoryEvent, { type: 'image' }>,
+  index: number,
+  scene: number | undefined,
+  cacheBuster: number,
+): string {
+  const asset = findAsset(story, event.name)
+  const thumb = imageThumb(story, event, cacheBuster)
+  const mark =
+    thumb ?? `<span class="event-type" title="image">${icon('image-outline')}</span>`
+  const detail = detailHtml(stillBlocks(story, event, asset, cacheBuster))
+  const fold = thumb || detail ? ' data-fold' : ''
+  const cls = `event event-image${event.error ? ' event-error' : ''}`
+  return `<div class="${cls}" data-event="${index}"${sceneAttr(scene)}${fold}>${mark}<span class="event-label">${escapeHtml(event.name)}</span>${detail}</div>`
+}
+
+function foldedEvent(
+  story: Story,
+  event: Extract<StoryEvent, { type: 'video' | 'card' | 'delete' }>,
+  index: number,
+  scene: number | undefined,
+  cacheBuster: number,
+): string {
   const lead = eventLead(event)
-  const preview =
-    event.type === 'dialogue' && event.caption ? dialoguePreview(event.caption) : ''
-  const mark = eventMark(story, event, faces, cacheBuster)
   const { still, blocks } = eventBody(story, event, cacheBuster)
   const title = escapeHtml(lead)
   const fold = `${still}${detailHtml(blocks)}`
@@ -449,10 +407,42 @@ function renderEvent(
     : title
       ? `<span class="event-label">${title}</span>`
       : ''
-  const previewHtml = preview
-    ? `<span class="event-preview">${escapeHtml(preview)}</span>`
-    : ''
-  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${mark}</span>${name}${previewHtml}</span>`
+  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${icon(eventIcon(event))}</span>${name}</span>`
   const cls = `event event-${event.type}${event.error ? ' event-error' : ''}`
-  return `<div class="${cls}" data-event="${index}"${sceneAttr}>${line}</div>`
+  return `<div class="${cls}" data-event="${index}"${sceneAttr(scene)}>${line}</div>`
+}
+
+function renderEvent(
+  story: Story,
+  event: StoryEvent,
+  index: number,
+  scene: number | undefined,
+  cacheBuster: number,
+  faces: Map<string, string>,
+): string {
+  switch (event.type) {
+    case 'message': {
+      const error = event.error
+        ? `<p class="detail-error">${escapeHtml(event.error)}</p>`
+        : ''
+      const body = event.user
+        ? `<div class="pillow user-msg" data-at="${index}">${escapeHtml(event.text)}</div>`
+        : escapeHtml(event.text)
+      const user = event.user ? ' event-user' : ''
+      const cls = `event event-message${user}${event.error ? ' event-error' : ''}`
+      return `<div class="${cls}" data-event="${index}">${body}${error}</div>`
+    }
+    case 'dialogue':
+      return dialogueEvent(event, index, scene, cacheBuster, faces)
+    case 'image':
+      return imageEvent(story, event, index, scene, cacheBuster)
+    case 'video':
+    case 'card':
+    case 'delete':
+      return foldedEvent(story, event, index, scene, cacheBuster)
+    default: {
+      const _exhaustive: never = event
+      return _exhaustive
+    }
+  }
 }

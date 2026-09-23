@@ -767,19 +767,19 @@ document.addEventListener('click', (event) => {
     return
   }
   const row = target.closest('.event')
-  if (
-    row instanceof HTMLElement &&
-    row.dataset.scene !== undefined &&
-    !target.closest('button, a, video, textarea')
-  ) {
-    const index = Number(row.dataset.scene)
-    if (Number.isInteger(index)) {
-      if (event.shiftKey) event.preventDefault()
-      chooseScene(index, event.shiftKey)
-      document
-        .querySelector(`.scene-card[data-scene="${index}"]`)
-        ?.scrollIntoView({ block: 'nearest' })
+  if (row instanceof HTMLElement && !target.closest('button, a, video, textarea')) {
+    if (row.dataset.scene !== undefined) {
+      const index = Number(row.dataset.scene)
+      if (Number.isInteger(index)) {
+        if (event.shiftKey) event.preventDefault()
+        chooseScene(index, event.shiftKey)
+        document
+          .querySelector(`.scene-card[data-scene="${index}"]`)
+          ?.scrollIntoView({ block: 'nearest' })
+      }
     }
+    if (row.hasAttribute('data-fold') && !event.shiftKey && !target.closest('.detail'))
+      row.classList.toggle('open')
   }
   const scene = target.closest('.scene-card')
   if (scene instanceof HTMLElement && !target.closest('button')) {

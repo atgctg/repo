@@ -711,10 +711,6 @@ body.in-story .drawer {
   align-items: flex-start;
 }
 
-.event-line details[open] ~ .event-preview {
-  display: none;
-}
-
 .event details[open] .event-still {
   float: right;
   width: 33.333%;
@@ -764,23 +760,110 @@ body.in-story .drawer {
   min-width: 0;
 }
 
-.event-dialogue .event-label {
-  flex: none;
+.event-dialogue,
+.event-image {
+  display: grid;
+  column-gap: 0.5rem;
+}
+
+.event-dialogue {
+  grid-template-columns: auto max-content minmax(0, 1fr);
+  align-items: center;
+}
+
+.event-image {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+}
+
+.event-image:has(> .event-thumb) {
+  grid-template-rows: 1.75rem auto;
+}
+
+.event[data-fold] {
+  cursor: pointer;
+}
+
+.event[data-fold] > .detail {
+  cursor: auto;
+}
+
+.event-dialogue > .event-type,
+.event-image > .event-type,
+.event-image > .event-thumb {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+
+.event-dialogue > .event-label,
+.event-image > .event-label {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  line-height: 1;
   white-space: nowrap;
 }
 
-.event-preview {
-  flex: 1;
+.event-image > .event-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-copy {
+  grid-column: 3;
+  grid-row: 1;
+  margin: 0;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
   color: var(--text-mid);
   opacity: 0.45;
 }
 
-.event-dialogue .detail-quote {
+.event-dialogue.open > .event-copy {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  align-self: start;
+  margin-top: 0.35rem;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: pre-wrap;
   font-size: 1rem;
+  line-height: 1.35;
+  color: inherit;
+  opacity: 1;
+}
+
+.event-dialogue:not(.open) > .detail,
+.event-image:not(.open) > .detail {
+  display: none;
+}
+
+.event-dialogue.open > .detail,
+.event-image.open > .detail {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+  min-width: 0;
+}
+
+.event-dialogue.open > .event-copy ~ .detail {
+  grid-row: 3;
+}
+
+.event-image.open > .event-thumb {
+  grid-row: 1 / span 2;
+  align-self: start;
+  width: 8rem;
+  max-width: none;
+  max-height: none;
+  height: auto;
+  border-radius: 0.5rem;
 }
 
 .event-message:not(.event-user) {

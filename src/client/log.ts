@@ -1,6 +1,6 @@
 import {
   AudioLines,
-  IdCard,
+  PlayingCard,
   Image as ImageIcon,
   MessageCircle,
   MessageSquare,
@@ -252,7 +252,7 @@ function eventIcon(event: StoryEvent): IconNode {
     case 'video':
       return Play
     case 'card':
-      return IdCard
+      return PlayingCard
     case 'delete':
       return Trash
     default: {

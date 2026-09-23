@@ -66,7 +66,7 @@ main {
   container-type: inline-size;
   container-name: stage;
   min-width: 0;
-  padding: 1.25rem 0 0;
+  padding: 1.25rem 0 1.25rem;
 }
 
 header {
@@ -96,6 +96,7 @@ header {
 
 .tab-count {
   color: var(--muted);
+  line-height: 1.5;
 }
 
 .story-back {
@@ -140,7 +141,7 @@ a {
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 0.25rem;
 }
 
 .grid.scenes {
@@ -541,7 +542,7 @@ a.card:hover {
 }
 
 .grid.scenes .scene-card {
-  border-radius: 0.75rem;
+  border-radius: 0.25rem;
   overflow: hidden;
   z-index: calc(var(--i) * -1);
 }
@@ -571,7 +572,7 @@ body.in-story header {
   grid-column: 1;
   grid-row: 1;
   margin: 0;
-  padding: 0.75rem 0.75rem 0.25rem;
+  padding: 0.75rem 0.25rem 0.25rem;
   gap: 0.5rem;
 }
 
@@ -582,7 +583,7 @@ body.in-story .story-title {
   white-space: nowrap;
   font-size: 1rem;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.5;
 }
 
 body.in-story .cards-link {
@@ -660,7 +661,7 @@ body.in-story .drawer {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1rem 0.75rem 16rem;
+  padding: 1rem 0.25rem 16rem;
 }
 
 .event {
@@ -934,7 +935,7 @@ button.pillow {
   inset: 0;
   z-index: 5;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 2px #3b82f6;
+  box-shadow: inset 0 0 0 4px #ffffffaa;
   pointer-events: none;
 }
 

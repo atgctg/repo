@@ -708,28 +708,32 @@ function editUserMessage(bubble: HTMLElement): void {
     const at = Number(bubble.dataset.at)
     const storyId = currentPathname()
     if (!next || !storyId || !Number.isInteger(at)) return
-    area.disabled = true
+    bubble.textContent = next
     void postTurn(storyId, next, at).catch((error: unknown) => {
-      area.disabled = false
+      bubble.textContent = ''
+      bubble.append(area)
+      area.value = next
       area.placeholder = error instanceof Error ? error.message : String(error)
       area.focus()
     })
   })
 }
 
-document.querySelector('.composer textarea')?.addEventListener('keydown', (event) => {
-  if (
-    event.key !== 'Enter' ||
-    event.shiftKey ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.altKey
-  )
-    return
-  if (!(event.currentTarget instanceof HTMLTextAreaElement)) return
-  event.preventDefault()
-  event.currentTarget.form?.requestSubmit()
-})
+const composerInput = document.querySelector('.composer textarea')
+if (composerInput instanceof HTMLTextAreaElement) {
+  composerInput.addEventListener('keydown', (event) => {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey
+    )
+      return
+    event.preventDefault()
+    composerInput.form?.requestSubmit()
+  })
+}
 
 document.querySelector('.composer')?.addEventListener('submit', (event) => {
   event.preventDefault()
@@ -740,17 +744,15 @@ document.querySelector('.composer')?.addEventListener('submit', (event) => {
   const text = messageText(input.value)
   const storyId = currentPathname()
   if (!text || !storyId) return
-  input.disabled = true
+  const draft = input.value
+  input.value = ''
+  input.placeholder = 'Message'
   void postTurn(storyId, text)
-    .then(() => {
-      input.value = ''
-      input.placeholder = 'Message'
-    })
     .catch((error: unknown) => {
+      input.value = draft
       input.placeholder = error instanceof Error ? error.message : String(error)
     })
     .finally(() => {
-      input.disabled = false
       input.focus()
     })
 })

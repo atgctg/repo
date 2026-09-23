@@ -190,6 +190,19 @@ body.in-story.show-drawer .grid.scenes {
   }
 }
 
+.card,
+.grid.scenes .scene-card,
+.scene-ring,
+.event,
+.pillow,
+.drawer-preview,
+.detail-figure img,
+.detail-video,
+.detail-refs img,
+.event-thumb {
+  corner-shape: superellipse(1.2);
+}
+
 .card {
   --card-pad-x: 1.5rem;
   --card-pad-y: 1.25rem;
@@ -460,13 +473,11 @@ a.card:hover {
 .grid.scenes .avatar {
   width: 1.75rem;
   height: 1.75rem;
-}
-
-.grid.scenes .avatar-letter {
   font-size: 0.875rem;
 }
 
 .avatar {
+  position: relative;
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
@@ -475,16 +486,31 @@ a.card:hover {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
   backdrop-filter: blur(0.25rem);
+  color: var(--fg);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.avatar > img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  max-width: none;
+  height: calc(100% + 100% / 1.5);
+  top: calc(-100% / 1.5 + 100% * 3.5 / 6);
   object-fit: cover;
 }
 
-.avatar-letter {
-  display: block;
-  font-family: monospace;
-  font-size: 0.8125rem;
-  color: var(--fg);
-  font-weight: 900;
+.event-type .avatar {
+  width: 1.125rem;
+  height: 1.125rem;
+  background: var(--chip);
+  font-size: 0.625rem;
+  backdrop-filter: none;
 }
 
 .card-video {
@@ -721,6 +747,7 @@ body.in-story .drawer {
 
 .event-type {
   display: inline-flex;
+  align-items: center;
   flex: none;
   color: color-mix(in srgb, var(--text) 68%, transparent);
 }
@@ -731,10 +758,45 @@ body.in-story .drawer {
   display: block;
 }
 
+.event-thumb {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 1.75rem;
+  max-height: 1.75rem;
+  flex: none;
+  object-fit: contain;
+  border-radius: 0.2rem;
+  background: var(--chip);
+}
+
 .event-label {
   color: var(--text-mid);
   font-weight: 400;
   min-width: 0;
+}
+
+.event-dialogue .event-label {
+  flex: none;
+  white-space: nowrap;
+}
+
+.event-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-mid);
+  opacity: 0.45;
+}
+
+.event-dialogue[open] .event-preview {
+  display: none;
+}
+
+.event-dialogue .detail-quote {
+  font-size: 1rem;
 }
 
 .event-message:not(.event-user) {

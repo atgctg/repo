@@ -21,6 +21,8 @@ import type {
   World,
 } from '@/types'
 import { renderAttrs } from './attrs'
+import { avatarHtml, portraitIndex, portraitUrl } from './avatar'
+import { stripSpeechTags } from './caption'
 import { escapeHtml } from './html'
 import { logHtml, sceneDetailHtml } from './log'
 
@@ -160,10 +162,7 @@ function renderGenerateBtn(storyId: string, asset: Asset | undefined): string {
 }
 
 function stripCaptionMarkup(text: string): string {
-  return text
-    .replace(/\[laughter\]/gi, '')
-    .replace(/<(speed|volume|emotion|break|spell)\b[^>]*\/>/gi, ' ')
-    .replace(/<\/?(speed|volume|emotion|break|spell)\b[^>]*>/gi, '')
+  return stripSpeechTags(text)
     .replace(/[ \t]{2,}/g, ' ')
     .trim()
 }
@@ -200,16 +199,7 @@ function formatCaption(text: string): string {
     .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
 }
 
-function speakerPortrait(
-  assets: Story['assets'],
-  cards: Card[],
-  speaker: string,
-): string | undefined {
-  const card = cards.find((item) => item.name.toLowerCase() === speaker.toLowerCase())
-  return findAsset(assets, card?.cover)?.url ?? findAsset(assets, speaker)?.url
-}
-
-function renderCaptions(scene: DialogueScene, story: Story): string {
+function renderCaptions(scene: DialogueScene, faces: Map<string, string>): string {
   const lines = getCaptionLines(scene.caption)
   const hasCaption = lines.length > 0
   const hasSpeaker = Boolean(scene.speaker?.trim())
@@ -227,12 +217,9 @@ function renderCaptions(scene: DialogueScene, story: Story): string {
     : ''
 
   const speakerName = scene.speaker?.trim() ?? ''
-  const portrait = hasSpeaker
-    ? speakerPortrait(story.assets, story.cards, speakerName)
-    : undefined
-  const face = portrait
-    ? `<img class="avatar" src="${escapeHtml(portrait)}?v=${cacheBuster}" alt="" />`
-    : `<span class="avatar"><span class="avatar-letter">${escapeHtml(speakerName[0]?.toUpperCase() ?? '')}</span></span>`
+  const face = hasSpeaker
+    ? avatarHtml(speakerName, portraitUrl(faces, speakerName), cacheBuster)
+    : ''
   const speakerHtml = hasSpeaker
     ? `<div class="speaker">${face}<span>${escapeHtml(speakerName)}</span></div>`
     : ''
@@ -263,9 +250,14 @@ function renderImageScene(
   )
 }
 
-function renderDialogueScene(scene: DialogueScene, story: Story, index: number): string {
+function renderDialogueScene(
+  scene: DialogueScene,
+  story: Story,
+  index: number,
+  faces: Map<string, string>,
+): string {
   const asset = findAsset(story.assets, scene.background)
-  const captions = renderCaptions(scene, story)
+  const captions = renderCaptions(scene, faces)
   const overlayHtml = scene.speech?.key
     ? playOverlayTag(speechSrc(story.id, scene.speech.key))
     : ''
@@ -291,12 +283,17 @@ function renderVideoScene(
   )
 }
 
-function renderScene(scene: Scene, story: Story, index: number): string {
+function renderScene(
+  scene: Scene,
+  story: Story,
+  index: number,
+  faces: Map<string, string>,
+): string {
   switch (scene.type) {
     case 'image':
       return renderImageScene(scene, story.assets, story.id, index)
     case 'dialogue':
-      return renderDialogueScene(scene, story, index)
+      return renderDialogueScene(scene, story, index, faces)
     case 'video':
       return renderVideoScene(scene, story.assets, story.id, index)
     default: {
@@ -392,10 +389,10 @@ function updateLogFades(): void {
   frame.classList.toggle('at-bottom', atBottom)
 }
 
-function renderLog(story: Story): void {
+function renderLog(story: Story, faces: Map<string, string>): void {
   const log = document.querySelector('.log')
   if (!log) return
-  log.innerHTML = logHtml(story, cacheBuster)
+  log.innerHTML = logHtml(story, cacheBuster, faces)
   updateLogFades()
 }
 
@@ -509,7 +506,8 @@ function renderStory(story: Story): void {
     <span class="tab-count">${itemCount}</span>
     <a class="cards-link${cards ? ' tab-active' : ''}" href="${storyHref(story.id, cards ? undefined : { cards: true })}">${CARDS_ICON}<span class="tab-count">${story.cards.length}</span></a>
   `
-  renderLog(story)
+  const faces = portraitIndex(story)
+  renderLog(story, faces)
   main.className = ''
 
   if (cards) {
@@ -519,7 +517,7 @@ function renderStory(story: Story): void {
   } else if (!story.scenes?.length) {
     main.innerHTML = '<div class="list"><span class="muted">No scenes</span></div>'
   } else {
-    main.innerHTML = `<div class="grid scenes">${story.scenes.map((scene, index) => renderScene(scene, story, index)).join('\n')}</div>`
+    main.innerHTML = `<div class="grid scenes">${story.scenes.map((scene, index) => renderScene(scene, story, index, faces)).join('\n')}</div>`
   }
 
   renderDrawer(story, cards ? undefined : sceneIndex())

@@ -2,8 +2,6 @@ import {
   AudioLines,
   PlayingCard,
   Image as ImageIcon,
-  MessageCircle,
-  MessageSquare,
   Trash,
   User,
   Play,
@@ -14,6 +12,8 @@ import { formatRanges } from '@/project'
 import { isPlainObject } from '@/records'
 import type { Asset, Attributes, Card, Scene, Story, StoryEvent } from '@/types'
 import { renderAttrs } from './attrs'
+import { avatarHtml, portraitUrl } from './avatar'
+import { stripSpeechTags } from './caption'
 import { escapeHtml } from './html'
 
 type DetailBlock =
@@ -142,6 +142,20 @@ function assetBlocks(
   )
 }
 
+function imageThumb(
+  story: Story,
+  event: Extract<StoryEvent, { type: 'image' }>,
+  cacheBuster: number,
+): string | undefined {
+  const asset = findAsset(story, event.name)
+  if (!asset?.url) return undefined
+  const width = asset.width ?? event.width
+  const height = asset.height ?? event.height
+  const size =
+    width && height ? ` width="${Math.round(width)}" height="${Math.round(height)}"` : ''
+  return `<img class="event-thumb" src="${mediaSrc(asset.url, cacheBuster)}"${size} alt="" />`
+}
+
 function figureHtml(block: Extract<DetailBlock, { type: 'figure' }>): string {
   return `<figure class="detail-figure"><img src="${block.url}" alt="" />${
     block.label ? `<figcaption>${escapeHtml(block.label)}</figcaption>` : ''
@@ -222,6 +236,10 @@ function detailHtml(blocks: DetailBlock[]): string {
   return `<div class="detail">${renderBlocks(blocks)}</div>`
 }
 
+function dialoguePreview(caption: string): string {
+  return stripSpeechTags(caption).replace(/\*/g, '').replace(/\s+/g, ' ').trim()
+}
+
 function eventLead(event: StoryEvent): string {
   switch (event.type) {
     case 'message':
@@ -241,20 +259,40 @@ function eventLead(event: StoryEvent): string {
   }
 }
 
-function eventIcon(event: StoryEvent): IconNode {
+function eventIcon(
+  event: Extract<StoryEvent, { type: 'video' | 'card' | 'delete' }>,
+): IconNode {
   switch (event.type) {
-    case 'message':
-      return MessageSquare
-    case 'image':
-      return ImageIcon
-    case 'dialogue':
-      return MessageCircle
     case 'video':
       return Play
     case 'card':
       return PlayingCard
     case 'delete':
       return Trash
+    default: {
+      const _exhaustive: never = event
+      return _exhaustive
+    }
+  }
+}
+
+function eventMark(
+  story: Story,
+  event: Exclude<StoryEvent, { type: 'message' }>,
+  faces: Map<string, string>,
+  cacheBuster: number,
+): string {
+  switch (event.type) {
+    case 'dialogue': {
+      const name = eventLead(event)
+      return avatarHtml(name, portraitUrl(faces, name), cacheBuster)
+    }
+    case 'image':
+      return imageThumb(story, event, cacheBuster) ?? icon(ImageIcon)
+    case 'video':
+    case 'card':
+    case 'delete':
+      return icon(eventIcon(event))
     default: {
       const _exhaustive: never = event
       return _exhaustive
@@ -389,10 +427,16 @@ function sceneByEvent(story: Story): (number | undefined)[] {
   return byEvent
 }
 
-export function logHtml(story: Story, cacheBuster: number): string {
+export function logHtml(
+  story: Story,
+  cacheBuster: number,
+  faces: Map<string, string>,
+): string {
   const scenes = sceneByEvent(story)
   return story.events
-    .map((event, index) => renderEvent(story, event, index, scenes[index], cacheBuster))
+    .map((event, index) =>
+      renderEvent(story, event, index, scenes[index], cacheBuster, faces),
+    )
     .join('')
 }
 
@@ -402,6 +446,7 @@ function renderEvent(
   index: number,
   scene: number | undefined,
   cacheBuster: number,
+  faces: Map<string, string>,
 ): string {
   const sceneAttr = scene === undefined ? '' : ` data-scene="${scene}"`
   if (event.type === 'message') {
@@ -415,9 +460,12 @@ function renderEvent(
     return `<div class="event event-message${user}${event.error ? ' event-error' : ''}" data-event="${index}">${body}${error}</div>`
   }
   const lead = eventLead(event)
-  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${icon(eventIcon(event))}</span>${
+  const preview =
+    event.type === 'dialogue' && event.caption ? dialoguePreview(event.caption) : ''
+  const mark = eventMark(story, event, faces, cacheBuster)
+  const line = `<span class="event-line"><span class="event-type" title="${event.type}">${mark}</span>${
     lead ? `<span class="event-label">${escapeHtml(lead)}</span>` : ''
-  }</span>`
+  }${preview ? `<span class="event-preview">${escapeHtml(preview)}</span>` : ''}</span>`
   const { still, blocks } = eventBody(story, event, cacheBuster)
   const cls = `event event-${event.type}${event.error ? ' event-error' : ''}${still ? ' has-still' : ''}`
   if (blocks.length === 0 && !still) {

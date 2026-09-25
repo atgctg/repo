@@ -3,6 +3,7 @@
   "name": "verse-api",
   "main": "./src/worker.ts",
   "compatibility_date": "2026-09-25",
+  "compatibility_flags": ["nodejs_compat"],
   "placement": {
     "region": "aws:us-east-2",
   },
@@ -12,7 +13,7 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "00000000000000000000000000000000",
+      "id": "5101227e042e4f7a8f4c4af7ec6252df",
     },
   ],
   "r2_buckets": [

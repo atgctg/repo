@@ -1,3 +1,5 @@
+import { nodeDatabaseUrl } from '../api/scripts/database-url'
+
 const root = `${import.meta.dir}/..`
 
 if (!process.env.DATABASE_URL) {
@@ -11,7 +13,9 @@ const api = Bun.spawn(
     cwd: root,
     env: {
       ...process.env,
-      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: process.env.DATABASE_URL,
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: nodeDatabaseUrl(
+        process.env.DATABASE_URL,
+      ),
     },
     stdin: 'inherit',
     stdout: 'inherit',

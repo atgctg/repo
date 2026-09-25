@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Client } from 'pg'
+import { nodeDatabaseUrl } from './database-url'
 
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) {
@@ -8,7 +9,7 @@ if (!connectionString) {
   process.exit(1)
 }
 
-const client = new Client({ connectionString })
+const client = new Client({ connectionString: nodeDatabaseUrl(connectionString) })
 await client.connect()
 try {
   await migrate(drizzle({ client }), {

@@ -8,6 +8,7 @@ import { parseEvents } from '../src/events'
 import { safeStoryId } from '../src/files'
 import * as schema from '../src/schema'
 import { evals, worlds } from '../src/schema'
+import { nodeDatabaseUrl } from './database-url'
 
 const root = `${import.meta.dir}/../..`
 const connectionString = process.env.DATABASE_URL
@@ -16,7 +17,7 @@ if (!connectionString) {
   process.exit(1)
 }
 
-const client = new Client({ connectionString })
+const client = new Client({ connectionString: nodeDatabaseUrl(connectionString) })
 await client.connect()
 const db = drizzle({ client, schema })
 

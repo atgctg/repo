@@ -31,8 +31,8 @@ function openDatabase(path: string): Database {
     if (dir) mkdirSync(dir, { recursive: true })
   }
   const db = new Database(path, { create: true })
-  db.exec('PRAGMA journal_mode = WAL')
-  db.exec(`CREATE TABLE IF NOT EXISTS stories (
+  db.run('PRAGMA journal_mode = WAL')
+  db.run(`CREATE TABLE IF NOT EXISTS stories (
   id TEXT PRIMARY KEY,
   world TEXT NOT NULL,
   title TEXT NOT NULL,
@@ -44,8 +44,8 @@ function openDatabase(path: string): Database {
 )`)
   const columns = db.query<{ name: string }, []>('PRAGMA table_info(stories)').all()
   if (!columns.some((column) => column.name === 'case_name'))
-    db.exec('ALTER TABLE stories ADD COLUMN case_name TEXT')
+    db.run('ALTER TABLE stories ADD COLUMN case_name TEXT')
   if (!columns.some((column) => column.name === 'passed'))
-    db.exec('ALTER TABLE stories ADD COLUMN passed INTEGER')
+    db.run('ALTER TABLE stories ADD COLUMN passed INTEGER')
   return db
 }

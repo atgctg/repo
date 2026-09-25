@@ -103,16 +103,21 @@ const styles = stylex.create({
 function HistoryRow({
   story,
   active,
+  to,
 }: {
   story: StorySummary
   active: boolean
+  to?: string
 }): ReactNode {
   const worlds = useWorlds()
   const now = useNow()
   const cover = worlds.find((world) => world.id === story.world)?.cover
   const letter = [...(story.preview || story.world)][0]?.toLocaleUpperCase() ?? ''
   return (
-    <NavLink to={`/${story.id}`} {...stylex.props(styles.row, active && styles.active)}>
+    <NavLink
+      to={to ?? `/${story.id}`}
+      {...stylex.props(styles.row, active && styles.active)}
+    >
       <span {...stylex.props(styles.avatar)}>
         {cover ? <img src={cover} alt="" {...stylex.props(styles.photo)} /> : letter}
       </span>
@@ -153,6 +158,7 @@ export function Sidebar(): ReactNode {
                   <HistoryRow
                     key={story.id}
                     story={story}
+                    to={`/${story.id}/eval`}
                     active={params.id === story.id}
                   />
                 ))

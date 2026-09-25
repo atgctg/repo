@@ -3,7 +3,7 @@ import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { messageText } from '~/lib/text'
 import { statusText } from '~/lib/time'
-import { sendTurn, useActivity, useNow, useStoryUi } from '~/lib/store'
+import { clearSelection, sendTurn, useActivity, useNow, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 import { Icon } from './icons'
@@ -46,6 +46,20 @@ const styles = stylex.create({
     fontSize: tokens.textSm,
     lineHeight: 1,
   },
+  clear: {
+    width: 0,
+    padding: 0,
+    overflow: 'hidden',
+    opacity: 0,
+    color: tokens.accent,
+    fontSize: tokens.textSm,
+    lineHeight: 1,
+    cursor: 'pointer',
+  },
+  clearOn: {
+    width: '0.75rem',
+    opacity: 1,
+  },
   clip: {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -56,6 +70,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
   const [draft, setDraft] = useState('')
   const activity = useActivity(storyId)
   const now = useNow()
+  const [chip, setChip] = useState(false)
   const selected = useStoryUi(storyId).selected
   const label = statusText(activity, now)
   const live = Boolean(
@@ -101,9 +116,21 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
           onKeyDown={onKeyDown}
         />
         {selected.length > 0 ? (
-          <span {...stylex.props(styles.count)}>
+          <span
+            {...stylex.props(styles.count)}
+            onMouseEnter={() => setChip(true)}
+            onMouseLeave={() => setChip(false)}
+          >
             <Icon name="pointer" />
             <span>{selected.length}</span>
+            <button
+              type="button"
+              aria-label="Clear selection"
+              {...stylex.props(styles.clear, chip && styles.clearOn)}
+              onClick={() => clearSelection(storyId)}
+            >
+              ×
+            </button>
           </span>
         ) : null}
         {label ? (

@@ -12,7 +12,7 @@ import {
 } from './stories'
 import { llmMessages, reply } from './turn'
 import { resolveAssetPath, safeAssetFile, safeStoryId, worldAssetPath } from './files'
-import { listEvalStats } from './eval'
+import { evalCard, listReview, setVerdict, type EvalVerdict } from './eval'
 import { loadWorld, listWorlds, worldExists } from './worlds'
 
 function jsonError(error: unknown, status = 500): Response {
@@ -83,10 +83,38 @@ const server = Bun.serve({
       },
     },
     '/api/evals': {
-      GET: async () => Response.json(await listEvalStats()),
+      GET: async () => Response.json(await listReview()),
     },
     '/api/stories': {
       GET: async () => Response.json(await listStories()),
+    },
+    '/api/stories/:id/eval': {
+      GET: async (req) => {
+        const card = await evalCard(req.params.id)
+        if (!card) return new Response('Not found', { status: 404 })
+        return Response.json(card)
+      },
+      POST: async (req) => {
+        let body: { verdict?: unknown }
+        try {
+          body = (await readJson(req)) as { verdict?: unknown }
+        } catch {
+          return Response.json({ error: 'invalid json' }, { status: 400 })
+        }
+        const verdict = body.verdict
+        if (verdict !== null && verdict !== 'pass' && verdict !== 'fail') {
+          return Response.json(
+            { error: 'verdict must be pass, fail, or null' },
+            { status: 400 },
+          )
+        }
+        try {
+          setVerdict(req.params.id, verdict as EvalVerdict | null)
+          return Response.json({ ok: true })
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
     },
     '/api/stories/:id/messages': {
       GET: async (req) => {

@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMountEffect } from '~/hooks/use-mount-effect'
-import { closeDrawer } from '~/lib/store'
+import { clearSelection, closeDrawer } from '~/lib/store'
 
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
@@ -48,7 +48,7 @@ export function Hotkeys(): null {
       if (event.key === 'Escape') {
         if (isTyping(event.target)) return
         const id = idRef.current
-        if (id) closeDrawer(id)
+        if (id) clearSelection(id)
       }
     }
     window.addEventListener('keydown', onKeyDown)

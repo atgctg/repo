@@ -458,6 +458,25 @@ export async function generateAsset(
 
 export function selectScene(id: string, index: number, range: boolean): void {
   const ui = uiOf(id)
+  if (!range && ui.selected.includes(index)) {
+    const selected = ui.selected.filter((item) => item !== index)
+    const anchor = selected.includes(ui.anchor ?? -1) ? ui.anchor : selected.at(-1)
+    const openScene = ui.openScene === index ? selected.at(-1) : ui.openScene
+    commit({
+      ...snapshot,
+      ui: {
+        ...snapshot.ui,
+        [id]: {
+          ...ui,
+          selected,
+          anchor,
+          openScene,
+          sceneIndex: openScene ?? ui.sceneIndex,
+        },
+      },
+    })
+    return
+  }
   let selected: number[]
   let anchor = ui.anchor
   if (range && anchor !== undefined) {
@@ -474,6 +493,17 @@ export function selectScene(id: string, index: number, range: boolean): void {
     ui: {
       ...snapshot.ui,
       [id]: { ...ui, selected, anchor, openScene: index, sceneIndex: index },
+    },
+  })
+}
+
+export function clearSelection(id: string): void {
+  const ui = uiOf(id)
+  commit({
+    ...snapshot,
+    ui: {
+      ...snapshot.ui,
+      [id]: { ...ui, selected: [], anchor: undefined, openScene: undefined },
     },
   })
 }

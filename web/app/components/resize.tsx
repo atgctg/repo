@@ -6,7 +6,8 @@ import {
 } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { useMountEffect } from '~/hooks/use-mount-effect'
-import { tokens } from '~/styles/tokens.stylex'
+
+const line = 'rgba(115, 115, 115, 0.9)'
 
 const styles = stylex.create({
   edge: {
@@ -20,18 +21,15 @@ const styles = stylex.create({
     zIndex: 5,
     touchAction: 'none',
     backgroundClip: 'content-box',
-    backgroundColor: 'rgba(0, 0, 0, 0.12)',
-    '@media (prefers-color-scheme: dark)': {
-      backgroundColor: 'rgba(255, 255, 255, 0.16)',
-    },
+    backgroundColor: 'transparent',
     ':hover': {
       cursor: 'col-resize',
-      backgroundColor: tokens.ring,
+      backgroundColor: line,
     },
   },
   hot: {
     cursor: 'col-resize',
-    backgroundColor: tokens.ring,
+    backgroundColor: line,
   },
 })
 

@@ -1,8 +1,10 @@
 import { project, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
 import { database } from './db'
+import { oneLine, turnView } from './eval-card'
+import { parseEvents } from './events'
 import { replayEvents } from './turn'
-import { saveEvalStory } from './stories'
+import { saveEvalStory, StoryError } from './stories'
 
 const DIR = `${import.meta.dir}/../evals`
 
@@ -87,27 +89,124 @@ async function runCase(name: string): Promise<void> {
   console.log(`${name} done`)
 }
 
-export type EvalStat = {
-  name: string
-  runs: { id: string; createdAt: number }[]
+export type EvalVerdict = 'pass' | 'fail'
+
+export type EvalCard = {
+  id: string
+  caseName: string
+  rule: string
+  expect: string
+  prompt: string
+  output: string[]
+  context: string[]
+  verdict: EvalVerdict | null
 }
 
-export async function listEvalStats(): Promise<EvalStat[]> {
-  const names = await listCases()
-  const rows = database()
-    .query<{ id: string; case_name: string; created_at: number }, []>(
-      `SELECT id, case_name, created_at FROM stories
-       WHERE case_name IS NOT NULL ORDER BY created_at DESC`,
+export type EvalCount = {
+  name: string
+  pass: number
+  fail: number
+}
+
+export type EvalReview = {
+  cards: EvalCard[]
+  counts: EvalCount[]
+}
+
+type EvalRow = {
+  id: string
+  case_name: string
+  events: string
+  passed: number | null
+}
+
+function verdictOf(passed: number | null): EvalVerdict | null {
+  if (passed === 1) return 'pass'
+  if (passed === 0) return 'fail'
+  return null
+}
+
+async function caseMeta(name: string): Promise<{ rule: string; expect: string }> {
+  try {
+    const file = await loadCase(name)
+    return { rule: oneLine(file.rule), expect: oneLine(file.expect) }
+  } catch {
+    return { rule: '', expect: '' }
+  }
+}
+
+function cardFrom(row: EvalRow, meta: { rule: string; expect: string }): EvalCard {
+  let events: StoryEvent[] = []
+  try {
+    events = parseEvents(JSON.parse(row.events) as unknown)
+  } catch {
+    events = []
+  }
+  const view = turnView(events)
+  return {
+    id: row.id,
+    caseName: row.case_name,
+    rule: meta.rule,
+    expect: meta.expect,
+    prompt: view.prompt,
+    output: view.output,
+    context: view.context,
+    verdict: verdictOf(row.passed),
+  }
+}
+
+function evalRows(): EvalRow[] {
+  return database()
+    .query<EvalRow, []>(
+      `SELECT id, case_name, events, passed FROM stories
+       WHERE case_name IS NOT NULL ORDER BY created_at ASC`,
     )
     .all()
-  const groups = new Map<string, EvalStat>()
-  for (const name of names) groups.set(name, { name, runs: [] })
-  for (const row of rows) {
-    const group = groups.get(row.case_name) ?? { name: row.case_name, runs: [] }
-    group.runs.push({ id: row.id, createdAt: row.created_at })
-    groups.set(row.case_name, group)
+}
+
+export async function listReview(): Promise<EvalReview> {
+  const names = await listCases()
+  const metas = new Map<string, { rule: string; expect: string }>()
+  for (const name of names) metas.set(name, await caseMeta(name))
+  const counts = new Map<string, EvalCount>(
+    names.map((name) => [name, { name, pass: 0, fail: 0 }]),
+  )
+  const cards: EvalCard[] = []
+  for (const row of evalRows()) {
+    const count = counts.get(row.case_name) ?? { name: row.case_name, pass: 0, fail: 0 }
+    if (row.passed === 1) count.pass += 1
+    else if (row.passed === 0) count.fail += 1
+    counts.set(row.case_name, count)
+    if (row.passed === null) {
+      cards.push(cardFrom(row, metas.get(row.case_name) ?? { rule: '', expect: '' }))
+    }
   }
-  return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name))
+  return {
+    cards,
+    counts: [...counts.values()].sort((a, b) => a.name.localeCompare(b.name)),
+  }
+}
+
+export async function evalCard(id: string): Promise<EvalCard | undefined> {
+  const row = database()
+    .query<EvalRow, [string]>(
+      `SELECT id, case_name, events, passed FROM stories
+       WHERE id = ? AND case_name IS NOT NULL`,
+    )
+    .get(id)
+  if (!row) return undefined
+  return cardFrom(row, await caseMeta(row.case_name))
+}
+
+export function setVerdict(id: string, verdict: EvalVerdict | null): void {
+  const row = database()
+    .query<{ case_name: string | null }, [string]>(
+      'SELECT case_name FROM stories WHERE id = ?',
+    )
+    .get(id)
+  if (!row?.case_name) throw new StoryError('Eval not found', 404)
+  const passed = verdict === 'pass' ? 1 : verdict === 'fail' ? 0 : null
+  database().query('UPDATE stories SET passed = ? WHERE id = ?').run(passed, id)
 }
 
 async function main(): Promise<void> {

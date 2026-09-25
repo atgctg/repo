@@ -277,26 +277,6 @@ export function StageMedia({
   )
 }
 
-const BLURS = [
-  { blur: '4px', mask: 'linear-gradient(to bottom, transparent 0%, #000 36%)' },
-  {
-    blur: '10px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 10%, #000 48%)',
-  },
-  {
-    blur: '20px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 22%, #000 62%)',
-  },
-  {
-    blur: '36px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 34%, #000 78%)',
-  },
-  {
-    blur: '56px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 46%, #000 92%)',
-  },
-] as const
-
 const blurLayers = stylex.create({
   stack: {
     position: 'absolute',
@@ -310,36 +290,32 @@ const blurLayers = stylex.create({
     height: '100%',
     objectFit: 'cover',
   },
-  band: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '72%',
-    zIndex: 1,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    borderBottomLeftRadius: tokens.radiusScene,
-    borderBottomRightRadius: tokens.radiusScene,
-  },
-  mask: {
+  veil: {
     position: 'absolute',
     inset: 0,
+    zIndex: 1,
+    pointerEvents: 'none',
+    maskImage: 'linear-gradient(to top, black 30%, transparent 55%)',
+    WebkitMaskImage: 'linear-gradient(to top, black 30%, transparent 55%)',
     maskRepeat: 'no-repeat',
     WebkitMaskRepeat: 'no-repeat',
     maskSize: '100% 100%',
     WebkitMaskSize: '100% 100%',
   },
-  blur: {
+  copy: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    top: '-40%',
-    bottom: 0,
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    filter: 'blur(24px)',
+    transform: 'scale(1.12)',
   },
   shade: {
     position: 'absolute',
     inset: 0,
+    zIndex: 2,
+    pointerEvents: 'none',
     backgroundImage:
       'linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.06) 38%, rgb(0 0 0 / 0.62) 100%)',
   },
@@ -349,24 +325,10 @@ export function ProgressiveMedia({ url }: { url: string }): ReactNode {
   return (
     <div {...stylex.props(blurLayers.stack)}>
       <img src={url} alt="" {...stylex.props(blurLayers.base)} />
-      <div {...stylex.props(blurLayers.band)}>
-        {BLURS.map((layer) => (
-          <div
-            key={layer.blur}
-            {...stylex.props(blurLayers.mask)}
-            style={{ maskImage: layer.mask, WebkitMaskImage: layer.mask }}
-          >
-            <div
-              {...stylex.props(blurLayers.blur)}
-              style={{
-                backdropFilter: `blur(${layer.blur})`,
-                WebkitBackdropFilter: `blur(${layer.blur})`,
-              }}
-            />
-          </div>
-        ))}
-        <div {...stylex.props(blurLayers.shade)} />
+      <div {...stylex.props(blurLayers.veil)}>
+        <img src={url} alt="" {...stylex.props(blurLayers.copy)} />
       </div>
+      <div {...stylex.props(blurLayers.shade)} />
     </div>
   )
 }

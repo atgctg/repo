@@ -151,11 +151,11 @@ a {
 
 .grid.scenes {
   isolation: isolate;
-  padding-right: 1.25rem;
+  padding-right: 0.25rem;
 }
 
 body:not(.in-story) .grid.scenes {
-  padding-left: 1.25rem;
+  padding-left: 0.25rem;
 }
 
 body.in-story.show-drawer .grid.scenes {
@@ -375,7 +375,7 @@ a.card:hover {
   line-height: 1.35;
   color: var(--text-soft);
   white-space: pre-wrap;
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 .card-caption {
@@ -409,7 +409,7 @@ a.card:hover {
   margin: 0;
   width: 100%;
   white-space: pre-wrap;
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 .caption-left .caption-line {

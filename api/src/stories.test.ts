@@ -1,5 +1,4 @@
 import { beforeAll, expect, test } from 'bun:test'
-import { unlink } from 'node:fs/promises'
 import { useDatabase } from './db'
 import {
   assetFileName,
@@ -71,10 +70,17 @@ test('a story asset wins over the world asset', async () => {
       expect(await Bun.file(storyAssetPath(story.id, image)).exists()).toBe(false)
     } finally {
       if (previous) await Bun.write(hooman, previous)
-      else await unlink(hooman).catch(() => undefined)
+      else
+        await Bun.file(hooman)
+          .delete()
+          .catch(() => undefined)
     }
   } finally {
-    await unlink(worldFile).catch(() => undefined)
-    await unlink(storyFile).catch(() => undefined)
+    await Bun.file(worldFile)
+      .delete()
+      .catch(() => undefined)
+    await Bun.file(storyFile)
+      .delete()
+      .catch(() => undefined)
   }
 })

@@ -2,7 +2,7 @@ Be concise.
 
 Read files fully once from beginning to end, not many small partial reads.
 
-Use Bun over Node (including file system operations).
+Use Bun APIs (Bun.file, Bun.write, Bun.Glob, bun:sqlite, Bun.\$); use node:* only when Bun has no equivalent.
 
 Do not write comments.
 

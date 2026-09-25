@@ -6,7 +6,10 @@ import { app } from './context'
 import { assetFileName, storyAssetUrl, worldAssetUrl } from './files'
 import { useMemoryDatabase } from './memory-db'
 import { handle } from './server'
-import { forkWorld, loadStory, saveTiming, StoryError } from './stories'
+import { database } from './db'
+import { listEvalRuns, setVerdict } from './eval-runs'
+import { evals } from './schema'
+import { forkWorld, loadStory, saveEvalStory, saveTiming, StoryError } from './stories'
 import { listWorlds, loadWorld } from './worlds'
 
 const seededIds = ['camp', 'cafe', 'ship', 'noir']
@@ -92,6 +95,30 @@ test('asset routes fall back from the story to its world', async () => {
   expect(worlds.status).toBe(200)
   const listed = (await worlds.json()) as { id: string }[]
   expect(listed.map((world) => world.id)).toEqual(seededIds)
+})
+
+test('eval runs list their case and keep a verdict', async () => {
+  await database()
+    .insert(evals)
+    .values({
+      name: 'your-line',
+      description: 'The typed line\nis not repeated.',
+      world: 'noir',
+      events: [],
+      input: { text: 'Hi' },
+    })
+  const id = await saveEvalStory('your-line', 'noir', [])
+  await setVerdict(id, 'pass')
+  expect(await listEvalRuns()).toEqual([
+    {
+      id,
+      caseName: 'your-line',
+      description: 'The typed line is not repeated.',
+      verdict: 'pass',
+    },
+  ])
+  const story = await forkWorld('noir')
+  await expect(setVerdict(story.id, 'fail')).rejects.toBeInstanceOf(StoryError)
 })
 
 test('admin password is a bearer token', () => {

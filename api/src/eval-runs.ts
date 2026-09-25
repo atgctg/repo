@@ -1,7 +1,6 @@
-import { asc, eq, isNotNull } from 'drizzle-orm'
+import { and, asc, eq, isNotNull } from 'drizzle-orm'
 import type { TurnMessage } from 'shared'
 import { database } from './db'
-import { oneLine } from './eval-card'
 import { parseEvents } from './events'
 import { evals, stories as storyTable } from './schema'
 import { saveEvalStory, StoryError } from './stories'
@@ -24,40 +23,39 @@ function verdictOf(passed: boolean | null): EvalVerdict | null {
 }
 
 export async function listEvalRuns(): Promise<EvalRun[]> {
-  const cases = await database().select().from(evals)
-  const descriptions = new Map(cases.map((row) => [row.name, oneLine(row.description)]))
   const rows = await database()
     .select({
       id: storyTable.id,
       caseName: storyTable.caseName,
       passed: storyTable.passed,
+      description: evals.description,
     })
     .from(storyTable)
+    .leftJoin(evals, eq(evals.name, storyTable.caseName))
     .where(isNotNull(storyTable.caseName))
     .orderBy(asc(storyTable.createdAt))
-  return rows.flatMap((row) => {
-    if (!row.caseName) return []
-    return [
-      {
-        id: row.id,
-        caseName: row.caseName,
-        description: descriptions.get(row.caseName) ?? '',
-        verdict: verdictOf(row.passed),
-      },
-    ]
-  })
+  return rows.flatMap(({ id, caseName, passed, description }) =>
+    caseName
+      ? [
+          {
+            id,
+            caseName,
+            description: description?.replace(/\s+/g, ' ').trim() ?? '',
+            verdict: verdictOf(passed),
+          },
+        ]
+      : [],
+  )
 }
 
 export async function setVerdict(id: string, verdict: EvalVerdict | null): Promise<void> {
-  const rows = await database()
-    .select({ caseName: storyTable.caseName })
-    .from(storyTable)
-    .where(eq(storyTable.id, id))
-    .limit(1)
-  const row = rows[0]
-  if (!row?.caseName) throw new StoryError('Eval not found', 404)
   const passed = verdict === 'pass' ? true : verdict === 'fail' ? false : null
-  await database().update(storyTable).set({ passed }).where(eq(storyTable.id, id))
+  const updated = await database()
+    .update(storyTable)
+    .set({ passed })
+    .where(and(eq(storyTable.id, id), isNotNull(storyTable.caseName)))
+    .returning({ id: storyTable.id })
+  if (updated.length === 0) throw new StoryError('Eval not found', 404)
 }
 
 export async function runEvalCase(

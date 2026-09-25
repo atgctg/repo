@@ -1,14 +1,8 @@
 import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMountEffect } from '~/hooks/use-mount-effect'
+import { isTyping } from '~/lib/keys'
 import { clearSelection, closeDrawer } from '~/lib/store'
-
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable) return true
-  const tag = target.tagName
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
-}
 
 export function Hotkeys(): null {
   const params = useParams()

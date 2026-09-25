@@ -6,6 +6,7 @@ import * as stylex from '@stylexjs/stylex'
 import type { Story, StoryEvent } from 'shared'
 import { useMountEffect } from '~/hooks/use-mount-effect'
 import { writeVerdict, type EvalRun, type EvalVerdict } from '~/lib/api'
+import { isTyping } from '~/lib/keys'
 import { evalsKey, evalsQuery, queryClient } from '~/lib/query'
 import { ensureStory, selectScenes } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
@@ -132,13 +133,6 @@ function nextId(
   return runs?.find(
     (run) => run.verdict === null && run.id !== current && !skipped.includes(run.id),
   )?.id
-}
-
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable) return true
-  const tag = target.tagName
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
 }
 
 export function PreloadNext({ storyId }: { storyId: string }): ReactNode {

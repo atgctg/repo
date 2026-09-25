@@ -7,7 +7,7 @@ import { Icon } from './icons'
 import { Caption, PlayButton, Tile, sceneImage, sceneTitle } from './media'
 import { RichText } from '~/lib/text'
 import { canGenerate, findAsset, sceneAsset, speechSrc } from '~/lib/view'
-import { generateAsset, selectScene, useActivity, useStoryUi } from '~/lib/store'
+import { selectScene, useActivity, useGenerateAsset, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 
@@ -241,6 +241,7 @@ export function GenerateButton({
   floating?: boolean
 }): ReactNode {
   const busy = useActivity(storyId).imageName === name
+  const generateAsset = useGenerateAsset()
   return (
     <Button
       type="button"
@@ -249,7 +250,7 @@ export function GenerateButton({
       {...stylex.props(floating ? styles.float : ui.pill)}
       onClick={(event) => {
         event.stopPropagation()
-        void generateAsset(storyId, name, type)
+        generateAsset(storyId, name, type)
       }}
     >
       {floating ? null : <Icon name="refresh" spin={busy} />}

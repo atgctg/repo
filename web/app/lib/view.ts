@@ -1,6 +1,6 @@
 import { leadCards, project } from 'shared'
 import type { Asset, Scene, Story, StoryEvent } from 'shared'
-import type { Entry, Snapshot } from './store'
+import type { Entry } from './store'
 
 export function findAsset(assets: Asset[], name?: string | null): Asset | undefined {
   if (typeof name !== 'string' || !name) return undefined
@@ -88,13 +88,13 @@ function fileFor(entry: Entry, name: string) {
   return entry.files.find((file) => file.name.toLowerCase() === key)
 }
 
-export function toStory(entry: Entry, snap: Snapshot): Story {
+export function toStory(entry: Entry, version: number): Story {
   const projected = project(leadCards(entry.events))
   const speech = new Map(entry.speech.map((mark) => [mark.event, mark.speech]))
   const assets = projected.assets.map((asset) => {
     const file = fileFor(entry, asset.name)
     if (!file) return asset
-    const url = withVersion(file.url, snap.version)
+    const url = withVersion(file.url, version)
     return {
       ...asset,
       ...(url ? { url } : {}),

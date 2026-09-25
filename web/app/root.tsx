@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { QueryClientProvider } from '@tanstack/react-query'
 import {
   isRouteErrorResponse,
   Links,
@@ -9,6 +10,7 @@ import {
 } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { Hotkeys } from '~/components/hotkeys'
+import { queryClient } from '~/lib/query'
 import { ui } from '~/styles/ui'
 import './global.css'
 
@@ -36,10 +38,12 @@ export function Layout({ children }: { children: ReactNode }): ReactNode {
         ) : null}
       </head>
       <body {...stylex.props(ui.body)}>
-        <Hotkeys />
-        {children}
-        <ScrollRestoration />
-        <Scripts />
+        <QueryClientProvider client={queryClient}>
+          <Hotkeys />
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+        </QueryClientProvider>
       </body>
     </html>
   )

@@ -4,7 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 import { HomeSections } from '~/components/grid'
 import { ResizeEdge, usePaneWidth } from '~/components/resize'
 import { Sidebar } from '~/components/sidebar'
-import { ensureIndex, forkWorld, useWorlds } from '~/lib/store'
+import { ensureIndex, useForkWorld, useWorlds } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 
@@ -34,6 +34,7 @@ export function HydrateFallback(): ReactNode {
 
 export default function Home(): ReactNode {
   const worlds = useWorlds()
+  const forkWorld = useForkWorld()
   const navigate = useNavigate()
   const sidebar = usePaneWidth('pane.sidebar', 200, 160, 420)
   const studio = stylex.props(styles.studio)

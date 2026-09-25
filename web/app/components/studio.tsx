@@ -4,7 +4,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import type { Story } from 'shared'
 import { Composer } from './composer'
-import { EvalBar, EvalFocus, EvalNote, LoadEvalRuns, PreloadNext } from './eval-bar'
+import { EvalBar, EvalFocus, EvalNote, PreloadNext } from './eval-bar'
 import { ResizeEdge, usePaneWidth } from './resize'
 import { SceneDrawer } from './drawer'
 import { Icon } from './icons'
@@ -168,7 +168,6 @@ export function Studio({ story }: { story: Story }): ReactNode {
         <Outlet />
         {caseName ? (
           <>
-            <LoadEvalRuns />
             <EvalFocus key={story.id} story={story} />
             <PreloadNext storyId={story.id} />
             <EvalBar storyId={story.id} />

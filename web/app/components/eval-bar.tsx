@@ -1,10 +1,12 @@
 import { useRef, useSyncExternalStore, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Tooltip } from '@base-ui/react/tooltip'
 import * as stylex from '@stylexjs/stylex'
 import type { Story, StoryEvent } from 'shared'
 import { useMountEffect } from '~/hooks/use-mount-effect'
-import { fetchEvalRuns, writeVerdict, type EvalRun, type EvalVerdict } from '~/lib/api'
+import { writeVerdict, type EvalRun, type EvalVerdict } from '~/lib/api'
+import { evalsKey, evalsQuery, queryClient } from '~/lib/query'
 import { ensureStory, selectScenes } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 
@@ -82,12 +84,11 @@ const styles = stylex.create({
 type Stamp = { id: string; verdict: EvalVerdict }
 
 type Session = {
-  runs: EvalRun[] | null
   skipped: string[]
   history: Stamp[]
 }
 
-let session: Session = { runs: null, skipped: [], history: [] }
+let session: Session = { skipped: [], history: [] }
 const listeners = new Set<() => void>()
 
 function publish(next: Session): void {
@@ -123,8 +124,12 @@ function outputSceneIndices(story: Story): number[] {
   return indices
 }
 
-function nextId(current: string, skipped = session.skipped): string | undefined {
-  return session.runs?.find(
+function nextId(
+  current: string,
+  runs: EvalRun[] | undefined,
+  skipped = session.skipped,
+): string | undefined {
+  return runs?.find(
     (run) => run.verdict === null && run.id !== current && !skipped.includes(run.id),
   )?.id
 }
@@ -136,19 +141,10 @@ function isTyping(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
 }
 
-export function LoadEvalRuns(): null {
-  useMountEffect(() => {
-    if (session.runs) return
-    void fetchEvalRuns().then((runs) => publish({ ...session, runs }))
-  })
-  return null
-}
-
 export function PreloadNext({ storyId }: { storyId: string }): ReactNode {
-  const { runs, skipped } = useSession()
-  const id = runs?.find(
-    (run) => run.verdict === null && run.id !== storyId && !skipped.includes(run.id),
-  )?.id
+  const { data: runs } = useQuery(evalsQuery())
+  const { skipped } = useSession()
+  const id = nextId(storyId, runs, skipped)
   if (!id) return null
   return <Preload key={id} id={id} />
 }
@@ -185,7 +181,7 @@ export function EvalNote({
   storyId: string
   caseName: string
 }): ReactNode {
-  const { runs } = useSession()
+  const { data: runs } = useQuery(evalsQuery())
   const description = runs?.find((run) => run.id === storyId)?.description
   return (
     <div {...stylex.props(styles.note)}>
@@ -220,35 +216,54 @@ function HudButton({
 
 export function EvalBar({ storyId }: { storyId: string }): ReactNode {
   const navigate = useNavigate()
-  const { runs } = useSession()
+  const { data: runs } = useQuery(evalsQuery())
+  const verdictMutation = useMutation({
+    scope: { id: 'verdicts' },
+    mutationFn: ({ id, verdict }: { id: string; verdict: EvalVerdict | null }) =>
+      writeVerdict(id, verdict),
+    onMutate: async ({ id, verdict }, context) => {
+      const previous = context.client.getQueryData<EvalRun[]>(evalsKey)
+      context.client.setQueryData<EvalRun[]>(evalsKey, (current) =>
+        current?.map((run) => (run.id === id ? { ...run, verdict } : run)),
+      )
+      await context.client.cancelQueries({ queryKey: evalsKey })
+      return { previous }
+    },
+    onError: (_error, _vars, result, context) => {
+      if (result?.previous) context.client.setQueryData(evalsKey, result.previous)
+    },
+    onSettled: (_data, _error, _vars, _result, context) => {
+      void context.client.invalidateQueries({ queryKey: evalsKey })
+    },
+  })
   const storyRef = useRef(storyId)
   storyRef.current = storyId
   const reviewed =
-    runs !== null && runs.length > 0 && runs.every((run) => run.verdict !== null)
+    runs !== undefined && runs.length > 0 && runs.every((run) => run.verdict !== null)
 
   function go(id: string | undefined): void {
     if (!id) return
-    const following = nextId(id)
+    const following = nextId(id, queryClient.getQueryData<EvalRun[]>(evalsKey))
     if (following) void ensureStory(following)
     void navigate(`/${id}`)
   }
 
   function judge(verdict: EvalVerdict): void {
     const id = storyRef.current
-    if (!session.runs) return
-    const upcoming = nextId(id)
+    const current = queryClient.getQueryData<EvalRun[]>(evalsKey)
+    if (!current) return
+    const upcoming = nextId(id, current)
     publish({
       ...session,
       history: [{ id, verdict }, ...session.history],
-      runs: session.runs.map((run) => (run.id === id ? { ...run, verdict } : run)),
     })
-    void writeVerdict(id, verdict)
+    verdictMutation.mutate({ id, verdict })
     go(upcoming)
   }
 
   function skip(): void {
     const id = storyRef.current
-    const upcoming = nextId(id)
+    const upcoming = nextId(id, queryClient.getQueryData<EvalRun[]>(evalsKey))
     if (session.skipped.includes(id)) {
       go(upcoming)
       return
@@ -259,16 +274,13 @@ export function EvalBar({ storyId }: { storyId: string }): ReactNode {
 
   function undo(): void {
     const last = session.history[0]
-    if (!last || !session.runs) return
+    if (!last || !queryClient.getQueryData<EvalRun[]>(evalsKey)) return
     publish({
       ...session,
       history: session.history.slice(1),
       skipped: session.skipped.filter((item) => item !== last.id),
-      runs: session.runs.map((run) =>
-        run.id === last.id ? { ...run, verdict: null } : run,
-      ),
     })
-    void writeVerdict(last.id, null)
+    verdictMutation.mutate({ id: last.id, verdict: null })
     void navigate(`/${last.id}`)
   }
 
@@ -305,7 +317,7 @@ export function EvalBar({ storyId }: { storyId: string }): ReactNode {
     return () => window.removeEventListener('keydown', onKeyDown)
   })
 
-  if (runs === null) return null
+  if (runs === undefined) return null
   if (reviewed) return <p {...stylex.props(styles.done)}>All reviewed</p>
   return (
     <Tooltip.Provider>

@@ -174,22 +174,16 @@ export async function fetchEvalRuns(): Promise<EvalRun[]> {
   return Array.isArray(body) ? body.filter(isEvalRun) : []
 }
 
-const verdictTails = new Map<string, Promise<void>>()
-
-export function writeVerdict(id: string, verdict: EvalVerdict | null): Promise<void> {
-  const prev = verdictTails.get(id) ?? Promise.resolve()
-  const next = prev
-    .catch(() => undefined)
-    .then(async () => {
-      const res = await fetch(`/api/stories/${encodeURIComponent(id)}/eval`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ verdict }),
-      })
-      if (!res.ok) throw new Error(await errorText(res))
-    })
-  verdictTails.set(id, next)
-  return next
+export async function writeVerdict(
+  id: string,
+  verdict: EvalVerdict | null,
+): Promise<void> {
+  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/eval`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ verdict }),
+  })
+  if (!res.ok) throw new Error(await errorText(res))
 }
 
 export type { StoryEvent }

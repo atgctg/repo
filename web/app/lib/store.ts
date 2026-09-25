@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { historyPreview, leadCards, storyId } from 'shared'
 import type {
   Speech,
@@ -19,6 +20,7 @@ import {
   postGenerate,
   streamTurn,
 } from './api'
+import { queryClient, storiesKey, storyKey, worldKey, worldsKey } from './query'
 import { coverUrl, filesFrom, speechFrom, toStory } from './view'
 
 export type AssetFile = {
@@ -42,6 +44,11 @@ export type Entry = {
   speech: SpeechMark[]
 }
 
+type StoryCache = {
+  entry: Entry
+  version: number
+}
+
 export type StoryUi = {
   selected: number[]
   anchor?: number
@@ -59,36 +66,23 @@ export type Activity = {
 }
 
 type Snapshot = {
-  worlds: World[]
-  sources: Record<string, WorldSource>
-  summaries: StorySummary[]
-  entries: Record<string, Entry>
   ui: Record<string, StoryUi>
   activity: Record<string, Activity>
   now: number
-  version: number
 }
 
 const emptyUi: StoryUi = { selected: [], sceneIndex: 0 }
 
 const serverSnapshot: Snapshot = {
-  worlds: [],
-  sources: {},
-  summaries: [],
-  entries: {},
   ui: {},
   activity: {},
   now: 0,
-  version: 0,
 }
 
 let snapshot: Snapshot = { ...serverSnapshot }
 const listeners = new Set<() => void>()
 let clock: ReturnType<typeof setInterval> | undefined
 const forks = new Map<string, Promise<void>>()
-const storyLoads = new Map<string, Promise<void>>()
-const worldLoads = new Map<string, Promise<void>>()
-let indexLoad: Promise<void> | undefined
 
 function syncClock(): void {
   const active = Object.values(snapshot.activity).some(
@@ -118,6 +112,24 @@ function uiOf(id: string): StoryUi {
   return snapshot.ui[id] ?? emptyUi
 }
 
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+function getSnapshot(): Snapshot {
+  return snapshot
+}
+
+function useSnap(): Snapshot {
+  return useSyncExternalStore(subscribe, getSnapshot, () => serverSnapshot)
+}
+
+function readCache(id: string): StoryCache | undefined {
+  const cache = queryClient.getQueryData<StoryCache | null>(storyKey(id))
+  return cache ?? undefined
+}
+
 function summaryFor(entry: Entry, cover?: string, caseName?: string): StorySummary {
   return {
     id: entry.id,
@@ -130,46 +142,61 @@ function summaryFor(entry: Entry, cover?: string, caseName?: string): StorySumma
   }
 }
 
-function save(entry: Entry, cover?: string): void {
-  const prev = snapshot.summaries.find((item) => item.id === entry.id)
-  const summaries = [
-    summaryFor(entry, cover ?? prev?.cover, prev?.case),
-    ...snapshot.summaries.filter((item) => item.id !== entry.id),
-  ]
-  commit({
-    ...snapshot,
-    entries: { ...snapshot.entries, [entry.id]: entry },
-    summaries,
+function publishEntry(entry: Entry, cover?: string, version?: number): void {
+  const prev = readCache(entry.id)
+  const nextVersion = version ?? prev?.version ?? 0
+  queryClient.setQueryData<StoryCache>(storyKey(entry.id), {
+    entry,
+    version: nextVersion,
+  })
+  queryClient.setQueryData<StorySummary[]>(storiesKey, (list) => {
+    const previous = list?.find((item) => item.id === entry.id)
+    const nextCover = cover ?? coverUrl(toStory(entry, nextVersion)) ?? previous?.cover
+    const summary = summaryFor(entry, nextCover, previous?.case)
+    return [summary, ...(list ?? []).filter((item) => item.id !== entry.id)]
   })
 }
 
-export function subscribe(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
+function entryFrom(story: Story, prev?: Entry): Entry {
+  return {
+    id: story.id,
+    world: story.world || prev?.world || '',
+    title: story.title || prev?.title || story.id,
+    createdAt: story.createdAt || prev?.createdAt || new Date().toISOString(),
+    updatedAt: story.updatedAt || new Date().toISOString(),
+    events: story.events,
+    files: filesFrom(story),
+    speech: speechFrom(story),
+  }
 }
 
-export function getSnapshot(): Snapshot {
-  return snapshot
+function publishStory(story: Story, version?: number): void {
+  const prev = readCache(story.id)
+  publishEntry(entryFrom(story, prev?.entry), undefined, version ?? prev?.version ?? 0)
 }
 
-export function getServerSnapshot(): Snapshot {
-  return serverSnapshot
+async function fetchStoryCache(id: string): Promise<StoryCache | null> {
+  const story = await fetchStory(id)
+  if (!story) return null
+  return { entry: entryFrom(story), version: 0 }
 }
 
-function useSnap(): Snapshot {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+async function fetchWorldCache(id: string): Promise<WorldSource | null> {
+  return (await fetchWorld(id)) ?? null
 }
 
 export function hasEntry(id: string): boolean {
-  return Boolean(snapshot.entries[id])
+  return Boolean(readCache(id))
 }
 
 export function useWorlds(): World[] {
-  return useSnap().worlds
+  const { data } = useQuery({ queryKey: worldsKey, queryFn: fetchWorlds })
+  return data ?? []
 }
 
 export function useStoryList(): StorySummary[] {
-  return useSnap().summaries
+  const { data } = useQuery({ queryKey: storiesKey, queryFn: fetchStories })
+  return data ?? []
 }
 
 export function useNow(): number {
@@ -177,10 +204,13 @@ export function useNow(): number {
 }
 
 export function useStory(id: string): Story | undefined {
-  const snap = useSnap()
-  const entry = snap.entries[id]
-  if (!entry) return undefined
-  return toStory(entry, snap)
+  const { data } = useQuery({
+    queryKey: storyKey(id),
+    queryFn: () => fetchStoryCache(id),
+    enabled: id.length > 0,
+  })
+  if (!data) return undefined
+  return toStory(data.entry, data.version)
 }
 
 export function useStoryUi(id: string): StoryUi {
@@ -191,83 +221,26 @@ export function useActivity(id: string): Activity {
   return useSnap().activity[id] ?? {}
 }
 
-export function setWorlds(worlds: World[]): void {
-  commit({ ...snapshot, worlds })
+export function ensureStory(id: string): Promise<StoryCache | null> {
+  return queryClient.ensureQueryData({
+    queryKey: storyKey(id),
+    queryFn: () => fetchStoryCache(id),
+  })
 }
 
-export function setSummaries(incoming: StorySummary[]): void {
-  const ids = new Set(incoming.map((item) => item.id))
-  const local = snapshot.summaries.filter(
-    (item) => snapshot.entries[item.id] && !ids.has(item.id),
+export async function ensureIndex(): Promise<void> {
+  const [worlds] = await Promise.all([
+    queryClient.ensureQueryData({ queryKey: worldsKey, queryFn: fetchWorlds }),
+    queryClient.ensureQueryData({ queryKey: storiesKey, queryFn: fetchStories }),
+  ])
+  await Promise.all(
+    worlds.map((world) =>
+      queryClient.ensureQueryData({
+        queryKey: worldKey(world.id),
+        queryFn: () => fetchWorldCache(world.id),
+      }),
+    ),
   )
-  commit({ ...snapshot, summaries: [...local, ...incoming] })
-}
-
-export function ingest(story: Story): void {
-  const prev = snapshot.entries[story.id]
-  const entry: Entry = {
-    id: story.id,
-    world: story.world || prev?.world || '',
-    title: story.title || prev?.title || story.id,
-    createdAt: story.createdAt || prev?.createdAt || new Date().toISOString(),
-    updatedAt: story.updatedAt || new Date().toISOString(),
-    events: story.events,
-    files: filesFrom(story),
-    speech: speechFrom(story),
-  }
-  const projected = toStory(entry, snapshot)
-  save(entry, coverUrl(projected))
-}
-
-export function ensureWorld(id: string): Promise<void> {
-  if (snapshot.sources[id]) return Promise.resolve()
-  const existing = worldLoads.get(id)
-  if (existing) return existing
-  const task = fetchWorld(id)
-    .then((source) => {
-      if (!source) return
-      commit({ ...snapshot, sources: { ...snapshot.sources, [id]: source } })
-    })
-    .finally(() => {
-      worldLoads.delete(id)
-    })
-  worldLoads.set(id, task)
-  return task
-}
-
-export function ensureStory(id: string): Promise<void> {
-  if (snapshot.entries[id]) return Promise.resolve()
-  const existing = storyLoads.get(id)
-  if (existing) return existing
-  const task = fetchStory(id)
-    .then((story) => {
-      if (story) ingest(story)
-    })
-    .finally(() => {
-      storyLoads.delete(id)
-    })
-  storyLoads.set(id, task)
-  return task
-}
-
-export function ensureIndex(): Promise<void> {
-  if (
-    snapshot.worlds.length > 0 &&
-    snapshot.worlds.every((world) => snapshot.sources[world.id])
-  ) {
-    return Promise.resolve()
-  }
-  if (indexLoad) return indexLoad
-  indexLoad = Promise.all([fetchWorlds(), fetchStories()])
-    .then(async ([worlds, stories]) => {
-      setWorlds(worlds)
-      setSummaries(stories)
-      await Promise.all(worlds.map((world) => ensureWorld(world.id)))
-    })
-    .finally(() => {
-      indexLoad = undefined
-    })
-  return indexLoad
 }
 
 function messageOf(error: unknown): string {
@@ -275,10 +248,13 @@ function messageOf(error: unknown): string {
 }
 
 function unusedStoryId(worldId: string): string {
-  const taken = new Set([
-    ...snapshot.summaries.map((item) => item.id),
-    ...Object.keys(snapshot.entries),
-  ])
+  const summaries = queryClient.getQueryData<StorySummary[]>(storiesKey) ?? []
+  const taken = new Set(summaries.map((item) => item.id))
+  for (const [, cache] of queryClient.getQueriesData<StoryCache | null>({
+    queryKey: ['story'],
+  })) {
+    if (cache) taken.add(cache.entry.id)
+  }
   for (let attempt = 0; attempt < 8; attempt++) {
     const id = storyId(worldId)
     if (!taken.has(id)) return id
@@ -286,43 +262,41 @@ function unusedStoryId(worldId: string): string {
   return storyId(worldId)
 }
 
-export function forkWorld(worldId: string): string | undefined {
-  const source = snapshot.sources[worldId]
-  if (!source) return undefined
-  const id = unusedStoryId(worldId)
-  const now = new Date().toISOString()
-  const entry: Entry = {
-    id,
-    world: worldId,
-    title: source.title,
-    createdAt: now,
-    updatedAt: now,
-    events: leadCards(structuredClone(source.events)),
-    files: [],
-    speech: [],
-  }
-  save(entry, source.cover)
-  const task = postFork(worldId, id)
-    .then((story) => {
-      ingest(story)
-    })
-    .catch((error: unknown) => {
-      patchActivity(id, (current) => ({
-        ...current,
-        turnStartedAt: undefined,
-        phase: undefined,
-        phaseStartedAt: undefined,
-        phaseMs: undefined,
-        imageName: undefined,
-        error: messageOf(error),
-      }))
-      throw error
-    })
-  forks.set(id, task)
-  void task.finally(() => {
-    forks.delete(id)
+export function useForkWorld(): (worldId: string) => string | undefined {
+  const mutation = useMutation({
+    mutationFn: ({ worldId, id }: { worldId: string; id: string }) =>
+      postFork(worldId, id),
+    onSuccess: (story) => {
+      publishStory(story)
+    },
+    onError: (error, { id }) => {
+      patchActivity(id, () => ({ error: messageOf(error) }))
+    },
   })
-  return id
+  return (worldId) => {
+    const source = queryClient.getQueryData<WorldSource | null>(worldKey(worldId))
+    if (!source) return undefined
+    const id = unusedStoryId(worldId)
+    const now = new Date().toISOString()
+    const entry: Entry = {
+      id,
+      world: worldId,
+      title: source.title,
+      createdAt: now,
+      updatedAt: now,
+      events: leadCards(structuredClone(source.events)),
+      files: [],
+      speech: [],
+    }
+    publishEntry(entry, source.cover)
+    const task = mutation.mutateAsync({ worldId, id }).then(() => undefined)
+    forks.set(id, task)
+    void task.catch(() => undefined)
+    void task.finally(() => {
+      forks.delete(id)
+    })
+    return id
+  }
 }
 
 async function waitForFork(id: string): Promise<boolean> {
@@ -354,12 +328,12 @@ function withEvents(entry: Entry, events: StoryEvent[]): Entry {
 }
 
 function applyTurn(id: string, message: TurnMessage): void {
-  const entry = snapshot.entries[id]
+  const entry = readCache(id)?.entry
   if (!entry && message.type !== 'status' && message.type !== 'done') return
   switch (message.type) {
     case 'start': {
       if (!entry) return
-      save(withEvents(entry, entry.events.slice(0, message.keep)))
+      publishEntry(withEvents(entry, entry.events.slice(0, message.keep)))
       return
     }
     case 'event': {
@@ -370,7 +344,7 @@ function applyTurn(id: string, message: TurnMessage): void {
         if (mark.event < message.at) return true
         return mark.event === message.at && message.event.type === 'dialogue'
       })
-      save({
+      publishEntry({
         ...entry,
         events,
         speech,
@@ -410,7 +384,7 @@ function applyTurn(id: string, message: TurnMessage): void {
           break
         }
         if (at < 0) return
-        save({
+        publishEntry({
           ...entry,
           speech: [...entry.speech, { event: at, speech: { key } }],
         })
@@ -420,8 +394,7 @@ function applyTurn(id: string, message: TurnMessage): void {
         (file) => file.name.toLowerCase() !== message.name.toLowerCase(),
       )
       files.push({ name: message.name, url: message.url })
-      save({ ...entry, files })
-      commit({ ...snapshot, version: snapshot.version + 1 })
+      publishEntry({ ...entry, files }, undefined, (readCache(id)?.version ?? 0) + 1)
       return
     }
     case 'done':
@@ -429,7 +402,7 @@ function applyTurn(id: string, message: TurnMessage): void {
       return
     case 'error': {
       if (!entry) return
-      save(withEvents(entry, entry.events.slice(0, message.length)))
+      publishEntry(withEvents(entry, entry.events.slice(0, message.length)))
       patchActivity(id, () => ({ error: message.error }))
       return
     }
@@ -447,7 +420,7 @@ export async function sendTurn(
   selected?: number[],
 ): Promise<boolean> {
   if (snapshot.activity[id]?.turnStartedAt) return false
-  const entry = snapshot.entries[id]
+  const entry = readCache(id)?.entry
   if (!entry) return false
   const previous = entry.events
   patchActivity(id, () => ({ turnStartedAt: Date.now(), phase: 'model' }))
@@ -456,7 +429,7 @@ export async function sendTurn(
     patchActivity(id, () => ({}))
     return false
   }
-  const current = snapshot.entries[id]
+  const current = readCache(id)?.entry
   if (!current) return false
   const events =
     typeof at === 'number'
@@ -473,7 +446,7 @@ export async function sendTurn(
             ...(selected && selected.length > 0 ? { selected } : {}),
           },
         ]
-  save({ ...current, events, updatedAt: new Date().toISOString() })
+  publishEntry({ ...current, events, updatedAt: new Date().toISOString() })
   try {
     await streamTurn(id, text, at, selected, (message) => applyTurn(id, message))
     const activity = snapshot.activity[id]
@@ -485,41 +458,56 @@ export async function sendTurn(
   }
 }
 
-export async function generateAsset(
+export function useGenerateAsset(): (
   id: string,
   name: string,
   type: 'image' | 'video',
-): Promise<void> {
-  if (snapshot.activity[id]?.imageName) return
-  patchActivity(id, (current) => ({
-    ...current,
-    phase: type,
-    phaseStartedAt: Date.now(),
-    phaseMs: undefined,
-    imageName: name,
-    error: undefined,
-  }))
-  try {
-    const story = await postGenerate(id, name, type)
-    if (story) ingest(story)
-    else {
+) => void {
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      name,
+      type,
+    }: {
+      id: string
+      name: string
+      type: 'image' | 'video'
+    }) => {
+      const story = await postGenerate(id, name, type)
+      if (story) return story
       const loaded = await fetchStory(id)
-      if (loaded) ingest(loaded)
-    }
-    commit({ ...snapshot, version: snapshot.version + 1 })
-    patchActivity(id, (current) => {
-      if (current.turnStartedAt) {
-        return { ...current, imageName: undefined }
-      }
-      return {}
-    })
-  } catch (error) {
-    patchActivity(id, (current) => ({
-      ...(current.turnStartedAt
-        ? { turnStartedAt: current.turnStartedAt, phase: current.phase }
-        : {}),
-      error: messageOf(error),
-    }))
+      if (!loaded) throw new Error('Generate failed')
+      return loaded
+    },
+    onMutate: ({ id, name, type }) => {
+      patchActivity(id, (current) => ({
+        ...current,
+        phase: type,
+        phaseStartedAt: Date.now(),
+        phaseMs: undefined,
+        imageName: name,
+        error: undefined,
+      }))
+    },
+    onSuccess: (story) => {
+      publishStory(story, (readCache(story.id)?.version ?? 0) + 1)
+      patchActivity(story.id, (current) => {
+        if (current.turnStartedAt) return { ...current, imageName: undefined }
+        return {}
+      })
+    },
+    onError: (error, { id }) => {
+      patchActivity(id, (current) => ({
+        ...(current.turnStartedAt
+          ? { turnStartedAt: current.turnStartedAt, phase: current.phase }
+          : {}),
+        error: messageOf(error),
+      }))
+    },
+  })
+  return (id, name, type) => {
+    if (snapshot.activity[id]?.imageName) return
+    mutation.mutate({ id, name, type })
   }
 }
 
@@ -600,5 +588,3 @@ export function closeDrawer(id: string): void {
     ui: { ...snapshot.ui, [id]: { ...ui, openScene: undefined } },
   })
 }
-
-export type { Snapshot }

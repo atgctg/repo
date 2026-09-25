@@ -4,19 +4,19 @@ export const STORY_TOOLS = [
     function: {
       name: 'Image',
       description:
-        'Generate an image. Always create an image before dialogue when the scene cannot reuse an existing image.',
+        'Create an image only when no existing image can show this shot. Create it before the dialogue that needs it.',
       parameters: {
         type: 'object',
         properties: {
           name: {
             type: 'string',
             description:
-              'Human readable asset name in sentence case. Reuse an existing name to overwrite it.',
+              'Reusable shot: who, where, and the angle. Not a one-off moment. The same name overwrites that shot.',
           },
           prompt: {
             type: 'object',
             description:
-              'Structured JSON prompt. Suggested fields: Subject, Behavior, Environment. Repeat appearance in every image.',
+              'Structured JSON prompt. Suggested fields: Subject, Behavior, Environment. Copy each character look from their card.',
           },
           references: {
             type: 'array',
@@ -127,7 +127,8 @@ export const STORY_TOOLS = [
     type: 'function',
     function: {
       name: 'Delete',
-      description: 'Delete scenes by index.',
+      description:
+        'Delete scenes by index. If the user wants the story to go on, write the replacement in this same turn.',
       parameters: {
         type: 'object',
         properties: {

@@ -8,6 +8,7 @@ import {
 import { eventsToMessages, type ChatMessage, type ToolCall } from './messages'
 import { normalizeRecord } from './records'
 import { finishTools, noteToolDelta, type OpenTool, type ToolDelta } from './stream'
+import { leadCards } from './project'
 import { changeStory, persistStory, readSceneLines, refresh } from './stories'
 import { STORY_TOOLS } from './tools'
 import type {
@@ -22,7 +23,13 @@ import type {
 } from './types'
 
 const MODEL = 'accounts/fireworks/models/deepseek-v4p1-flash'
-const MAX_LOOPS = 3
+const MAX_LOOPS = 6
+
+export function followUp(toolNames: string[]): boolean {
+  if (toolNames.length === 0) return false
+  if (toolNames.includes('Read')) return true
+  return toolNames.every((name) => name === 'Delete')
+}
 
 const systemPrompt = await Bun.file(`${import.meta.dir}/../prompts/system.md`).text()
 
@@ -44,6 +51,23 @@ export async function reply(
     await run(story)
     return story
   })
+}
+
+export async function replayEvents(events: StoryEvent[]): Promise<StoryEvent[]> {
+  const story: Story = {
+    id: 'eval',
+    title: 'Eval',
+    createdAt: '',
+    updatedAt: '',
+    events: leadCards(structuredClone(events)),
+    scenes: [],
+    assets: [],
+    cards: [],
+  }
+  await refresh(story)
+  const start = story.events.length
+  await run(story, { dry: true })
+  return story.events.slice(start)
 }
 
 function disk(story: Story) {
@@ -74,8 +98,18 @@ function disk(story: Story) {
   }
 }
 
-async function run(story: Story): Promise<void> {
-  const save = disk(story)
+function memorySave(story: Story) {
+  return {
+    soon() {},
+    now(project: boolean) {
+      return project ? refresh(story) : Promise.resolve()
+    },
+  }
+}
+
+async function run(story: Story, options?: { dry?: boolean }): Promise<void> {
+  const dry = options?.dry === true
+  const save = dry ? memorySave(story) : disk(story)
   await save.now(true)
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -84,7 +118,6 @@ async function run(story: Story): Promise<void> {
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
     const calls: ToolCall[] = []
     const results: { id: string; content: string }[] = []
-    let read = false
     let chain = Promise.resolve()
     let draft: MessageEvent | undefined
     const publish = () => save.now(true)
@@ -106,8 +139,8 @@ async function run(story: Story): Promise<void> {
           part.call.function.name,
           parseArgs(part.call.function.arguments),
           publish,
+          dry,
         )
-        if (result.read) read = true
         results.push({ id: part.call.id, content: result.content })
       })
     }
@@ -120,8 +153,7 @@ async function run(story: Story): Promise<void> {
         if (at >= 0) story.events.splice(at, 1)
       }
     }
-    if (calls.length === 0) break
-    if (!read) break
+    if (!followUp(calls.map((call) => call.function.name))) break
     messages.push({
       role: 'assistant',
       ...(spoken ? { content: spoken } : {}),
@@ -138,12 +170,12 @@ async function execute(
   name: string,
   args: Record<string, unknown>,
   publish: () => Promise<void>,
-): Promise<{ content: string; read?: boolean }> {
-  if (name === 'Read')
-    return { content: readSceneLines(story, numbers(args)), read: true }
+  dry = false,
+): Promise<{ content: string }> {
+  if (name === 'Read') return { content: readSceneLines(story, numbers(args)) }
   const event = toolEvent(name, args)
   if (!event) return { content: `Unknown tool ${name}` }
-  return apply(story, event, publish)
+  return apply(story, event, publish, dry)
 }
 
 function toolEvent(name: string, args: Record<string, unknown>): StoryEvent | undefined {
@@ -167,14 +199,15 @@ async function apply(
   story: Story,
   event: StoryEvent,
   publish: () => Promise<void>,
+  dry: boolean,
 ): Promise<{ content: string }> {
   switch (event.type) {
     case 'image':
-      return applyImage(story, event, publish)
+      return applyImage(story, event, publish, dry)
     case 'dialogue':
-      return applyDialogue(story, event, publish)
+      return applyDialogue(story, event, publish, dry)
     case 'video':
-      return applyVideo(story, event, publish)
+      return applyVideo(story, event, publish, dry)
     case 'card':
       story.events.push(event)
       await publish()
@@ -183,7 +216,11 @@ async function apply(
       if (!resolves(story, event)) event.error = 'no scenes at those indices'
       story.events.push(event)
       await publish()
-      return { content: event.error ?? 'ok' }
+      return {
+        content:
+          event.error ??
+          `Deleted. ${story.scenes.length} scenes remain. If the user asked you to replace or continue, write the new scenes now.`,
+      }
     case 'message':
       return { content: event.text }
     default: {
@@ -197,10 +234,11 @@ async function applyImage(
   story: Story,
   event: ImageEvent,
   publish: () => Promise<void>,
+  dry: boolean,
 ): Promise<{ content: string }> {
   story.events.push(event)
   await publish()
-  if (!event.error && event.prompt) {
+  if (!dry && !event.error && event.prompt) {
     try {
       await generateStoryImage(story, event.name, event.prompt, event.references ?? [])
     } catch (error) {
@@ -220,6 +258,7 @@ async function applyDialogue(
   story: Story,
   event: DialogueEvent,
   publish: () => Promise<void>,
+  dry: boolean,
 ): Promise<{ content: string }> {
   story.events.push(event)
   await publish()
@@ -227,7 +266,7 @@ async function applyDialogue(
     ? story.cards.find((card) => card.name.toLowerCase() === event.speaker?.toLowerCase())
         ?.voice
     : undefined
-  if (event.speaker && event.caption && voice && resolveVoiceId(voice)) {
+  if (!dry && event.speaker && event.caption && voice && resolveVoiceId(voice)) {
     try {
       await generateStoryVoice(story.id, voice, event.caption)
     } catch (error) {
@@ -242,9 +281,10 @@ async function applyVideo(
   story: Story,
   event: VideoEvent,
   publish: () => Promise<void>,
+  dry: boolean,
 ): Promise<{ content: string }> {
   story.events.push(event)
-  if (!event.error && (event.prompt || event.firstFrame)) {
+  if (!dry && !event.error && (event.prompt || event.firstFrame)) {
     const storyId = story.id
     const name = event.name
     void generateStoryVideo(story, name, event.prompt ?? {}, {

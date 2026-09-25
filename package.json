@@ -8,7 +8,8 @@
     "lint:fix": "oxlint -c .oxlintrc.json --fix",
     "fmt": "oxfmt -c .oxfmtrc.json",
     "fmt:check": "oxfmt -c .oxfmtrc.json --check",
-    "fix": "oxlint -c .oxlintrc.json --fix && oxfmt -c .oxfmtrc.json"
+    "fix": "oxlint -c .oxlintrc.json --fix && oxfmt -c .oxfmtrc.json",
+    "eval": "bun src/eval.ts"
   },
   "dependencies": {
     "yaml": "^2.9.1"

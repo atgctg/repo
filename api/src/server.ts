@@ -1,7 +1,7 @@
-import { turnResponse } from 'shared'
+import { isPlainObject, turnResponse } from 'shared'
 import { hasBody, storyKey, worldKey } from './assets'
 import { app } from './context'
-import { runEvalCase, listEvalRuns, setVerdict, type EvalVerdict } from './eval-runs'
+import { runEvalCase, listEvalRuns, setVerdict } from './eval-runs'
 import { assetContentType, safeAssetFile, safeStoryId } from './files'
 import { errorMessage } from './media'
 import {
@@ -17,26 +17,34 @@ import {
 import { llmMessages, reply } from './turn'
 import { listWorlds, loadWorld } from './worlds'
 
-function jsonError(error: unknown, status = 500): Response {
+function jsonError(error: unknown): Response {
   if (error instanceof StoryError) {
     return Response.json({ error: error.message }, { status: error.status })
   }
-  return Response.json({ error: errorMessage(error) }, { status })
+  return Response.json({ error: errorMessage(error) }, { status: 500 })
 }
 
-async function readJson(req: Request): Promise<unknown> {
+const notFound = () => new Response('Not found', { status: 404 })
+
+const badRequest = (error: string) => Response.json({ error }, { status: 400 })
+
+async function readJson(req: Request): Promise<Record<string, unknown>> {
   const text = await req.text()
   if (!text.trim()) return {}
-  return JSON.parse(text) as unknown
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    throw new StoryError('invalid json', 400)
+  }
+  return isPlainObject(parsed) ? parsed : {}
 }
 
 function readVoice(value: unknown): { audio: string; transcript: string } | undefined {
-  if (value === null || typeof value !== 'object' || Array.isArray(value))
-    return undefined
-  const voice = value as { audio?: unknown; transcript?: unknown }
-  if (typeof voice.audio !== 'string' || typeof voice.transcript !== 'string')
-    return undefined
-  return { audio: voice.audio, transcript: voice.transcript }
+  if (!isPlainObject(value)) return undefined
+  const { audio, transcript } = value
+  if (typeof audio !== 'string' || typeof transcript !== 'string') return undefined
+  return { audio, transcript }
 }
 
 function segment(value: string): string {
@@ -67,208 +75,81 @@ export async function handle(request: Request): Promise<Response> {
   const url = new URL(request.url)
   const parts = url.pathname.split('/').filter(Boolean).map(segment)
   try {
-    return await route(request.method, parts, request)
+    return await route(request, parts)
   } catch (error) {
     return jsonError(error)
   }
 }
 
-async function route(
-  method: string,
-  parts: string[],
-  request: Request,
-): Promise<Response> {
-  if (
-    method === 'GET' &&
-    parts.length === 2 &&
-    parts[0] === 'api' &&
-    parts[1] === 'worlds'
-  ) {
-    return Response.json(await listWorlds())
+async function route(request: Request, parts: string[]): Promise<Response> {
+  const [root = '', collection = '', id = '', action = ''] = parts
+  if (parts.length > 4) return notFound()
+  if (root === 'assets') {
+    if (request.method !== 'GET') return notFound()
+    if (parts.length === 4 && collection === 'worlds') {
+      return worldAsset(request, id, action)
+    }
+    return parts.length === 3 ? storyAsset(request, collection, id) : notFound()
   }
-  if (
-    method === 'GET' &&
-    parts.length === 3 &&
-    parts[0] === 'api' &&
-    parts[1] === 'worlds'
-  ) {
-    const world = await loadWorld(parts[2] ?? '')
-    if (!world) return new Response('Not found', { status: 404 })
-    return Response.json(world)
-  }
-  if (
-    method === 'POST' &&
-    parts.length === 4 &&
-    parts[0] === 'api' &&
-    parts[1] === 'worlds' &&
-    parts[3] === 'fork'
-  ) {
-    return fork(request, parts[2] ?? '')
-  }
-  if (
-    method === 'GET' &&
-    parts.length === 2 &&
-    parts[0] === 'api' &&
-    parts[1] === 'evals'
-  ) {
-    return Response.json(await listEvalRuns())
-  }
-  if (
-    method === 'POST' &&
-    parts.length === 4 &&
-    parts[0] === 'api' &&
-    parts[1] === 'evals' &&
-    parts[3] === 'run'
-  ) {
-    return turnResponse(async (send) => {
-      await runEvalCase(parts[2] ?? '', send, request.signal)
-    })
-  }
-  if (
-    method === 'GET' &&
-    parts.length === 2 &&
-    parts[0] === 'api' &&
-    parts[1] === 'stories'
-  ) {
-    return Response.json(await listStories())
-  }
-  if (parts.length === 4 && parts[0] === 'api' && parts[1] === 'stories') {
-    return storyAction(method, parts[2] ?? '', parts[3] ?? '', request)
-  }
-  if (
-    method === 'GET' &&
-    parts.length === 3 &&
-    parts[0] === 'api' &&
-    parts[1] === 'stories'
-  ) {
-    return storyJson(parts[2] ?? '')
-  }
-  if (
-    method === 'GET' &&
-    parts.length === 4 &&
-    parts[0] === 'assets' &&
-    parts[1] === 'worlds'
-  ) {
-    return worldAsset(request, parts[2] ?? '', parts[3] ?? '')
-  }
-  if (method === 'GET' && parts.length === 3 && parts[0] === 'assets') {
-    return storyAsset(request, parts[1] ?? '', parts[2] ?? '')
-  }
-  return new Response('Not found', { status: 404 })
-}
-
-async function fork(request: Request, worldId: string): Promise<Response> {
-  let body: unknown
-  try {
-    body = await readJson(request)
-  } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400 })
-  }
-  const requested =
-    body !== null &&
-    typeof body === 'object' &&
-    !Array.isArray(body) &&
-    typeof (body as { id?: unknown }).id === 'string'
-      ? (body as { id: string }).id
-      : undefined
-  try {
-    return Response.json(await forkWorld(worldId, requested))
-  } catch (error) {
-    return jsonError(error)
-  }
-}
-
-async function storyAction(
-  method: string,
-  id: string,
-  action: string,
-  request: Request,
-): Promise<Response> {
-  switch (action) {
-    case 'eval':
-      return method === 'POST'
-        ? setEval(request, id)
-        : new Response('Not found', { status: 404 })
-    case 'messages':
-      return method === 'GET' ? messages(id) : new Response('Not found', { status: 404 })
-    case 'turn':
-      return method === 'POST'
-        ? turn(request, id)
-        : new Response('Not found', { status: 404 })
-    case 'generate-image':
-      return method === 'POST'
-        ? generateImageRoute(request, id)
-        : new Response('Not found', { status: 404 })
-    case 'generate-video':
-      return method === 'POST'
-        ? generateVideoRoute(request, id)
-        : new Response('Not found', { status: 404 })
+  if (root !== 'api') return notFound()
+  const path = [collection, parts.length > 2 ? ':id' : '', action].filter(Boolean)
+  switch (`${request.method} ${path.join('/')}`) {
+    case 'GET worlds':
+      return Response.json(await listWorlds())
+    case 'GET worlds/:id': {
+      const world = await loadWorld(id)
+      return world ? Response.json(world) : notFound()
+    }
+    case 'POST worlds/:id/fork': {
+      const body = await readJson(request)
+      const requested = typeof body.id === 'string' ? body.id : undefined
+      return Response.json(await forkWorld(id, requested))
+    }
+    case 'GET evals':
+      return Response.json(await listEvalRuns())
+    case 'POST evals/:id/run':
+      return turnResponse((send) => runEvalCase(id, send, request.signal))
+    case 'GET stories':
+      return Response.json(await listStories())
+    case 'GET stories/:id':
+      return Response.json(await loadStory(id))
+    case 'GET stories/:id/messages': {
+      const story = await loadStory(id)
+      return Response.json(llmMessages(story.events, story.title))
+    }
+    case 'POST stories/:id/eval':
+      return setEval(request, id)
+    case 'POST stories/:id/turn':
+      return turn(request, id)
+    case 'POST stories/:id/generate-image':
+      return generateImageRoute(request, id)
+    case 'POST stories/:id/generate-video':
+      return generateVideoRoute(request, id)
     default:
-      return new Response('Not found', { status: 404 })
+      return notFound()
   }
 }
 
 async function setEval(request: Request, id: string): Promise<Response> {
-  let body: { verdict?: unknown }
-  try {
-    body = (await readJson(request)) as { verdict?: unknown }
-  } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400 })
-  }
-  const verdict = body.verdict
+  const { verdict } = await readJson(request)
   if (verdict !== null && verdict !== 'pass' && verdict !== 'fail') {
-    return Response.json(
-      { error: 'verdict must be pass, fail, or null' },
-      { status: 400 },
-    )
+    return badRequest('verdict must be pass, fail, or null')
   }
-  try {
-    await setVerdict(id, verdict as EvalVerdict | null)
-    return Response.json({ ok: true })
-  } catch (error) {
-    return jsonError(error)
-  }
-}
-
-async function messages(id: string): Promise<Response> {
-  try {
-    const story = await loadStory(id)
-    return Response.json(llmMessages(story.events, story.title))
-  } catch (error) {
-    return jsonError(error)
-  }
-}
-
-async function storyJson(id: string): Promise<Response> {
-  try {
-    return Response.json(await loadStory(id))
-  } catch (error) {
-    return jsonError(error)
-  }
+  await setVerdict(id, verdict)
+  return Response.json({ ok: true })
 }
 
 async function turn(request: Request, id: string): Promise<Response> {
-  if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
-  let body: {
-    text?: unknown
-    at?: unknown
-    selected?: unknown
-    pasted?: unknown
-    voice?: unknown
-  }
-  try {
-    body = (await readJson(request)) as typeof body
-  } catch {
-    return Response.json({ error: 'invalid json' }, { status: 400 })
-  }
+  if (!(await storyExists(id))) return notFound()
+  const body = await readJson(request)
   if (typeof body.text !== 'string' || !body.text.trim()) {
-    return Response.json({ error: 'text is required' }, { status: 400 })
+    return badRequest('text is required')
   }
   if (
     body.at !== undefined &&
     (typeof body.at !== 'number' || !Number.isInteger(body.at) || body.at < 0)
   ) {
-    return Response.json({ error: 'at must be an index' }, { status: 400 })
+    return badRequest('at must be an index')
   }
   const text = body.text
   const at = typeof body.at === 'number' ? body.at : undefined
@@ -284,31 +165,21 @@ async function turn(request: Request, id: string): Promise<Response> {
   })
 }
 
-async function generateImageRoute(request: Request, id: string): Promise<Response> {
-  if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
-  const body = (await request.json()) as { name?: unknown }
+function assetName(body: Record<string, unknown>): string {
   if (typeof body.name !== 'string' || !body.name.trim()) {
-    return Response.json({ error: 'name is required' }, { status: 400 })
+    throw new StoryError('name is required', 400)
   }
-  try {
-    const result = await generateImage(id, { name: body.name.trim() })
-    return Response.json(result)
-  } catch (error) {
-    console.error('img gen error', {
-      storyId: id,
-      name: body.name.trim(),
-      error: error instanceof Error ? error.message : String(error),
-    })
-    return jsonError(error)
-  }
+  return body.name.trim()
+}
+
+async function generateImageRoute(request: Request, id: string): Promise<Response> {
+  const name = assetName(await readJson(request))
+  return Response.json(await generateImage(id, { name }))
 }
 
 async function generateVideoRoute(request: Request, id: string): Promise<Response> {
-  if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
-  const body = (await request.json()) as { name?: unknown; duration?: unknown }
-  if (typeof body.name !== 'string' || !body.name.trim()) {
-    return Response.json({ error: 'name is required' }, { status: 400 })
-  }
+  const body = await readJson(request)
+  const name = assetName(body)
   const duration = body.duration === undefined ? 5 : body.duration
   if (
     typeof duration !== 'number' ||
@@ -316,25 +187,10 @@ async function generateVideoRoute(request: Request, id: string): Promise<Respons
     duration < 5 ||
     duration > 15
   ) {
-    return Response.json(
-      { error: 'duration must be an integer from 5 to 15' },
-      { status: 400 },
-    )
+    return badRequest('duration must be an integer from 5 to 15')
   }
-  try {
-    const result = await generateVideo(id, { name: body.name.trim(), duration })
-    return Response.json(result)
-  } catch (error) {
-    console.error('video gen error', {
-      storyId: id,
-      name: body.name.trim(),
-      error: error instanceof Error ? error.message : String(error),
-    })
-    return jsonError(error)
-  }
+  return Response.json(await generateVideo(id, { name, duration }))
 }
-
-const notFound = () => new Response('Not found', { status: 404 })
 
 async function worldAsset(
   request: Request,

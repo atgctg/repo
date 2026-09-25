@@ -4,7 +4,14 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "drizzle-orm": "^0.45.3",
+    "pg": "^8.23.0",
     "shared": "workspace:*",
     "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11"
   }
 }

@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from 'bun:test'
-import { useDatabase } from './db'
+import { useMemoryDatabase } from './memory-db'
 import {
   assetFileName,
   assetUrl,
@@ -10,8 +10,8 @@ import {
 import { forkWorld, loadStory, saveTiming, StoryError } from './stories'
 import { listWorlds, loadWorld } from './worlds'
 
-beforeAll(() => {
-  useDatabase(':memory:')
+beforeAll(async () => {
+  await useMemoryDatabase()
 })
 
 test('kept worlds are seeds', async () => {

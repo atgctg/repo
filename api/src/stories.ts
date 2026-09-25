@@ -11,8 +11,10 @@ import {
   type TurnTiming,
   isTurnTiming,
 } from 'shared'
-import { database, type StoryRow } from './db'
+import { desc, eq } from 'drizzle-orm'
+import { database } from './db'
 import { parseEvents } from './events'
+import { stories as storyTable } from './schema'
 import { assetFileName, assetUrl, resolveAssetPath, speechFileName } from './files'
 import { errorMessage, generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
@@ -61,25 +63,30 @@ export function changeStory<T>(
   return next
 }
 
+type StoryRow = typeof storyTable.$inferSelect
+
 export async function forkWorld(worldId: string, requestedId?: string): Promise<Story> {
   const world = await loadWorld(worldId)
   if (!world) throw new StoryError('World not found', 404)
-  const id = requestedId === undefined ? uniqueStoryId(world.id) : requestedId.trim()
+  const id =
+    requestedId === undefined ? await uniqueStoryId(world.id) : requestedId.trim()
   if (!ID_PATTERN.test(id)) throw new StoryError('id is invalid', 400)
-  const existing = rowById(id)
+  const existing = await rowById(id)
   if (existing) {
     if (existing.world !== world.id) throw new StoryError('id is in use', 409)
     return hydrate(existing)
   }
-  const now = Date.now()
+  const now = new Date()
   const events = leadCards(structuredClone(world.events))
-  database()
-    .query(
-      `INSERT INTO stories (id, world, title, events, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    )
-    .run(id, world.id, world.title, JSON.stringify(events), now, now)
-  const created = rowById(id)
+  await database().insert(storyTable).values({
+    id,
+    world: world.id,
+    title: world.title,
+    events,
+    createdAt: now,
+    updatedAt: now,
+  })
+  const created = await rowById(id)
   if (!created) throw new StoryError('Story was not saved', 500)
   return hydrate(created)
 }
@@ -88,51 +95,54 @@ export async function saveEvalStory(
   caseName: string,
   events: StoryEvent[],
 ): Promise<string> {
-  const id = uniqueStoryId(caseName)
-  const now = Date.now()
+  const id = await uniqueStoryId(caseName)
+  const now = new Date()
   const world = (await matchWorld(events)) ?? 'eval'
-  database()
-    .query(
-      `INSERT INTO stories (id, world, title, events, created_at, updated_at, case_name)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .run(id, world, caseName, JSON.stringify(events), now, now, caseName)
+  await database().insert(storyTable).values({
+    id,
+    world,
+    title: caseName,
+    events,
+    createdAt: now,
+    updatedAt: now,
+    caseName,
+  })
   return id
 }
 
-function uniqueStoryId(worldId: string): string {
+async function uniqueStoryId(worldId: string): Promise<string> {
   for (let attempt = 0; attempt < 8; attempt++) {
     const id = storyId(worldId)
-    if (!rowById(id)) return id
+    if (!(await rowById(id))) return id
   }
   throw new StoryError('id is in use', 409)
 }
 
-export function storyExists(id: string): boolean {
-  return rowById(id) !== undefined
+export async function storyExists(id: string): Promise<boolean> {
+  return (await rowById(id)) !== undefined
 }
 
-export function storyWorld(id: string): string | undefined {
-  return rowById(id)?.world
+export async function storyWorld(id: string): Promise<string | undefined> {
+  return (await rowById(id))?.world
 }
 
 export async function listStories(): Promise<StorySummary[]> {
-  const rows = database()
-    .query<StoryRow, []>(
-      'SELECT id, world, title, events, created_at, updated_at, case_name, passed, timing FROM stories ORDER BY updated_at DESC',
-    )
-    .all()
+  const rows = await database()
+    .select()
+    .from(storyTable)
+    .orderBy(desc(storyTable.updatedAt))
   const stories: StorySummary[] = []
   for (const row of rows) {
     const story = await hydrate(row)
     let world = story.world
-    if (row.case_name && world === 'eval') {
+    if (row.caseName && world === 'eval') {
       const matched = await matchWorld(story.events)
       if (matched) {
         world = matched
-        database()
-          .query('UPDATE stories SET world = ? WHERE id = ?')
-          .run(matched, story.id)
+        await database()
+          .update(storyTable)
+          .set({ world: matched })
+          .where(eq(storyTable.id, story.id))
       }
     }
     const cover = getStoryCover(story)
@@ -143,26 +153,25 @@ export async function listStories(): Promise<StorySummary[]> {
       updatedAt: story.updatedAt,
       preview: historyPreview(story.events),
       ...(cover ? { cover } : {}),
-      ...(row.case_name ? { case: row.case_name } : {}),
+      ...(row.caseName ? { case: row.caseName } : {}),
     })
   }
   return stories
 }
 
 export async function loadStory(id: string): Promise<Story> {
-  const row = rowById(id)
+  const row = await rowById(id)
   if (!row) throw new StoryError('Story not found', 404)
   return hydrate(row)
 }
 
-function rowById(id: string): StoryRow | undefined {
-  return (
-    database()
-      .query<StoryRow, [string]>(
-        'SELECT id, world, title, events, created_at, updated_at, case_name, passed, timing FROM stories WHERE id = ?',
-      )
-      .get(id) ?? undefined
-  )
+async function rowById(id: string): Promise<StoryRow | undefined> {
+  const rows = await database()
+    .select()
+    .from(storyTable)
+    .where(eq(storyTable.id, id))
+    .limit(1)
+  return rows[0]
 }
 
 async function hydrate(row: StoryRow): Promise<Story> {
@@ -170,8 +179,8 @@ async function hydrate(row: StoryRow): Promise<Story> {
     id: row.id,
     world: row.world,
     title: row.title,
-    createdAt: new Date(row.created_at).toISOString(),
-    updatedAt: new Date(row.updated_at).toISOString(),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
     events: readEvents(row.events),
     scenes: [],
     assets: [],
@@ -182,9 +191,10 @@ async function hydrate(row: StoryRow): Promise<Story> {
   return story
 }
 
-function readEvents(raw: string): StoryEvent[] {
+function readEvents(raw: unknown): StoryEvent[] {
   try {
-    return leadCards(parseEvents(JSON.parse(raw) as unknown))
+    const value = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw
+    return leadCards(parseEvents(value))
   } catch {
     return []
   }
@@ -237,29 +247,23 @@ async function attachFiles(story: Story): Promise<void> {
   }
 }
 
-export function saveTiming(id: string, timing: TurnTiming): void {
-  database()
-    .query('UPDATE stories SET timing = ? WHERE id = ?')
-    .run(JSON.stringify(timing), id)
+export async function saveTiming(id: string, timing: TurnTiming): Promise<void> {
+  await database().update(storyTable).set({ timing }).where(eq(storyTable.id, id))
 }
 
-function timingOf(raw: string | null): { timing: TurnTiming } | undefined {
-  if (!raw) return undefined
-  try {
-    const parsed = JSON.parse(raw) as unknown
-    return isTurnTiming(parsed) ? { timing: parsed } : undefined
-  } catch {
-    return undefined
-  }
+function timingOf(raw: TurnTiming | null): { timing: TurnTiming } | undefined {
+  if (!raw || !isTurnTiming(raw)) return undefined
+  return { timing: raw }
 }
 
 export async function persistStory(story: Story): Promise<void> {
   story.events = leadCards(story.events)
-  const updated = Date.now()
-  story.updatedAt = new Date(updated).toISOString()
-  database()
-    .query('UPDATE stories SET title = ?, events = ?, updated_at = ? WHERE id = ?')
-    .run(story.title, JSON.stringify(story.events), updated, story.id)
+  const updated = new Date()
+  story.updatedAt = updated.toISOString()
+  await database()
+    .update(storyTable)
+    .set({ title: story.title, events: story.events, updatedAt: updated })
+    .where(eq(storyTable.id, story.id))
 }
 
 function assetByName(story: Story, name: string): Asset | undefined {

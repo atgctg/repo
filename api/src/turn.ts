@@ -187,14 +187,14 @@ export async function reply(
     })
     const endedAt = Date.now()
     const timing = turnTiming({ ...clock, startedAt, endedAt })
-    saveTiming(storyId, timing)
+    await saveTiming(storyId, timing)
     emit({ type: 'done', ms: endedAt - startedAt, timing })
     return story
   } catch (error) {
     if (isAbort(error)) {
       const endedAt = Date.now()
       const timing = turnTiming({ ...clock, startedAt, endedAt })
-      saveTiming(storyId, timing)
+      await saveTiming(storyId, timing)
       emit({ type: 'done', ms: endedAt - startedAt, timing })
       return loadStory(storyId)
     }

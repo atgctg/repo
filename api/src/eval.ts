@@ -1,6 +1,8 @@
+import { asc, eq, isNotNull } from 'drizzle-orm'
 import { project, type InputEvent, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
 import { database } from './db'
+import { evals, stories as storyTable } from './schema'
 import { parseEvents } from './events'
 import { oneLine } from './eval-card'
 import { replayEvents } from './turn'
@@ -199,50 +201,47 @@ export type EvalRun = {
   verdict: EvalVerdict | null
 }
 
-type EvalRow = {
-  id: string
-  case_name: string
-  passed: number | null
-}
-
-function verdictOf(passed: number | null): EvalVerdict | null {
-  if (passed === 1) return 'pass'
-  if (passed === 0) return 'fail'
+function verdictOf(passed: boolean | null): EvalVerdict | null {
+  if (passed === true) return 'pass'
+  if (passed === false) return 'fail'
   return null
 }
 
 export async function listEvalRuns(): Promise<EvalRun[]> {
-  const descriptions = new Map<string, string>()
-  for (const name of await listCases()) {
-    try {
-      descriptions.set(name, oneLine((await loadCase(name)).description))
-    } catch {
-      descriptions.set(name, '')
-    }
-  }
-  const rows = database()
-    .query<EvalRow, []>(
-      `SELECT id, case_name, passed FROM stories
-       WHERE case_name IS NOT NULL ORDER BY created_at ASC`,
-    )
-    .all()
-  return rows.map((row) => ({
-    id: row.id,
-    caseName: row.case_name,
-    description: descriptions.get(row.case_name) ?? '',
-    verdict: verdictOf(row.passed),
-  }))
+  const cases = await database().select().from(evals)
+  const descriptions = new Map(cases.map((row) => [row.name, oneLine(row.description)]))
+  const rows = await database()
+    .select({
+      id: storyTable.id,
+      caseName: storyTable.caseName,
+      passed: storyTable.passed,
+    })
+    .from(storyTable)
+    .where(isNotNull(storyTable.caseName))
+    .orderBy(asc(storyTable.createdAt))
+  return rows.flatMap((row) => {
+    if (!row.caseName) return []
+    return [
+      {
+        id: row.id,
+        caseName: row.caseName,
+        description: descriptions.get(row.caseName) ?? '',
+        verdict: verdictOf(row.passed),
+      },
+    ]
+  })
 }
 
-export function setVerdict(id: string, verdict: EvalVerdict | null): void {
-  const row = database()
-    .query<{ case_name: string | null }, [string]>(
-      'SELECT case_name FROM stories WHERE id = ?',
-    )
-    .get(id)
-  if (!row?.case_name) throw new StoryError('Eval not found', 404)
-  const passed = verdict === 'pass' ? 1 : verdict === 'fail' ? 0 : null
-  database().query('UPDATE stories SET passed = ? WHERE id = ?').run(passed, id)
+export async function setVerdict(id: string, verdict: EvalVerdict | null): Promise<void> {
+  const rows = await database()
+    .select({ caseName: storyTable.caseName })
+    .from(storyTable)
+    .where(eq(storyTable.id, id))
+    .limit(1)
+  const row = rows[0]
+  if (!row?.caseName) throw new StoryError('Eval not found', 404)
+  const passed = verdict === 'pass' ? true : verdict === 'fail' ? false : null
+  await database().update(storyTable).set({ passed }).where(eq(storyTable.id, id))
 }
 
 async function main(): Promise<void> {

@@ -15,7 +15,8 @@
     "fmt": "oxfmt -c .oxfmtrc.json",
     "fmt:check": "oxfmt -c .oxfmtrc.json --check",
     "fix": "oxlint -c .oxlintrc.json --fix && oxfmt -c .oxfmtrc.json",
-    "eval": "bun api/src/eval.ts"
+    "eval": "bun api/src/eval.ts",
+    "db:migrate": "bun scripts/migrate.ts"
   },
   "devDependencies": {
     "bun-types": "^1.3.14",

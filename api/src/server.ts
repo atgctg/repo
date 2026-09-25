@@ -11,6 +11,7 @@ import {
   forkWorld,
 } from './stories'
 import { llmMessages, reply } from './turn'
+import { openDatabase, useDatabase } from './db'
 import { resolveAssetPath, safeAssetFile, safeStoryId, worldAssetPath } from './files'
 import { listEvalRuns, setVerdict, type EvalVerdict } from './eval'
 import { loadWorld, listWorlds, worldExists } from './worlds'
@@ -51,6 +52,14 @@ function readVoice(value: unknown): { audio: string; transcript: string } | unde
     return undefined
   return { audio: voice.audio, transcript: voice.transcript }
 }
+
+const connectionString = process.env.DATABASE_URL
+if (!connectionString) {
+  console.error('DATABASE_URL is required')
+  process.exit(1)
+}
+const opened = await openDatabase(connectionString)
+useDatabase(opened.db)
 
 const server = Bun.serve({
   port: Number(process.env.PORT ?? 3000),
@@ -113,7 +122,7 @@ const server = Bun.serve({
           )
         }
         try {
-          setVerdict(req.params.id, verdict as EvalVerdict | null)
+          await setVerdict(req.params.id, verdict as EvalVerdict | null)
           return Response.json({ ok: true })
         } catch (error) {
           return jsonError(error)
@@ -122,7 +131,8 @@ const server = Bun.serve({
     },
     '/api/stories/:id/messages': {
       GET: async (req) => {
-        if (!storyExists(req.params.id)) return new Response('Not found', { status: 404 })
+        if (!(await storyExists(req.params.id)))
+          return new Response('Not found', { status: 404 })
         try {
           const story = await loadStory(req.params.id)
           return Response.json(llmMessages(story.events, story.title))
@@ -133,7 +143,8 @@ const server = Bun.serve({
     },
     '/api/stories/:id': {
       GET: async (req) => {
-        if (!storyExists(req.params.id)) return new Response('Not found', { status: 404 })
+        if (!(await storyExists(req.params.id)))
+          return new Response('Not found', { status: 404 })
         try {
           return Response.json(await loadStory(req.params.id))
         } catch (error) {
@@ -144,7 +155,7 @@ const server = Bun.serve({
     '/api/stories/:id/turn': {
       POST: async (req) => {
         const { id } = req.params
-        if (!storyExists(id)) return new Response('Not found', { status: 404 })
+        if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
         let body: {
           text?: unknown
           at?: unknown
@@ -190,7 +201,7 @@ const server = Bun.serve({
     '/api/stories/:id/generate-image': {
       POST: async (req) => {
         const { id } = req.params
-        if (!storyExists(id)) return new Response('Not found', { status: 404 })
+        if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
         const body = (await req.json()) as { name?: unknown }
         if (typeof body.name !== 'string' || !body.name.trim()) {
           return Response.json({ error: 'name is required' }, { status: 400 })
@@ -211,7 +222,7 @@ const server = Bun.serve({
     '/api/stories/:id/generate-video': {
       POST: async (req) => {
         const { id } = req.params
-        if (!storyExists(id)) return new Response('Not found', { status: 404 })
+        if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
         const body = (await req.json()) as { name?: unknown; duration?: unknown }
         if (typeof body.name !== 'string' || !body.name.trim()) {
           return Response.json({ error: 'name is required' }, { status: 400 })
@@ -261,7 +272,7 @@ const server = Bun.serve({
         const storyId = safeStoryId(req.params.storyId)
         const file = req.params.file
         if (!safeAssetFile(file)) return new Response('Not found', { status: 404 })
-        const worldId = storyWorld(storyId)
+        const worldId = await storyWorld(storyId)
         if (!worldId) return new Response('Not found', { status: 404 })
         const diskPath = await resolveAssetPath(storyId, worldId, file)
         if (!diskPath) return new Response('Not found', { status: 404 })

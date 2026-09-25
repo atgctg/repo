@@ -145,6 +145,7 @@ const styles = stylex.create({
     color: tokens.textMid,
   },
   stats: {
+    alignSelf: 'flex-start',
     margin: '0.35rem 0 0 1.25rem',
     borderCollapse: 'collapse',
     color: tokens.muted,

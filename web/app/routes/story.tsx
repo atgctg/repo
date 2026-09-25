@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { data, useParams } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { Studio } from '~/components/studio'
-import { prefetchIndex, ensureStory, hasEntry, useStory } from '~/lib/store'
+import { prefetchIndex, ensureStory, useStory } from '~/lib/store'
 import { ui } from '~/styles/ui'
 import type { Route } from './+types/story'
 
@@ -16,8 +16,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<
   const id = params.id
   if (!id) throw data(null, { status: 404 })
   prefetchIndex()
-  if (!hasEntry(id)) await ensureStory(id)
-  if (!hasEntry(id)) throw data(null, { status: 404 })
+  if (!(await ensureStory(id))) throw data(null, { status: 404 })
   return null
 }
 

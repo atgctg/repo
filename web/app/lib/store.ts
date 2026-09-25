@@ -175,22 +175,13 @@ function entryFrom(story: Story, prev?: Entry): Entry {
 }
 
 function publishStory(story: Story, version?: number): void {
-  const prev = readCache(story.id)
-  publishEntry(entryFrom(story, prev?.entry), undefined, version ?? prev?.version ?? 0)
+  publishEntry(entryFrom(story, readCache(story.id)?.entry), undefined, version)
 }
 
 async function fetchStoryCache(id: string): Promise<StoryCache | null> {
   const story = await fetchStory(id)
   if (!story) return null
   return { entry: entryFrom(story), version: 0 }
-}
-
-async function fetchWorldCache(id: string): Promise<WorldSource | null> {
-  return (await fetchWorld(id)) ?? null
-}
-
-export function hasEntry(id: string): boolean {
-  return Boolean(readCache(id))
 }
 
 export function useWorlds(): World[] {
@@ -240,7 +231,7 @@ export async function ensureIndex(): Promise<void> {
   for (const world of worlds) {
     void queryClient.prefetchQuery({
       queryKey: worldKey(world.id),
-      queryFn: () => fetchWorldCache(world.id),
+      queryFn: async () => (await fetchWorld(world.id)) ?? null,
     })
   }
 }

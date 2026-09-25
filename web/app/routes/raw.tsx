@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { data } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
+import { isPlainObject } from 'shared'
 import { fetchMessages, type RawMessage } from '~/lib/api'
-import { prefetchIndex, ensureStory, hasEntry } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 import type { Route } from './+types/raw'
@@ -51,14 +51,8 @@ const styles = stylex.create({
 export async function clientLoader({
   params,
 }: Route.ClientLoaderArgs): Promise<RawMessage[]> {
-  const id = params.id
-  if (!id) throw data(null, { status: 404 })
-  prefetchIndex()
-  const [, messages] = await Promise.all([
-    hasEntry(id) ? Promise.resolve() : ensureStory(id),
-    fetchMessages(id),
-  ])
-  if (!hasEntry(id) || !messages) throw data(null, { status: 404 })
+  const messages = params.id ? await fetchMessages(params.id) : undefined
+  if (!messages) throw data(null, { status: 404 })
   return messages
 }
 
@@ -66,10 +60,6 @@ clientLoader.hydrate = true as const
 
 export function HydrateFallback(): ReactNode {
   return <p {...stylex.props(ui.muted, styles.note)}>Loading</p>
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
 function parsedArguments(value: unknown): unknown {
@@ -84,7 +74,7 @@ function parsedArguments(value: unknown): unknown {
 function prettyCalls(value: unknown): unknown {
   if (!Array.isArray(value)) return value
   return value.map((call) => {
-    if (!isRecord(call) || !isRecord(call.function)) return call
+    if (!isPlainObject(call) || !isPlainObject(call.function)) return call
     return {
       ...call,
       function: { ...call.function, arguments: parsedArguments(call.function.arguments) },

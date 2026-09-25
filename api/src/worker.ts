@@ -79,11 +79,7 @@ export default {
     if (!adminOk(request, env.ADMIN_PASSWORD)) {
       return new Response('Unauthorized', { status: 401 })
     }
-    const connectionString = env.HYPERDRIVE.connectionString
-    if (!connectionString) {
-      return Response.json({ error: 'HYPERDRIVE is not configured' }, { status: 500 })
-    }
-    const opened = await openDatabase(connectionString)
+    const opened = await openDatabase(env.HYPERDRIVE.connectionString)
     const background: Promise<unknown>[] = []
     try {
       const response = await enterApp(

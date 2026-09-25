@@ -16,7 +16,7 @@
     "fmt:check": "oxfmt -c .oxfmtrc.json --check",
     "fix": "oxlint -c .oxlintrc.json --fix && oxfmt -c .oxfmtrc.json",
     "typecheck": "tsc -p tsconfig.json && cd web && bun run typecheck",
-    "eval": "bun api/src/eval.ts",
+    "eval": "bun api/scripts/eval.ts",
     "db:migrate": "bun api/scripts/migrate.ts",
     "db:import": "bun api/scripts/import.ts"
   },

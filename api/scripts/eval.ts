@@ -6,12 +6,12 @@ import {
   type StoryEvent,
 } from 'shared'
 import { parse, stringify } from 'yaml'
-import { memoryAssets } from './assets'
-import { useApp } from './context'
-import { openDatabase } from './db'
-import { parseEvents } from './events'
-import { replayEvents } from './turn'
-import { saveEvalStory } from './stories'
+import { memoryAssets } from '../src/assets'
+import { useApp } from '../src/context'
+import { openDatabase } from '../src/db'
+import { parseEvents } from '../src/events'
+import { replayEvents } from '../src/turn'
+import { saveEvalStory } from '../src/stories'
 
 const DIR = `${import.meta.dir}/../evals`
 const WORLDS = `${DIR}/worlds`
@@ -237,7 +237,7 @@ async function main(): Promise<void> {
     console.error('DATABASE_URL is required')
     process.exit(1)
   }
-  const opened = await openDatabase(connectionString)
+  const opened = await openDatabase(nodeDatabaseUrl(connectionString))
   useApp({
     db: opened.db,
     assets: memoryAssets(),

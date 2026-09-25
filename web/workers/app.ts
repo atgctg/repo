@@ -8,15 +8,11 @@ const requestHandler = createRequestHandler(
 const API_ORIGIN = 'http://127.0.0.1:3000'
 const COOKIE = 'verse_admin'
 
-type ApiBinding = {
-  fetch: (request: Request) => Promise<Response>
-}
-
 type Env = {
-  API?: ApiBinding
+  API: { fetch: (request: Request) => Promise<Response> }
 }
 
-function isAssetPath(pathname: string): boolean {
+function isApiPath(pathname: string): boolean {
   return (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/assets/') ||
@@ -70,35 +66,17 @@ function loginPage(message?: string): Response {
   )
 }
 
-async function callApi(request: Request, env: Env): Promise<Response> {
-  if (import.meta.env.DEV || !env.API) {
-    const url = new URL(request.url)
-    const target = new URL(`${url.pathname}${url.search}`, API_ORIGIN)
-    return fetch(new Request(target, request))
-  }
-  return env.API.fetch(request)
+function callApi(request: Request, env: Env): Promise<Response> {
+  if (!import.meta.env.DEV) return env.API.fetch(request)
+  const url = new URL(request.url)
+  return fetch(new Request(new URL(`${url.pathname}${url.search}`, API_ORIGIN), request))
 }
 
-async function proxyApi(request: Request, env: Env, password: string): Promise<Response> {
+function proxyApi(request: Request, env: Env, password: string): Promise<Response> {
   const headers = new Headers(request.headers)
   headers.set('Authorization', `Bearer ${password}`)
   headers.delete('host')
-  const method = request.method
-  const init: RequestInit & { duplex?: 'half' } = {
-    method,
-    headers,
-    redirect: 'manual',
-  }
-  if (method !== 'GET' && method !== 'HEAD') {
-    init.body = request.body
-    init.duplex = 'half'
-  }
-  const url = new URL(request.url)
-  if (import.meta.env.DEV || !env.API) {
-    const target = new URL(`${url.pathname}${url.search}`, API_ORIGIN)
-    return fetch(new Request(target, init))
-  }
-  return env.API.fetch(new Request(request.url, init))
+  return callApi(new Request(request, { headers, redirect: 'manual' }), env)
 }
 
 async function login(request: Request, env: Env): Promise<Response> {
@@ -131,11 +109,10 @@ export default {
     if (url.pathname === '/login' && request.method === 'POST') return login(request, env)
     const password = readPassword(request)
     if (!password) {
-      if (isAssetPath(url.pathname)) return new Response('Unauthorized', { status: 401 })
-      if (request.method === 'GET') return loginPage()
+      if (request.method === 'GET' && !isApiPath(url.pathname)) return loginPage()
       return new Response('Unauthorized', { status: 401 })
     }
-    if (isAssetPath(url.pathname)) return proxyApi(request, env, password)
+    if (isApiPath(url.pathname)) return proxyApi(request, env, password)
     return requestHandler(request)
   },
 }

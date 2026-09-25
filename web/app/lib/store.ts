@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { lastUserText, leadCards, storyId } from 'shared'
+import { historyPreview, leadCards, storyId } from 'shared'
 import type {
   Speech,
   Story,
@@ -125,7 +125,7 @@ function summaryFor(entry: Entry, cover?: string, caseName?: string): StorySumma
     world: entry.world,
     title: entry.title,
     updatedAt: entry.updatedAt,
-    preview: lastUserText(entry.events),
+    preview: historyPreview(entry.events),
     ...(cover ? { cover } : {}),
     ...(caseName ? { case: caseName } : {}),
   }

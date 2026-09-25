@@ -32,6 +32,40 @@ export async function listWorlds(): Promise<World[]> {
     .sort((a, b) => a.title.localeCompare(b.title))
 }
 
+export async function matchWorld(events: StoryEvent[]): Promise<string | undefined> {
+  const files = Array.from(new Bun.Glob('*.yaml').scanSync(WORLDS_DIR))
+  let bestId: string | undefined
+  let best = 0
+  const cards = new Set(
+    events.flatMap((event) => (event.type === 'card' ? [event.name] : [])),
+  )
+  for (const file of files) {
+    const world = await loadWorld(file.replace(/\.yaml$/, ''))
+    if (!world) continue
+    const prefix = sharedPrefix(world.events, events)
+    const overlap = world.events.filter(
+      (event) => event.type === 'card' && cards.has(event.name),
+    ).length
+    const score = prefix > 0 ? prefix : overlap
+    if (score > best) {
+      best = score
+      bestId = world.id
+    }
+  }
+  return bestId
+}
+
+function sharedPrefix(worldEvents: StoryEvent[], events: StoryEvent[]): number {
+  const limit = Math.min(worldEvents.length, events.length)
+  let count = 0
+  while (
+    count < limit &&
+    JSON.stringify(worldEvents[count]) === JSON.stringify(events[count])
+  )
+    count += 1
+  return count
+}
+
 export async function worldExists(id: string): Promise<boolean> {
   return Bun.file(worldPath(id)).exists()
 }

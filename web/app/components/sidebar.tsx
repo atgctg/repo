@@ -12,15 +12,22 @@ const styles = stylex.create({
     height: '100%',
     minHeight: 0,
     minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
     backgroundColor: tokens.bg,
   },
   viewport: {
     height: '100%',
+    width: '100%',
+    maxWidth: '100%',
   },
   content: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.15rem',
+    width: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
     padding: '0.5rem 0.4rem 1.5rem',
   },
   empty: {
@@ -33,6 +40,10 @@ const styles = stylex.create({
     alignItems: 'center',
     gap: '0.6rem',
     width: '100%',
+    maxWidth: '100%',
+    minWidth: 0,
+    overflow: 'hidden',
+    boxSizing: 'border-box',
     textAlign: 'left',
     padding: '0.4rem 0.45rem',
     borderRadius: '0.7rem',
@@ -67,21 +78,25 @@ const styles = stylex.create({
   },
   text: {
     minWidth: 0,
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
   time: {
     flex: 'none',
+    marginLeft: 'auto',
     color: tokens.muted,
     fontSize: tokens.textXs,
   },
-  evals: {
-    marginTop: '0.75rem',
-    padding: '0.45rem 0.65rem',
+  label: {
+    marginTop: '0.85rem',
+    padding: '0.35rem 0.65rem 0.15rem',
     color: tokens.muted,
-    fontSize: tokens.textSm,
+    fontSize: tokens.textXs,
+    fontWeight: 600,
   },
 })
 
@@ -108,12 +123,17 @@ function HistoryRow({
 }
 
 export function Sidebar(): ReactNode {
-  const stories = useStoryList().filter((story) => import.meta.env.DEV || !story.case)
+  const listed = useStoryList()
+  const stories = listed.filter((story) => !story.case)
+  const evals = listed.filter((story) => story.case)
   const params = useParams()
   return (
     <ScrollArea.Root {...stylex.props(styles.root)}>
       <ScrollArea.Viewport {...stylex.props(styles.viewport)}>
-        <ScrollArea.Content {...stylex.props(styles.content)}>
+        <ScrollArea.Content
+          {...stylex.props(styles.content)}
+          style={{ minWidth: 0, width: '100%' }}
+        >
           {stories.length === 0 ? (
             <p {...stylex.props(styles.empty)}>No stories yet</p>
           ) : (
@@ -122,9 +142,22 @@ export function Sidebar(): ReactNode {
             ))
           )}
           {import.meta.env.DEV ? (
-            <NavLink to="/evals" {...stylex.props(styles.evals)}>
-              Evals
-            </NavLink>
+            <>
+              <NavLink to="/evals" {...stylex.props(styles.label)}>
+                Evals
+              </NavLink>
+              {evals.length === 0 ? (
+                <p {...stylex.props(styles.empty)}>No eval runs</p>
+              ) : (
+                evals.map((story) => (
+                  <HistoryRow
+                    key={story.id}
+                    story={story}
+                    active={params.id === story.id}
+                  />
+                ))
+              )}
+            </>
           ) : null}
         </ScrollArea.Content>
       </ScrollArea.Viewport>

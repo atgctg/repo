@@ -1,6 +1,6 @@
 import { stringify } from 'yaml'
 import {
-  lastUserText,
+  historyPreview,
   leadCards,
   project,
   storyId,
@@ -14,7 +14,7 @@ import { database, type StoryRow } from './db'
 import { parseEvents } from './events'
 import { assetFileName, assetUrl, resolveAssetPath, speechFileName } from './files'
 import { errorMessage, generateStoryImage, generateStoryVideo } from './media'
-import { loadWorld } from './worlds'
+import { loadWorld, matchWorld } from './worlds'
 
 const storyWrites = new Map<string, Promise<void>>()
 
@@ -89,12 +89,13 @@ export async function saveEvalStory(
 ): Promise<string> {
   const id = uniqueStoryId(caseName)
   const now = Date.now()
+  const world = (await matchWorld(events)) ?? 'eval'
   database()
     .query(
       `INSERT INTO stories (id, world, title, events, created_at, updated_at, case_name, passed)
-       VALUES (?, 'eval', ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(id, caseName, JSON.stringify(events), now, now, caseName, passed ? 1 : 0)
+    .run(id, world, caseName, JSON.stringify(events), now, now, caseName, passed ? 1 : 0)
   return id
 }
 
@@ -123,13 +124,23 @@ export async function listStories(): Promise<StorySummary[]> {
   const stories: StorySummary[] = []
   for (const row of rows) {
     const story = await hydrate(row)
+    let world = story.world
+    if (row.case_name && world === 'eval') {
+      const matched = await matchWorld(story.events)
+      if (matched) {
+        world = matched
+        database()
+          .query('UPDATE stories SET world = ? WHERE id = ?')
+          .run(matched, story.id)
+      }
+    }
     const cover = getStoryCover(story)
     stories.push({
       id: story.id,
-      world: story.world,
+      world,
       title: story.title,
       updatedAt: story.updatedAt,
-      preview: lastUserText(story.events),
+      preview: historyPreview(story.events),
       ...(cover ? { cover } : {}),
       ...(row.case_name ? { case: row.case_name } : {}),
     })

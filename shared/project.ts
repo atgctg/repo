@@ -10,6 +10,17 @@ export function lastUserText(events: StoryEvent[]): string {
   return ''
 }
 
+export function historyPreview(events: StoryEvent[]): string {
+  const line = lastUserText(events)
+  if (line) return line
+  for (let index = events.length - 1; index >= 0; index--) {
+    const event = events[index]
+    if (event?.type === 'dialogue' && event.caption?.trim())
+      return event.caption.replace(/\s+/g, ' ').trim()
+  }
+  return ''
+}
+
 export function leadCards(events: StoryEvent[]): StoryEvent[] {
   const cut = events.findIndex((event) => event.user)
   const head = cut < 0 ? events : events.slice(0, cut)

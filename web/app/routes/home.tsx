@@ -10,7 +10,7 @@ import { ui } from '~/styles/ui'
 const styles = stylex.create({
   studio: {
     display: 'grid',
-    gridTemplateColumns: '14rem minmax(0, 1fr)',
+    gridTemplateColumns: 'minmax(0, 14rem) minmax(0, 1fr)',
     height: '100dvh',
     minHeight: 0,
     backgroundColor: tokens.bg,

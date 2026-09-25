@@ -43,6 +43,10 @@ const styles = stylex.create({
     color: tokens.text,
     fontSize: tokens.textSm,
   },
+  idle: {
+    color: tokens.muted,
+    fontWeight: 500,
+  },
 })
 
 export async function clientLoader(): Promise<EvalStat[]> {
@@ -65,23 +69,29 @@ export default function EvalRoute({ loaderData }: Route.ComponentProps): ReactNo
       {loaderData.length === 0 ? (
         <p {...stylex.props(styles.back)}>No eval runs</p>
       ) : null}
-      {loaderData.map((item) => (
-        <section key={item.name} {...stylex.props(styles.case)}>
-          <h2 {...stylex.props(styles.stat)}>
-            {item.name}{' '}
-            <span {...stylex.props(styles.count)}>
-              {item.passed}/{item.total}
-            </span>
+      {loaderData.map((item) =>
+        item.total === 0 ? (
+          <h2 key={item.name} {...stylex.props(styles.stat, styles.idle)}>
+            {item.name} <span>not run</span>
           </h2>
-          <div {...stylex.props(styles.runs)}>
-            {item.runs.map((run) => (
-              <Link key={run.id} to={`/${run.id}`} {...stylex.props(styles.run)}>
-                {ago(run.createdAt, now)}
-              </Link>
-            ))}
-          </div>
-        </section>
-      ))}
+        ) : (
+          <section key={item.name} {...stylex.props(styles.case)}>
+            <h2 {...stylex.props(styles.stat)}>
+              {item.name}{' '}
+              <span {...stylex.props(styles.count)}>
+                {item.passed}/{item.total}
+              </span>
+            </h2>
+            <div {...stylex.props(styles.runs)}>
+              {item.runs.map((run) => (
+                <Link key={run.id} to={`/${run.id}`} {...stylex.props(styles.run)}>
+                  {ago(run.createdAt, now)}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ),
+      )}
     </main>
   )
 }

@@ -69,6 +69,13 @@ const styles = stylex.create({
   note: {
     padding: '2rem',
   },
+  ok: {
+    margin: 0,
+    color: tokens.muted,
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+    fontSize: '0.75rem',
+    lineHeight: 1.45,
+  },
 })
 
 export async function clientLoader({
@@ -96,12 +103,62 @@ function Title({ title }: { title: string }): null {
   return null
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function parsedArguments(value: unknown): unknown {
+  if (typeof value !== 'string') return value
+  try {
+    return JSON.parse(value) as unknown
+  } catch {
+    return value
+  }
+}
+
+function prettyCalls(value: unknown): unknown {
+  if (!Array.isArray(value)) return value
+  return value.map((call) => {
+    if (!isRecord(call) || !isRecord(call.function)) return call
+    return {
+      ...call,
+      function: { ...call.function, arguments: parsedArguments(call.function.arguments) },
+    }
+  })
+}
+
+type RawRow =
+  | { kind: 'message'; message: RawMessage; key: number }
+  | { kind: 'ok'; count: number; key: number }
+
+function rawRows(messages: RawMessage[]): RawRow[] {
+  const rows: RawRow[] = []
+  let count = 0
+  let start = 0
+  const flush = (): void => {
+    if (count === 0) return
+    rows.push({ kind: 'ok', count, key: start })
+    count = 0
+  }
+  for (const [index, message] of messages.entries()) {
+    if (message.role === 'tool' && message.content === 'ok') {
+      if (count === 0) start = index
+      count += 1
+      continue
+    }
+    flush()
+    rows.push({ kind: 'message', message, key: index })
+  }
+  flush()
+  return rows
+}
+
 function Message({ message }: { message: RawMessage }): ReactNode {
   const text = message.role === 'tool' ? undefined : message.content
   const json =
     message.role === 'tool'
       ? { tool_call_id: message.tool_call_id, content: message.content }
-      : message.tool_calls
+      : prettyCalls(message.tool_calls)
   return (
     <article {...stylex.props(styles.message)}>
       <h2 {...stylex.props(styles.role)}>{message.role}</h2>
@@ -136,9 +193,15 @@ export default function RawRoute({ loaderData }: Route.ComponentProps): ReactNod
         </button>
       </header>
       <div {...stylex.props(styles.list)}>
-        {loaderData.map((message, index) => (
-          <Message key={index} message={message} />
-        ))}
+        {rawRows(loaderData).map((row) =>
+          row.kind === 'ok' ? (
+            <p key={row.key} {...stylex.props(styles.ok)}>
+              tool ×{row.count}: ok
+            </p>
+          ) : (
+            <Message key={row.key} message={row.message} />
+          ),
+        )}
       </div>
     </main>
   )

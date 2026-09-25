@@ -1,10 +1,10 @@
 import {
+  coverUrl,
   historyPreview,
   leadCards,
   project,
   storyId,
   type Asset,
-  type Scene,
   type Story,
   type StoryEvent,
   type StorySummary,
@@ -15,9 +15,9 @@ import { desc, eq } from 'drizzle-orm'
 import { database } from './db'
 import { parseEvents } from './events'
 import { stories as storyTable } from './schema'
-import { listAssetKeys, pickAssetKey, storyAssetKeys } from './assets'
+import { listAssetKeys, pickAssetUrl, storyAssetKeys } from './assets'
 import { app } from './context'
-import { assetFileName, assetUrl, speechFileName } from './files'
+import { assetFileName, speechFileName } from './files'
 import { generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
 import { findWorld } from './worlds'
@@ -126,7 +126,7 @@ export async function listStories(): Promise<StorySummary[]> {
   ])
   return rows.map((row) => {
     const story = hydrateWith(row, keys)
-    const cover = getStoryCover(story)
+    const cover = coverUrl(story)
     return {
       id: story.id,
       world: story.world,
@@ -177,47 +177,14 @@ function hydrateWith(row: StoryRow, keys: Set<string>): Story {
 }
 
 function readEvents(raw: unknown): StoryEvent[] {
-  try {
-    const value = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw
-    return leadCards(parseEvents(value))
-  } catch {
-    return []
-  }
-}
-
-export function getStoryCover(story: Story): string | undefined {
-  for (const scene of story.scenes) {
-    const name = sceneImageName(scene)
-    if (!name) continue
-    const found = story.assets.find(
-      (asset) => asset.name.toLowerCase() === name.toLowerCase(),
-    )
-    if (found?.url && found.type === 'image') return found.url
-  }
-  return undefined
-}
-
-function sceneImageName(scene: Scene): string | undefined {
-  switch (scene.type) {
-    case 'image':
-      return scene.name
-    case 'dialogue':
-    case 'message':
-      return scene.background
-    case 'video':
-      return undefined
-    default: {
-      const _exhaustive: never = scene
-      return _exhaustive
-    }
-  }
+  return leadCards(parseEvents(raw))
 }
 
 function attachFiles(story: Story, keys: Set<string>): void {
   story.assets = story.assets.map((asset) => {
     const file = assetFileName(asset.name, asset.type)
-    const key = pickAssetKey(keys, story.id, story.world, file)
-    return key ? { ...asset, url: assetUrl(story.id, asset.name, asset.type) } : asset
+    const url = pickAssetUrl(keys, story.id, story.world, file)
+    return url ? { ...asset, url } : asset
   })
   for (const scene of story.scenes) {
     if (scene.type !== 'dialogue' || !scene.caption || !scene.speaker) continue
@@ -226,7 +193,7 @@ function attachFiles(story: Story, keys: Set<string>): void {
     )?.voice
     if (!voice) continue
     const key = speechFileName(voice, scene.caption)
-    if (pickAssetKey(keys, story.id, story.world, key)) scene.speech = { key }
+    if (pickAssetUrl(keys, story.id, story.world, key)) scene.speech = { key }
   }
 }
 

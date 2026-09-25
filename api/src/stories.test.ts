@@ -3,7 +3,7 @@ import { listEvalWorlds } from '../scripts/eval'
 import { adminOk } from './auth'
 import { resolveAssetKey, storyKey, worldKey } from './assets'
 import { app } from './context'
-import { assetFileName, assetUrl } from './files'
+import { assetFileName, storyAssetUrl, worldAssetUrl } from './files'
 import { useMemoryDatabase } from './memory-db'
 import { handle } from './server'
 import { forkWorld, loadStory, saveTiming, StoryError } from './stories'
@@ -66,10 +66,12 @@ test('a story asset wins over the world asset', async () => {
   const name = 'Rosa At Desk'
   const image = assetFileName(name, 'image')
   await store.put(worldKey('noir', image), new TextEncoder().encode('rosa'), jpeg)
-  const loaded = await loadStory(story.id)
-  const asset = loaded.assets.find((item) => item.name === name)
-  expect(asset?.url).toBe(assetUrl(story.id, name, 'image'))
+  const urlOf = async () =>
+    (await loadStory(story.id)).assets.find((item) => item.name === name)?.url
+  expect(await urlOf()).toBe(worldAssetUrl('noir', image))
   expect(await store.head(storyKey(story.id, image))).toBeNull()
+  await store.put(storyKey(story.id, image), new TextEncoder().encode('own'), jpeg)
+  expect(await urlOf()).toBe(storyAssetUrl(story.id, image))
 })
 
 test('asset routes fall back from the story to its world', async () => {

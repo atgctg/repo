@@ -1,4 +1,4 @@
-import { safeStoryId } from './files'
+import { safeStoryId, storyAssetUrl, worldAssetUrl } from './files'
 
 export type AssetHead = {
   httpEtag: string
@@ -84,17 +84,15 @@ export function storyAssetKeys(
   )
 }
 
-export function pickAssetKey(
+export function pickAssetUrl(
   keys: Set<string>,
   storyId: string,
   worldId: string,
   file: string,
 ): string | undefined {
-  const own = storyKey(storyId, file)
-  if (keys.has(own)) return own
-  if (!worldId) return undefined
-  const shared = worldKey(worldId, file)
-  return keys.has(shared) ? shared : undefined
+  if (keys.has(storyKey(storyId, file))) return storyAssetUrl(storyId, file)
+  if (worldId && keys.has(worldKey(worldId, file))) return worldAssetUrl(worldId, file)
+  return undefined
 }
 
 export async function resolveAssetKey(

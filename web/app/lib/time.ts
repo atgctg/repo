@@ -6,12 +6,10 @@ export function timingRows(timing: TurnTiming): [string, string][] {
     ['ttft', seconds(timing.ttft)],
     ['total', seconds(timing.total)],
     ['t/s', timing.tps.toFixed(2)],
-    ...timing.images.map(
-      (value, index): [string, string] => [
-        timing.images.length > 1 ? `img ${index + 1}` : 'img',
-        seconds(value),
-      ],
-    ),
+    ...timing.images.map((value, index): [string, string] => [
+      timing.images.length > 1 ? `img ${index + 1}` : 'img',
+      seconds(value),
+    ]),
   ]
 }
 

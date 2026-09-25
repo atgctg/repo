@@ -113,11 +113,16 @@ async function insertStory(prefix: string, story: NewStory): Promise<StoryRow> {
 }
 
 export async function storyExists(id: string): Promise<boolean> {
-  return (await rowById(id)) !== undefined
+  return (await storyWorld(id)) !== undefined
 }
 
 export async function storyWorld(id: string): Promise<string | undefined> {
-  return (await rowById(id))?.world
+  const rows = await database()
+    .select({ world: storyTable.world })
+    .from(storyTable)
+    .where(eq(storyTable.id, id))
+    .limit(1)
+  return rows[0]?.world
 }
 
 export async function listStories(): Promise<StorySummary[]> {

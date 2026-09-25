@@ -18,7 +18,7 @@ const styles = stylex.create({
     overflow: 'auto',
     containerType: 'inline-size',
     containerName: 'stage',
-    padding: '0.25rem',
+    padding: '0.25rem 0.75rem',
   },
   play: {
     position: 'absolute',

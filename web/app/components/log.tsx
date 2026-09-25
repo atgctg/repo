@@ -99,6 +99,7 @@ const styles = stylex.create({
   },
   copy: {
     margin: 0,
+    flex: '1 1 auto',
     minWidth: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -134,6 +135,11 @@ const styles = stylex.create({
     minWidth: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: tokens.textMid,
+  },
+  speaker: {
+    flexShrink: 0,
     whiteSpace: 'nowrap',
     color: tokens.textMid,
   },
@@ -306,7 +312,7 @@ function FoldRow({
           ) : icon ? (
             <Icon name={icon} />
           ) : null}
-          <span {...stylex.props(styles.label)}>{lead}</span>
+          <span {...stylex.props(copy ? styles.speaker : styles.label)}>{lead}</span>
           {copy && !open ? <p {...stylex.props(styles.copy)}>{copy}</p> : null}
         </Collapsible.Trigger>
         <Collapsible.Panel>

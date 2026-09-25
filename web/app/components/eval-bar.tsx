@@ -33,35 +33,40 @@ const styles = stylex.create({
     position: 'absolute',
     left: '50%',
     bottom: '1.25rem',
-    zIndex: 4,
+    zIndex: 20,
+    isolation: 'isolate',
     transform: 'translateX(-50%)',
     display: 'flex',
-    gap: '0.35rem',
-    padding: '0.35rem',
+    gap: '0.4rem',
+    padding: '0.5rem',
     borderRadius: tokens.radiusPill,
     backgroundColor: tokens.bg,
-    boxShadow: '0 10px 32px rgba(0, 0, 0, 0.14)',
   },
   button: {
     borderRadius: tokens.radiusPill,
-    padding: '0.45rem 0.95rem',
-    backgroundColor: tokens.chip,
-    fontSize: tokens.textSm,
-    fontWeight: 600,
+    padding: '0.6rem 1.15rem',
+    backgroundColor: 'transparent',
+    fontSize: tokens.textMd,
+    fontWeight: 400,
     lineHeight: 1.2,
+    color: tokens.text,
+    ':hover': {
+      backgroundColor: tokens.chip,
+    },
   },
   done: {
     position: 'absolute',
     left: '50%',
     bottom: '1.25rem',
-    zIndex: 4,
+    zIndex: 20,
+    isolation: 'isolate',
     transform: 'translateX(-50%)',
-    padding: '0.5rem 0.85rem',
+    padding: '0.65rem 1.1rem',
     borderRadius: tokens.radiusPill,
     backgroundColor: tokens.bg,
-    boxShadow: '0 10px 32px rgba(0, 0, 0, 0.14)',
     color: tokens.muted,
-    fontSize: tokens.textSm,
+    fontSize: tokens.textMd,
+    fontWeight: 400,
   },
   tip: {
     borderRadius: '0.35rem',
@@ -205,7 +210,7 @@ function HudButton({
         {label}
       </Tooltip.Trigger>
       <Tooltip.Portal>
-        <Tooltip.Positioner side="top" sideOffset={8}>
+        <Tooltip.Positioner side="top" sideOffset={8} style={{ zIndex: 30 }}>
           <Tooltip.Popup {...stylex.props(styles.tip)}>{shortcut}</Tooltip.Popup>
         </Tooltip.Positioner>
       </Tooltip.Portal>

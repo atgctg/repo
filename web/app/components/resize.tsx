@@ -14,22 +14,31 @@ const styles = stylex.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    boxSizing: 'content-box',
-    width: '2px',
-    paddingLeft: '5px',
-    paddingRight: '5px',
+    width: '12px',
     zIndex: 5,
     touchAction: 'none',
-    backgroundClip: 'content-box',
-    backgroundColor: 'transparent',
+    '::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      left: '50%',
+      width: '2px',
+      transform: 'translateX(-50%)',
+      backgroundColor: 'transparent',
+    },
     ':hover': {
       cursor: 'col-resize',
+    },
+    ':hover::before': {
       backgroundColor: line,
     },
   },
   hot: {
     cursor: 'col-resize',
-    backgroundColor: line,
+    '::before': {
+      backgroundColor: line,
+    },
   },
 })
 
@@ -115,7 +124,11 @@ export function ResizeEdge({
       aria-orientation="vertical"
       aria-valuenow={Math.round(width)}
       {...stylex.props(styles.edge, hot && styles.hot)}
-      style={side === 'left' ? { left: width - 6 } : { right: width - 6 }}
+      style={
+        side === 'left'
+          ? { left: width, transform: 'translateX(-50%)' }
+          : { right: width, transform: 'translateX(50%)' }
+      }
       onPointerDown={down}
       onPointerMove={move}
       onPointerUp={up}

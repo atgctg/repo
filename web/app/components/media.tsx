@@ -278,22 +278,22 @@ export function StageMedia({
 }
 
 const BLURS = [
-  { blur: '0.5px', mask: 'linear-gradient(to bottom, transparent 0%, #000 46%)' },
+  { blur: '4px', mask: 'linear-gradient(to bottom, transparent 0%, #000 36%)' },
   {
-    blur: '1px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 10%, #000 56%)',
+    blur: '10px',
+    mask: 'linear-gradient(to bottom, transparent 0%, transparent 10%, #000 48%)',
   },
   {
-    blur: '2px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 22%, #000 68%)',
+    blur: '20px',
+    mask: 'linear-gradient(to bottom, transparent 0%, transparent 22%, #000 62%)',
   },
   {
-    blur: '4px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 36%, #000 82%)',
+    blur: '36px',
+    mask: 'linear-gradient(to bottom, transparent 0%, transparent 34%, #000 78%)',
   },
   {
-    blur: '8px',
-    mask: 'linear-gradient(to bottom, transparent 0%, transparent 50%, #000 100%)',
+    blur: '56px',
+    mask: 'linear-gradient(to bottom, transparent 0%, transparent 46%, #000 92%)',
   },
 ] as const
 
@@ -315,7 +315,7 @@ const blurLayers = stylex.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: '40%',
+    height: '72%',
     zIndex: 1,
     overflow: 'hidden',
     pointerEvents: 'none',
@@ -334,14 +334,14 @@ const blurLayers = stylex.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    top: '-60%',
+    top: '-40%',
     bottom: 0,
   },
   shade: {
     position: 'absolute',
     inset: 0,
     backgroundImage:
-      'linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.04) 42%, rgb(0 0 0 / 0.48) 100%)',
+      'linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.06) 38%, rgb(0 0 0 / 0.62) 100%)',
   },
 })
 

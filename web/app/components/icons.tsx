@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Image,
   Mic,
+  LayoutGrid,
   Pause,
   Play,
   PlayingCard,
@@ -32,6 +33,7 @@ export type IconName =
   | 'card'
   | 'pointer'
   | 'raw'
+  | 'grid'
   | 'stop'
 
 const styles = stylex.create({
@@ -80,6 +82,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   mic: Mic,
   pointer: SquareDashedMousePointer,
   raw: SquareDashedText,
+  grid: LayoutGrid,
   stop: Square,
 }
 

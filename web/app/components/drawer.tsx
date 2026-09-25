@@ -62,7 +62,7 @@ export function SceneDrawer({ story, scene }: { story: Story; scene: Scene }): R
       <ScrollArea.Viewport {...stylex.props(styles.viewport)}>
         <ScrollArea.Content {...stylex.props(styles.content)}>
           <div {...stylex.props(styles.bar)}>
-            {canPrompt(asset) && asset ? (
+            {scene.type !== 'message' && canPrompt(asset) && asset ? (
               <GenerateButton
                 storyId={story.id}
                 name={asset.name}

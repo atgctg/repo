@@ -24,7 +24,7 @@ const styles = stylex.create({
     overflow: 'auto',
     containerType: 'inline-size',
     containerName: 'stage',
-    padding: '0.25rem',
+    padding: '0.25rem 0.15rem',
   },
   play: {
     position: 'absolute',
@@ -53,7 +53,7 @@ const styles = stylex.create({
   },
   home: {
     minHeight: '100dvh',
-    padding: '1.25rem 0.75rem 1.25rem 0.25rem',
+    padding: '1.25rem 0.75rem 1.25rem 0.15rem',
   },
   section: {
     display: 'flex',

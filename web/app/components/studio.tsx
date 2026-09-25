@@ -60,8 +60,7 @@ const styles = stylex.create({
     gap: '0.2rem',
     boxSizing: 'border-box',
     height: '2.25rem',
-    minWidth: '3.75rem',
-    padding: '0 0.55rem',
+    padding: '0 0.7rem',
     borderRadius: tokens.radiusPill,
     color: tokens.muted,
     backgroundColor: 'transparent',
@@ -73,9 +72,6 @@ const styles = stylex.create({
   },
   toolOn: {
     color: tokens.accent,
-  },
-  albums: {
-    transform: 'rotate(90deg)',
   },
   chat: {
     gridColumn: '1',
@@ -162,9 +158,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
           {...stylex.props(styles.tool, onCards && styles.toolOn)}
           onClick={() => show(onCards ? `/${story.id}` : `/${story.id}/cards`)}
         >
-          <span {...stylex.props(styles.albums)}>
-            <Icon name="albums" size="lg" />
-          </span>
+          <Icon name="albums" size="lg" />
           <span>{story.cards.length}</span>
         </Button>
         <Button

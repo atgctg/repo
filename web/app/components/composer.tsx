@@ -36,6 +36,11 @@ const styles = stylex.create({
       backgroundColor: tokens.bg,
     },
   },
+  tight: {
+    alignItems: 'center',
+    gap: '0.4rem',
+    padding: '0.3625rem 1.25rem',
+  },
   count: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -70,9 +75,10 @@ const styles = stylex.create({
     justifyContent: 'center',
     flex: 'none',
     padding: 0,
+    margin: 0,
+    border: 'none',
     color: 'inherit',
-    fontSize: '1.15rem',
-    lineHeight: 1,
+    lineHeight: 0,
   },
   clip: {
     overflow: 'hidden',
@@ -115,7 +121,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
 
   return (
     <form {...stylex.props(styles.wrap)} onSubmit={onSubmit}>
-      <div {...stylex.props(ui.pillow)}>
+      <div {...stylex.props(ui.pillow, selected.length > 0 && styles.tight)}>
         <textarea
           data-composer=""
           rows={1}
@@ -139,7 +145,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
                 {...stylex.props(styles.mark)}
                 onClick={() => clearSelection(storyId)}
               >
-                ×
+                <Icon name="close" size="lg" />
               </button>
             ) : (
               <span {...stylex.props(styles.mark)}>

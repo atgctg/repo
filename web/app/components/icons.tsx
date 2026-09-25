@@ -1,4 +1,20 @@
 import type { ReactNode, SVGProps } from 'react'
+import {
+  ArrowLeft,
+  Braces,
+  GalleryHorizontalEnd,
+  Image,
+  Mic,
+  MousePointer2,
+  Pause,
+  Play,
+  RefreshCw,
+  Square,
+  Trash,
+  User,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import * as stylex from '@stylexjs/stylex'
 
 export type IconName =
@@ -20,16 +36,23 @@ const styles = stylex.create({
   icon: {
     width: '1rem',
     height: '1rem',
+    minWidth: '1rem',
+    minHeight: '1rem',
     display: 'block',
     flexShrink: 0,
+    aspectRatio: '1',
   },
   md: {
     width: '1.25rem',
     height: '1.25rem',
+    minWidth: '1.25rem',
+    minHeight: '1.25rem',
   },
   lg: {
     width: '1.5rem',
     height: '1.5rem',
+    minWidth: '1.5rem',
+    minHeight: '1.5rem',
   },
   spin: {
     animationName: stylex.keyframes({
@@ -41,27 +64,25 @@ const styles = stylex.create({
   },
 })
 
-const PATHS: Record<IconName, ReactNode> = {
-  back: <path d="M14.5 6.5 8.5 12l6 5.5" />,
-  close: <path d="M7 7l10 10M17 7 7 17" />,
-  play: <path d="M9 7.2v9.6l8.2-4.8L9 7.2Z" fill="currentColor" stroke="none" />,
-  pause: (
-    <path d="M8.5 7h2.2v10H8.5zm4.8 0H15.5v10h-2.2z" fill="currentColor" stroke="none" />
-  ),
-  refresh: <path d="M19.2 12a7.2 7.2 0 1 1-2.1-5.1M19.2 4.8v4.2h-4.2" />,
-  albums: <path d="M8 7.5h11v9H8zM6 9.2v7.2M4 10.8v5.2" />,
-  image: <path d="M5 6.5h14v11H5zM5 14.5l3.2-3.2L12 15l2-2 5 4.5" />,
-  trash: <path d="M5.5 8h13M9.2 8V6.2h5.6V8M8.2 8l.8 10.2h6l.8-10.2" />,
-  person: (
-    <path d="M12 12.2a3.1 3.1 0 1 0-3.1-3.1A3.1 3.1 0 0 0 12 12.2Zm-5.6 5.6a5.6 5.6 0 0 1 11.2 0" />
-  ),
-  mic: (
-    <path d="M12 4.2a2.4 2.4 0 0 0-2.4 2.4v4.8a2.4 2.4 0 0 0 4.8 0V6.6A2.4 2.4 0 0 0 12 4.2ZM8 11.2a4 4 0 0 0 8 0M12 15.2v3.6" />
-  ),
-  pointer: <path d="M7.5 4.2 16.2 12l-3.4.7 3.2 5.2-1.7 1.1-3.2-5.1-3.6 3.2Z" />,
-  raw: <path d="M9 8.2 6.2 12 9 15.8M15 8.2 17.8 12 15 15.8M13.1 7l-2.2 10" />,
-  stop: <path d="M8 8h8v8H8z" fill="currentColor" stroke="none" />,
+const ICONS: Record<IconName, LucideIcon> = {
+  back: ArrowLeft,
+  close: X,
+  play: Play,
+  pause: Pause,
+  refresh: RefreshCw,
+  albums: GalleryHorizontalEnd,
+  image: Image,
+  trash: Trash,
+  person: User,
+  mic: Mic,
+  pointer: MousePointer2,
+  raw: Braces,
+  stop: Square,
 }
+
+const PX = { sm: 16, md: 20, lg: 24 } as const
+
+const FILLED = new Set<IconName>(['play', 'pause', 'pointer', 'stop'])
 
 export function Icon({
   name,
@@ -72,8 +93,8 @@ export function Icon({
   size?: 'sm' | 'md' | 'lg'
   spin?: boolean
 }): ReactNode {
-  const filled =
-    name === 'play' || name === 'pause' || name === 'pointer' || name === 'stop'
+  const Glyph = ICONS[name]
+  const filled = FILLED.has(name)
   const svg = stylex.props(
     styles.icon,
     size === 'md' && styles.md,
@@ -81,17 +102,12 @@ export function Icon({
     spin && styles.spin,
   )
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
+    <Glyph
+      size={PX[size]}
+      strokeWidth={filled ? 0 : 1.75}
       fill={filled ? 'currentColor' : 'none'}
-      stroke={filled ? 'none' : 'currentColor'}
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      aria-hidden
       {...(svg as SVGProps<SVGSVGElement>)}
-    >
-      {PATHS[name]}
-    </svg>
+    />
   )
 }

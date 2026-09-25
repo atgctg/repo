@@ -95,27 +95,15 @@
   padding: 0 1rem 1rem;
 }
 
-@container stage (min-width: 26.25rem) {
+@container stage (min-width: 40rem) {
   .tile-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@container stage (min-width: 43.75rem) {
+@container stage (min-width: 70rem) {
   .tile-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@container stage (min-width: 60rem) {
-  .tile-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@container stage (min-width: 80rem) {
-  .tile-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 

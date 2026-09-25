@@ -268,6 +268,13 @@ export function StageMedia({
   )
 }
 
+const SOFT_MASK =
+  'linear-gradient(to bottom, rgb(0 0 0 / 0.62) 0%, rgb(0 0 0 / 0.78) 50%, #000 100%)'
+const MID_MASK =
+  'linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0%, rgb(0 0 0 / 0.34) 32%, rgb(0 0 0 / 0.62) 64%, #000 100%)'
+const DEEP_MASK =
+  'linear-gradient(to bottom, rgb(0 0 0 / 0.04) 0%, rgb(0 0 0 / 0.18) 36%, rgb(0 0 0 / 0.48) 68%, #000 100%)'
+
 const blurLayers = stylex.create({
   stack: {
     position: 'absolute',
@@ -281,25 +288,42 @@ const blurLayers = stylex.create({
     height: '100%',
     objectFit: 'cover',
   },
-  veil: {
+  layer: {
     position: 'absolute',
-    inset: '-12%',
-    width: '124%',
-    height: '124%',
-    objectFit: 'cover',
+    inset: 0,
+    overflow: 'hidden',
     pointerEvents: 'none',
   },
+  veil: {
+    position: 'absolute',
+    top: '-22%',
+    left: '-22%',
+    width: '144%',
+    height: '144%',
+    maxWidth: 'none',
+    maxHeight: 'none',
+    objectFit: 'cover',
+  },
   soft: {
-    filter: 'blur(0.55rem)',
-    maskImage: 'linear-gradient(to bottom, transparent 0%, #000 62%)',
+    maskImage: SOFT_MASK,
+    WebkitMaskImage: SOFT_MASK,
   },
   mid: {
-    filter: 'blur(1.35rem)',
-    maskImage: 'linear-gradient(to bottom, transparent 28%, #000 80%)',
+    maskImage: MID_MASK,
+    WebkitMaskImage: MID_MASK,
   },
   deep: {
-    filter: 'blur(2.75rem)',
-    maskImage: 'linear-gradient(to bottom, transparent 55%, #000 100%)',
+    maskImage: DEEP_MASK,
+    WebkitMaskImage: DEEP_MASK,
+  },
+  softBlur: {
+    filter: 'blur(0.7rem)',
+  },
+  midBlur: {
+    filter: 'blur(1.65rem)',
+  },
+  deepBlur: {
+    filter: 'blur(3.4rem)',
   },
 })
 
@@ -307,9 +331,15 @@ export function ProgressiveMedia({ url }: { url: string }): ReactNode {
   return (
     <div {...stylex.props(blurLayers.stack)}>
       <img src={url} alt="" {...stylex.props(blurLayers.base)} />
-      <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.soft)} />
-      <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.mid)} />
-      <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.deep)} />
+      <div {...stylex.props(blurLayers.layer, blurLayers.soft)}>
+        <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.softBlur)} />
+      </div>
+      <div {...stylex.props(blurLayers.layer, blurLayers.mid)}>
+        <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.midBlur)} />
+      </div>
+      <div {...stylex.props(blurLayers.layer, blurLayers.deep)}>
+        <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.deepBlur)} />
+      </div>
     </div>
   )
 }
@@ -342,6 +372,10 @@ const tileStyles = stylex.create({
   live: {
     pointerEvents: 'auto',
     zIndex: 4,
+  },
+  scrimFade: {
+    backgroundImage:
+      'linear-gradient(to top, oklch(0 0 0 / 0.4), oklch(0 0 0 / 0.08) 62%, transparent 100%)',
   },
   footer: {
     position: 'absolute',
@@ -462,7 +496,11 @@ export function Tile({
           />
         )
       ) : null}
-      {washed ? <div {...stylex.props(ui.scrim)} /> : null}
+      {progressive && media ? (
+        <div {...stylex.props(ui.scrim, tileStyles.scrimFade)} />
+      ) : washed ? (
+        <div {...stylex.props(ui.scrim)} />
+      ) : null}
       {blurred && !heavy && !progressive ? (
         <div {...stylex.props(ui.scrim, ui.scrimFlat)} />
       ) : null}

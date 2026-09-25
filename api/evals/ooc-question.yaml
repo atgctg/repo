@@ -1,0 +1,5 @@
+name: ooc-question
+description: An out-of-character question gets a plain answer and no scenes.
+world: cafe
+input:
+  text: '[how old is Mei again?]'

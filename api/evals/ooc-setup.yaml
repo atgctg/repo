@@ -1,0 +1,5 @@
+name: ooc-setup
+description: A question about the setup gets a plain answer and no scenes.
+world: noir
+input:
+  text: '(wait, what city are we in?)'

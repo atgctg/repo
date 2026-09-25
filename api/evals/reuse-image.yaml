@@ -1,0 +1,5 @@
+name: reuse-image
+description: An existing image is reused when it fits the scene.
+world: cafe
+input:
+  text: Yes please, the usual.

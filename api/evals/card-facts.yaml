@@ -1,0 +1,5 @@
+name: card-facts
+description: Characters use the facts on their cards.
+world: noir
+input:
+  text: Start from the top. Full name, where you're from.

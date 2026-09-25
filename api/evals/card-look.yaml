@@ -1,0 +1,5 @@
+name: card-look
+description: Image prompts use the look from the character's card.
+world: camp
+input:
+  text: Wren climbs the tallest pine to look for their trail.

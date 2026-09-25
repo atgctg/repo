@@ -1,0 +1,5 @@
+name: your-line-action
+description: The user's line with an action is not repeated or reworded.
+world: cafe
+input:
+  text: '*slides a coin across the counter* Surprise me today.'

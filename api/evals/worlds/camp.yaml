@@ -1,0 +1,37 @@
+title: Ashwood
+events:
+  - type: card
+    name: Style
+    attributes:
+      Style: Ink wash fantasy illustration
+      Palette: Muted pine greens, warm firelight
+  - type: card
+    name: Camp
+    attributes:
+      Place: Clearing in a pine forest at night
+      Light: One campfire, everything past it in darkness
+  - type: card
+    name: Kael
+    cover: Kael
+    attributes:
+      Role: Mercenary
+      Look: Broad, shaved head, brown leather armor, two short swords
+  - type: card
+    name: Wren
+    cover: Wren
+    attributes:
+      Role: Scout
+      Look: Short silver hair, green hooded cloak, scar over left eye, longbow
+      Relationship: Rival of Kael, travels with him only for the contract
+  - type: image
+    name: Camp Wide
+    prompt:
+      Scene: Campfire in a pine clearing at night, Kael sharpening a sword, Wren leaning on a tree
+  - type: image
+    name: Wren By Tree
+    prompt:
+      Scene: Wren leaning on a pine, arms crossed, firelight on her scar
+  - type: dialogue
+    background: Wren By Tree
+    speaker: Wren
+    caption: Kael, you take first watch.

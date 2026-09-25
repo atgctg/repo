@@ -1,31 +1,127 @@
-import { project, type StoryEvent } from 'shared'
+import { project, type InputEvent, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
 import { database } from './db'
+import { parseEvents } from './events'
 import { oneLine } from './eval-card'
 import { replayEvents } from './turn'
 import { saveEvalStory, StoryError } from './stories'
 
 const DIR = `${import.meta.dir}/../evals`
+const WORLDS = `${DIR}/worlds`
+
+const EVENT_KEYS: Record<string, readonly string[]> = {
+  input: ['type', 'text', 'selected', 'pasted', 'voice', 'error'],
+  output: ['type', 'text', 'error'],
+  image: [
+    'type',
+    'name',
+    'prompt',
+    'width',
+    'height',
+    'dominantColor',
+    'references',
+    'index',
+    'replace',
+    'error',
+  ],
+  dialogue: ['type', 'background', 'caption', 'speaker', 'index', 'replace', 'error'],
+  video: [
+    'type',
+    'name',
+    'prompt',
+    'width',
+    'height',
+    'dominantColor',
+    'references',
+    'firstFrame',
+    'lastFrame',
+    'duration',
+    'index',
+    'replace',
+    'error',
+  ],
+  card: ['type', 'name', 'cover', 'voice', 'attributes', 'error'],
+  delete: ['type', 'indices', 'error'],
+}
 
 export type CaseFile = {
   description: string
+  world: string
   events: StoryEvent[]
-  model: StoryEvent[]
+  input: { text: string; selected?: number[] }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function strictEvents(raw: unknown, label: string): StoryEvent[] {
+  if (!Array.isArray(raw)) throw new Error(`${label} needs events`)
+  for (const [index, item] of raw.entries()) {
+    if (!isRecord(item) || typeof item.type !== 'string')
+      throw new Error(`${label} event ${index} does not fit the event types`)
+    const allowed = EVENT_KEYS[item.type]
+    if (!allowed)
+      throw new Error(`${label} event ${index} type ${item.type} does not fit`)
+    for (const key of Object.keys(item)) {
+      if (!allowed.includes(key))
+        throw new Error(`${label} event ${index} field ${key} does not fit`)
+    }
+  }
+  const parsed = parseEvents(raw)
+  if (parsed.length !== raw.length)
+    throw new Error(`${label} has an event that does not fit the event types`)
+  return parsed
+}
+
+function readInput(raw: unknown, name: string): CaseFile['input'] {
+  if (!isRecord(raw)) throw new Error(`${name} needs input`)
+  for (const key of Object.keys(raw)) {
+    if (key !== 'text' && key !== 'selected')
+      throw new Error(`${name} input.${key} does not fit`)
+  }
+  if (typeof raw.text !== 'string') throw new Error(`${name} input needs text`)
+  if (raw.selected === undefined) return { text: raw.text }
+  if (
+    !Array.isArray(raw.selected) ||
+    raw.selected.some((item) => typeof item !== 'number' || !Number.isInteger(item))
+  )
+    throw new Error(`${name} input.selected does not fit`)
+  return { text: raw.text, selected: raw.selected }
+}
+
+async function loadWorldEvents(name: string): Promise<StoryEvent[]> {
+  const file = Bun.file(`${WORLDS}/${name}.yaml`)
+  if (!(await file.exists())) throw new Error(`No eval world ${name}`)
+  const raw = parse(await file.text()) as Record<string, unknown>
+  return strictEvents(raw.events, name)
 }
 
 export async function loadCase(name: string): Promise<CaseFile> {
-  const path = `${DIR}/${name}.yaml`
-  const file = Bun.file(path)
+  const file = Bun.file(`${DIR}/${name}.yaml`)
   if (!(await file.exists())) throw new Error(`No eval case ${name}`)
   const raw = parse(await file.text()) as Record<string, unknown>
   if (typeof raw.description !== 'string') throw new Error(`${name} needs description`)
-  if (!Array.isArray(raw.events) || !Array.isArray(raw.model))
-    throw new Error(`${name} needs events and model`)
+  if (typeof raw.world !== 'string') throw new Error(`${name} needs a world`)
   return {
     description: raw.description,
-    events: raw.events as StoryEvent[],
-    model: raw.model as StoryEvent[],
+    world: raw.world,
+    events: raw.events === undefined ? [] : strictEvents(raw.events, name),
+    input: readInput(raw.input, name),
   }
+}
+
+export async function caseEvents(name: string): Promise<StoryEvent[]> {
+  const evalCase = await loadCase(name)
+  const world = await loadWorldEvents(evalCase.world)
+  const input: InputEvent = {
+    type: 'input',
+    text: evalCase.input.text,
+    ...(evalCase.input.selected && evalCase.input.selected.length > 0
+      ? { selected: evalCase.input.selected }
+      : {}),
+  }
+  return [...world, ...evalCase.events, input]
 }
 
 export async function listCases(): Promise<string[]> {
@@ -80,17 +176,17 @@ function summarize(events: StoryEvent[]): string[] {
 }
 
 async function runCase(name: string): Promise<void> {
-  const evalCase = await loadCase(name)
-  const sceneCount = project(evalCase.events).scenes.length
+  const events = await caseEvents(name)
+  const sceneCount = project(events).scenes.length
   console.log(`\n${name} (${sceneCount} scenes)`)
-  const replay = await replayEvents(evalCase.events)
+  const replay = await replayEvents(events)
   const output = replay.events
   for (const line of summarize(output)) console.log(`  ${line}`)
   await Bun.write(
     `${DIR}/${name}.out.yaml`,
     stringify({ case: name, events: output }, { indent: 2 }),
   )
-  await saveEvalStory(name, [...evalCase.events, ...output])
+  await saveEvalStory(name, [...events, ...output])
   console.log(`${name} done`)
 }
 

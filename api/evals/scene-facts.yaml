@@ -1,0 +1,12 @@
+name: scene-facts
+description: Facts established in earlier scenes are kept.
+world: cafe
+events:
+  - type: input
+    text: Remember when we first met?
+  - type: dialogue
+    background: Mei Behind Counter
+    speaker: Mei
+    caption: At the flea market by the river. You bought a broken clock.
+input:
+  text: Where was that again? And what did I buy?

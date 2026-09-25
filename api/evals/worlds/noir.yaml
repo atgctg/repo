@@ -1,0 +1,32 @@
+title: Rain City
+events:
+  - type: card
+    name: Style
+    attributes:
+      Style: Graphic noir illustration, heavy ink shadows
+      Palette: Deep blues, sodium orange streetlight
+  - type: card
+    name: Vale
+    cover: Vale
+    attributes:
+      Role: Private detective, retired
+      Look: Tall, gaunt, grey stubble, wrinkled trench coat, loosened black tie
+  - type: card
+    name: Rosa Delgado
+    cover: Rosa Delgado
+    attributes:
+      Role: Widow, client
+      From: Chicago
+      Look: Late 30s, black bob, red lipstick, dark green dress, pearl earrings
+  - type: image
+    name: Office Wide
+    prompt:
+      Scene: Cramped detective office at night, rain on the window, desk lamp, Vale behind the desk, Rosa in the doorway
+  - type: image
+    name: Rosa At Desk
+    prompt:
+      Scene: Rosa Delgado seated across the desk, lamp light on her face, rain behind her
+  - type: dialogue
+    background: Rosa At Desk
+    speaker: Rosa Delgado
+    caption: You're the only one in this city who can find him.

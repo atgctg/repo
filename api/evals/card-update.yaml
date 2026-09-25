@@ -1,0 +1,5 @@
+name: card-update
+description: Lasting changes update the card.
+world: camp
+input:
+  text: Wren and Kael shake hands and agree to be real allies from now on, not just for the contract.

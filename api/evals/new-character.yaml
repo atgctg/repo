@@ -1,0 +1,5 @@
+name: new-character
+description: A new recurring character gets a card.
+world: cafe
+input:
+  text: A woman in a red coat comes in and sits by the window. She comes every day from now on.

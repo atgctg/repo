@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "shared",
-    "api"
+    "api",
+    "web"
   ],
   "type": "module",
   "scripts": {

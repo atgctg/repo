@@ -1,13 +1,8 @@
 import { stringify } from 'yaml'
-import {
-  assetDiskPath,
-  assetFileName,
-  assetUrl,
-  resolveAssetPath,
-  speechFileName,
-  storyAssetPath,
-} from './files'
 import type { Speech, Story } from 'shared'
+import { readAssetBytes, resolveAssetKey, storyKey, writeAsset } from './assets'
+import { app } from './context'
+import { assetFileName, assetUrl, speechFileName } from './files'
 
 const PRUNA_MODEL = 'p-image' as const
 const PRUNA_EDIT_MODEL = 'p-image-edit' as const
@@ -105,6 +100,18 @@ export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function decodeBase64(value: string): Uint8Array {
+  const binary = atob(value)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index++)
+    bytes[index] = binary.charCodeAt(index)
+  return bytes
+}
+
 function extractPrunaFileId(parsed: unknown): string | undefined {
   if (typeof parsed === 'string' && parsed.trim()) return parsed.trim()
   if (parsed !== null && typeof parsed === 'object') {
@@ -122,7 +129,7 @@ function extractPrunaFileId(parsed: unknown): string | undefined {
 }
 
 async function uploadPrunaFile(bytes: ArrayBuffer, filename: string): Promise<string> {
-  const apiKey = Bun.env.PRUNA_API_KEY?.trim()
+  const apiKey = app().env.PRUNA_API_KEY?.trim()
   if (!apiKey) throw new Error('PRUNA_API_KEY is required for video gen')
   const form = new FormData()
   form.append('content', new File([bytes], filename, { type: 'image/jpeg' }))
@@ -150,7 +157,7 @@ async function prunaPredict(
   input: Record<string, unknown>,
   opts: { sync?: boolean; timeoutMs: number; intervalMs: number },
 ): Promise<ArrayBuffer> {
-  const apiKey = Bun.env.PRUNA_API_KEY?.trim()
+  const apiKey = app().env.PRUNA_API_KEY?.trim()
   if (!apiKey) throw new Error('PRUNA_API_KEY is required for generation')
 
   const response = await fetch('https://api.pruna.ai/v1/predictions', {
@@ -279,7 +286,7 @@ async function resolvePrunaGenerationUrl(
       case 'starting':
       case 'processing':
       case 'unknown': {
-        await Bun.sleep(intervalMs)
+        await sleep(intervalMs)
         break
       }
       default: {
@@ -310,7 +317,12 @@ export async function generateStoryImage(
             await uploadNamedImages(story, references),
           )
         : await generatePrunaImage(yamlPrompt)
-    await Bun.write(assetDiskPath(storyId, name, 'image'), buffer)
+    await writeAsset(
+      app().assets,
+      storyKey(storyId, assetFileName(name, 'image')),
+      new Uint8Array(buffer),
+      'image/jpeg',
+    )
     const url = assetUrl(storyId, name, 'image')
     console.error('img gen ok', {
       storyId,
@@ -348,14 +360,15 @@ async function uploadFrame(story: Story, frameName: string): Promise<string | un
     (asset) => asset.name.toLowerCase() === frameName.toLowerCase(),
   )
   const diskName = ref?.name ?? frameName
-  const diskPath = await resolveAssetPath(
+  const key = await resolveAssetKey(
+    app().assets,
     storyId,
     story.world,
     assetFileName(diskName, 'image'),
   )
-  if (!diskPath) return undefined
-  const file = Bun.file(diskPath)
-  const bytes = await file.arrayBuffer()
+  if (!key) return undefined
+  const bytes = await readAssetBytes(app().assets, key)
+  if (!bytes) return undefined
   return uploadPrunaFile(bytes, assetFileName(diskName, 'image'))
 }
 
@@ -378,7 +391,12 @@ export async function generateStoryVideo(
       ? await uploadFrame(story, opts.lastFrame)
       : undefined
     const buffer = await generatePrunaVideo(fullPrompt, imageUrl, duration, lastFrameUrl)
-    await Bun.write(assetDiskPath(storyId, name, 'video'), buffer)
+    await writeAsset(
+      app().assets,
+      storyKey(storyId, assetFileName(name, 'video')),
+      new Uint8Array(buffer),
+      'video/mp4',
+    )
     const url = assetUrl(storyId, name, 'video')
     console.error('video gen ok', {
       storyId,
@@ -403,7 +421,7 @@ async function generateCartesiaVoiceSse(
   transcript: string,
   voiceId: string,
 ): Promise<{ wav: Uint8Array; words: string[]; t: number[] }> {
-  const apiKey = Bun.env.CARTESIA_API_KEY?.trim()
+  const apiKey = app().env.CARTESIA_API_KEY?.trim()
   if (!apiKey) throw new Error('CARTESIA_API_KEY is required for voice gen')
   const text = transcript.trim()
   if (!text) throw new Error('Empty transcript for voice gen')
@@ -458,7 +476,7 @@ async function generateCartesiaVoiceSse(
     switch (parsed.type) {
       case 'chunk': {
         if (typeof parsed.data === 'string' && parsed.data) {
-          pcmParts.push(Buffer.from(parsed.data, 'base64'))
+          pcmParts.push(decodeBase64(parsed.data))
         }
         return false
       }
@@ -552,7 +570,6 @@ export async function generateStoryVoice(
   caption: string,
 ): Promise<Speech> {
   const key = speechFileName(voice, caption)
-  const path = storyAssetPath(storyId, key)
   const started = performance.now()
   const voiceId = resolveVoiceId(voice)
   if (!voiceId)
@@ -561,7 +578,7 @@ export async function generateStoryVoice(
   console.error('voice gen start', { storyId, key, voice })
   try {
     const { wav, words, t } = await generateCartesiaVoiceSse(transcript, voiceId)
-    await Bun.write(path, wav)
+    await writeAsset(app().assets, storyKey(storyId, key), wav, 'audio/wav')
     console.error('voice gen ok', {
       storyId,
       key,

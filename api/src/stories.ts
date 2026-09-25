@@ -15,7 +15,9 @@ import { desc, eq } from 'drizzle-orm'
 import { database } from './db'
 import { parseEvents } from './events'
 import { stories as storyTable } from './schema'
-import { assetFileName, assetUrl, resolveAssetPath, speechFileName } from './files'
+import { resolveAssetKey } from './assets'
+import { app } from './context'
+import { assetFileName, assetUrl, speechFileName } from './files'
 import { errorMessage, generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
 import { loadWorld, matchWorld } from './worlds'
@@ -232,8 +234,8 @@ async function attachFiles(story: Story): Promise<void> {
   story.assets = await Promise.all(
     story.assets.map(async (asset) => {
       const file = assetFileName(asset.name, asset.type)
-      const disk = await resolveAssetPath(story.id, story.world, file)
-      return disk ? { ...asset, url: assetUrl(story.id, asset.name, asset.type) } : asset
+      const key = await resolveAssetKey(app().assets, story.id, story.world, file)
+      return key ? { ...asset, url: assetUrl(story.id, asset.name, asset.type) } : asset
     }),
   )
   for (const scene of story.scenes) {
@@ -243,7 +245,8 @@ async function attachFiles(story: Story): Promise<void> {
     )?.voice
     if (!voice) continue
     const key = speechFileName(voice, scene.caption)
-    if (await resolveAssetPath(story.id, story.world, key)) scene.speech = { key }
+    if (await resolveAssetKey(app().assets, story.id, story.world, key))
+      scene.speech = { key }
   }
 }
 

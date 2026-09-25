@@ -6,9 +6,11 @@ import {
   type World,
   type WorldSource,
 } from 'shared'
+import { app } from './context'
+import { assetExists, worldKey } from './assets'
 import { database } from './db'
 import { parseEvents } from './events'
-import { assetFileName, safeStoryId, worldAssetPath, worldAssetUrl } from './files'
+import { assetFileName, safeStoryId, worldAssetUrl } from './files'
 import { worlds } from './schema'
 
 export async function listWorlds(): Promise<World[]> {
@@ -93,7 +95,7 @@ async function worldCover(
     )
     if (!asset) continue
     const file = assetFileName(asset.name, 'image')
-    if (await Bun.file(worldAssetPath(worldId, file)).exists())
+    if (await assetExists(app().assets, worldKey(worldId, file)))
       return worldAssetUrl(worldId, file)
   }
   return undefined

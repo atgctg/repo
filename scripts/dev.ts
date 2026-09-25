@@ -1,11 +1,23 @@
 const root = `${import.meta.dir}/..`
 
-const api = Bun.spawn(['bun', '--hot', 'api/src/server.ts'], {
-  cwd: root,
-  stdin: 'inherit',
-  stdout: 'inherit',
-  stderr: 'inherit',
-})
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL is required')
+  process.exit(1)
+}
+
+const api = Bun.spawn(
+  ['bun', 'x', 'wrangler', 'dev', '--config', 'api/wrangler.jsonc', '--port', '3000'],
+  {
+    cwd: root,
+    env: {
+      ...process.env,
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: process.env.DATABASE_URL,
+    },
+    stdin: 'inherit',
+    stdout: 'inherit',
+    stderr: 'inherit',
+  },
+)
 
 const web = Bun.spawn(['bun', 'run', 'dev'], {
   cwd: `${root}/web`,

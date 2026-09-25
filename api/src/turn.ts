@@ -15,7 +15,9 @@ import {
   type TurnTiming,
   type VideoEvent,
 } from 'shared'
+import { app } from './context'
 import { assetUrl, storyAssetUrl } from './files'
+import systemPrompt from '../prompt.md' with { type: 'text' }
 import {
   errorMessage,
   generateStoryImage,
@@ -43,8 +45,6 @@ export function followUp(toolNames: string[]): boolean {
   if (toolNames.includes('Read')) return true
   return toolNames.every((name) => name === 'Delete')
 }
-
-const systemPrompt = await Bun.file(`${import.meta.dir}/../prompt.md`).text()
 
 export function llmMessages(events: StoryEvent[], title: string): ChatMessage[] {
   return [
@@ -157,6 +157,7 @@ export async function reply(
   },
   emit: (message: TurnMessage) => void = () => {},
   signal?: AbortSignal,
+  options?: { dry?: boolean },
 ): Promise<Story> {
   const startedAt = Date.now()
   const clock: Clock = { modelMs: 0, completionTokens: 0, images: [] }
@@ -181,7 +182,14 @@ export async function reply(
       emit({ type: 'start', turn: startedAt, keep })
       const user = current.events[keep]
       if (user) emit({ type: 'event', at: keep, event: user })
-      await run(current, { dry: false, startedAt, emit, signal, clock })
+      await run(current, {
+        dry: options?.dry === true,
+        startedAt,
+        emit,
+        signal,
+        clock,
+        waitUntil: app().waitUntil,
+      })
       length = current.events.length
       return current
     })
@@ -241,6 +249,7 @@ export async function replayEvents(
     emit: () => {},
     trace,
     clock: { modelMs: 0, completionTokens: 0, images: [] },
+    waitUntil() {},
   })
   return { events: story.events.slice(start), trace }
 }
@@ -259,6 +268,7 @@ type RunOptions = {
   trace?: LlmExchange[]
   signal?: AbortSignal
   clock: Clock
+  waitUntil: (promise: Promise<unknown>) => void
 }
 
 type Save = {
@@ -577,23 +587,25 @@ async function videoEffect(story: Story, event: VideoEvent, live: Live): Promise
     const storyId = story.id
     const name = event.name
     phase(live, 'video', name)
-    void generateStoryVideo(story, name, event.prompt ?? {}, {
-      firstFrame: event.firstFrame,
-      lastFrame: event.lastFrame,
-      duration: event.duration,
-    }).catch((error) => {
-      const message = errorMessage(error)
-      console.error('video gen error', { storyId, name, error: message })
-      event.error = message
-      void changeStory(storyId, (current) => {
-        for (let index = current.events.length - 1; index >= 0; index--) {
-          const target = current.events[index]
-          if (target?.type !== 'video' || target.name !== name) continue
-          if (!target.error) target.error = message
-          return
-        }
-      })
-    })
+    live.waitUntil(
+      generateStoryVideo(story, name, event.prompt ?? {}, {
+        firstFrame: event.firstFrame,
+        lastFrame: event.lastFrame,
+        duration: event.duration,
+      }).catch((error) => {
+        const message = errorMessage(error)
+        console.error('video gen error', { storyId, name, error: message })
+        event.error = message
+        void changeStory(storyId, (current) => {
+          for (let index = current.events.length - 1; index >= 0; index--) {
+            const target = current.events[index]
+            if (target?.type !== 'video' || target.name !== name) continue
+            if (!target.error) target.error = message
+            return
+          }
+        })
+      }),
+    )
   }
   await live.publish()
   return event.error ?? ''
@@ -693,7 +705,7 @@ async function* streamCompletion(
   signal: AbortSignal | undefined,
   onUsage: (tokens: number) => void,
 ): AsyncGenerator<StreamPart> {
-  const apiKey = Bun.env.FIREWORKS_API_KEY?.trim()
+  const apiKey = app().env.FIREWORKS_API_KEY?.trim()
   if (!apiKey) throw new Error('FIREWORKS_API_KEY is required')
   const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
     method: 'POST',

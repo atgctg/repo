@@ -1,12 +1,17 @@
-import { asc, eq, isNotNull } from 'drizzle-orm'
-import { project, type InputEvent, type StoryEvent } from 'shared'
+import {
+  readTurn,
+  type TurnMessage,
+  project,
+  type InputEvent,
+  type StoryEvent,
+} from 'shared'
 import { parse, stringify } from 'yaml'
-import { database } from './db'
-import { evals, stories as storyTable } from './schema'
+import { memoryAssets } from './assets'
+import { useApp } from './context'
+import { openDatabase } from './db'
 import { parseEvents } from './events'
-import { oneLine } from './eval-card'
 import { replayEvents } from './turn'
-import { saveEvalStory, StoryError } from './stories'
+import { saveEvalStory } from './stories'
 
 const DIR = `${import.meta.dir}/../evals`
 const WORLDS = `${DIR}/worlds`
@@ -192,56 +197,21 @@ async function runCase(name: string): Promise<void> {
   console.log(`${name} done`)
 }
 
-export type EvalVerdict = 'pass' | 'fail'
-
-export type EvalRun = {
-  id: string
-  caseName: string
-  description: string
-  verdict: EvalVerdict | null
-}
-
-function verdictOf(passed: boolean | null): EvalVerdict | null {
-  if (passed === true) return 'pass'
-  if (passed === false) return 'fail'
-  return null
-}
-
-export async function listEvalRuns(): Promise<EvalRun[]> {
-  const cases = await database().select().from(evals)
-  const descriptions = new Map(cases.map((row) => [row.name, oneLine(row.description)]))
-  const rows = await database()
-    .select({
-      id: storyTable.id,
-      caseName: storyTable.caseName,
-      passed: storyTable.passed,
-    })
-    .from(storyTable)
-    .where(isNotNull(storyTable.caseName))
-    .orderBy(asc(storyTable.createdAt))
-  return rows.flatMap((row) => {
-    if (!row.caseName) return []
-    return [
-      {
-        id: row.id,
-        caseName: row.caseName,
-        description: descriptions.get(row.caseName) ?? '',
-        verdict: verdictOf(row.passed),
-      },
-    ]
+async function runCaseOnApi(
+  origin: string,
+  password: string,
+  name: string,
+): Promise<void> {
+  console.log(`\n${name}`)
+  const response = await fetch(
+    `${origin.replace(/\/$/, '')}/api/evals/${encodeURIComponent(name)}/run`,
+    { method: 'POST', headers: { Authorization: `Bearer ${password}` } },
+  )
+  if (!response.ok || !response.body) throw new Error(await response.text())
+  await readTurn(response.body, (message: TurnMessage) => {
+    if (message.type === 'error') console.error(`  error: ${message.error}`)
+    if (message.type === 'done') console.log(`${name} done`)
   })
-}
-
-export async function setVerdict(id: string, verdict: EvalVerdict | null): Promise<void> {
-  const rows = await database()
-    .select({ caseName: storyTable.caseName })
-    .from(storyTable)
-    .where(eq(storyTable.id, id))
-    .limit(1)
-  const row = rows[0]
-  if (!row?.caseName) throw new StoryError('Eval not found', 404)
-  const passed = verdict === 'pass' ? true : verdict === 'fail' ? false : null
-  await database().update(storyTable).set({ passed }).where(eq(storyTable.id, id))
 }
 
 async function main(): Promise<void> {
@@ -252,7 +222,38 @@ async function main(): Promise<void> {
     return
   }
   const picked = arg === '--all' ? names : [arg]
-  for (const name of picked) await runCase(name)
+  const origin = process.env.VERSE_API_URL?.trim()
+  if (origin) {
+    const password = process.env.ADMIN_PASSWORD
+    if (!password) {
+      console.error('ADMIN_PASSWORD is required')
+      process.exit(1)
+    }
+    for (const name of picked) await runCaseOnApi(origin, password, name)
+    return
+  }
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    console.error('DATABASE_URL is required')
+    process.exit(1)
+  }
+  const opened = await openDatabase(connectionString)
+  useApp({
+    db: opened.db,
+    assets: memoryAssets(),
+    env: {
+      FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY,
+      PRUNA_API_KEY: process.env.PRUNA_API_KEY,
+      CARTESIA_API_KEY: process.env.CARTESIA_API_KEY,
+      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    },
+    waitUntil() {},
+  })
+  try {
+    for (const name of picked) await runCase(name)
+  } finally {
+    await opened.close()
+  }
 }
 
 if (import.meta.main) await main()

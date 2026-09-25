@@ -1,7 +1,4 @@
-export const REPO_ROOT = `${import.meta.dir}/../..`
-export const DATA_DIR = `${REPO_ROOT}/data`
-export const WORLDS_DIR = `${DATA_DIR}/worlds`
-export const ASSETS_DIR = `${DATA_DIR}/assets`
+import { createHash } from 'node:crypto'
 
 export function safeStoryId(id: string): string {
   return id.replace(/[^a-zA-Z0-9_-]/g, '_')
@@ -22,22 +19,6 @@ export function assetFileName(name: string, type: keyof typeof ASSET_EXT): strin
   return `${slugify(name)}.${ASSET_EXT[type]}`
 }
 
-export function storyAssetPath(storyId: string, file: string): string {
-  return `${ASSETS_DIR}/stories/${safeStoryId(storyId)}/${file}`
-}
-
-export function worldAssetPath(worldId: string, file: string): string {
-  return `${ASSETS_DIR}/worlds/${safeStoryId(worldId)}/${file}`
-}
-
-export function assetDiskPath(
-  storyId: string,
-  name: string,
-  type: keyof typeof ASSET_EXT,
-): string {
-  return storyAssetPath(storyId, assetFileName(name, type))
-}
-
 export function storyAssetUrl(storyId: string, file: string): string {
   return `/assets/${encodeURIComponent(safeStoryId(storyId))}/${encodeURIComponent(file)}`
 }
@@ -55,7 +36,7 @@ export function assetUrl(
 }
 
 export function speechFileName(voice: string, caption: string): string {
-  const hex = new Bun.CryptoHasher('sha256')
+  const hex = createHash('sha256')
     .update(`${voice.trim()}\n${caption}`)
     .digest('hex')
     .slice(0, 16)
@@ -66,15 +47,8 @@ export function safeAssetFile(file: string): boolean {
   return /^[a-z0-9-]+\.(jpg|mp4|wav)$/.test(file)
 }
 
-export async function resolveAssetPath(
-  storyId: string,
-  worldId: string,
-  file: string,
-): Promise<string | undefined> {
-  const own = storyAssetPath(storyId, file)
-  if (await Bun.file(own).exists()) return own
-  if (!worldId) return undefined
-  const shared = worldAssetPath(worldId, file)
-  if (await Bun.file(shared).exists()) return shared
-  return undefined
+export function assetContentType(file: string): string {
+  if (file.endsWith('.mp4')) return 'video/mp4'
+  if (file.endsWith('.wav')) return 'audio/wav'
+  return 'image/jpeg'
 }

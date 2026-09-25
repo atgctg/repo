@@ -3,7 +3,9 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'yaml'
-import { database, useDatabase, type VerseDb } from './db'
+import { memoryAssets } from './assets'
+import { useApp } from './context'
+import { database, type VerseDb } from './db'
 import { parseEvents } from './events'
 import * as schema from './schema'
 import { worlds } from './schema'
@@ -14,7 +16,12 @@ export async function useMemoryDatabase(): Promise<void> {
   await migrate(db, {
     migrationsFolder: fileURLToPath(new URL('../drizzle', import.meta.url)),
   })
-  useDatabase(db as unknown as VerseDb)
+  useApp({
+    db: db as unknown as VerseDb,
+    assets: memoryAssets(),
+    env: {},
+    waitUntil() {},
+  })
   const dir = `${import.meta.dir}/../../data/worlds`
   for (const file of new Bun.Glob('*.yaml').scanSync(dir)) {
     const raw = parse(await Bun.file(`${dir}/${file}`).text()) as Record<string, unknown>

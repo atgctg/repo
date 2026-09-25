@@ -1,12 +1,10 @@
 import { beforeAll, expect, test } from 'bun:test'
+import { adminOk } from './auth'
+import { resolveAssetKey, storyKey, worldKey } from './assets'
+import { app } from './context'
+import { assetFileName, assetUrl } from './files'
 import { useMemoryDatabase } from './memory-db'
-import {
-  assetFileName,
-  assetUrl,
-  resolveAssetPath,
-  storyAssetPath,
-  worldAssetPath,
-} from './files'
+import { handle } from './server'
 import { forkWorld, loadStory, saveTiming, StoryError } from './stories'
 import { listWorlds, loadWorld } from './worlds'
 
@@ -34,7 +32,7 @@ test('fork copies the world and no files', async () => {
   expect(story.world).toBe('pandoo')
   expect(story.id).toMatch(/^pandoo-[a-z0-9]{4}$/)
   expect(story.events).toEqual(world?.events)
-  expect(await Bun.file(storyAssetPath(story.id, 'pandoo.jpg')).exists()).toBe(false)
+  expect(await app().assets.head(storyKey(story.id, 'pandoo.jpg'))).toBeNull()
   const again = await forkWorld('pandoo')
   expect(again.id).not.toBe(story.id)
   const same = await forkWorld('pandoo', story.id)
@@ -56,38 +54,52 @@ test('latest turn timing reloads with the story', async () => {
 test('a story asset wins over the world asset', async () => {
   const story = await forkWorld('pandoo')
   const file = 'zz-fallback.jpg'
-  const worldFile = worldAssetPath('pandoo', file)
-  const storyFile = storyAssetPath(story.id, file)
-  try {
-    await Bun.write(worldFile, 'world')
-    expect(await resolveAssetPath(story.id, story.world, file)).toBe(worldFile)
-    await Bun.write(storyFile, 'story')
-    expect(await resolveAssetPath(story.id, story.world, file)).toBe(storyFile)
-    const name = 'Hooman'
-    const image = assetFileName(name, 'image')
-    const hooman = worldAssetPath('pandoo', image)
-    const previous = (await Bun.file(hooman).exists())
-      ? await Bun.file(hooman).bytes()
-      : undefined
-    try {
-      await Bun.write(hooman, 'hooman')
-      const loaded = await loadStory(story.id)
-      const asset = loaded.assets.find((item) => item.name === name)
-      expect(asset?.url).toBe(assetUrl(story.id, name, 'image'))
-      expect(await Bun.file(storyAssetPath(story.id, image)).exists()).toBe(false)
-    } finally {
-      if (previous) await Bun.write(hooman, previous)
-      else
-        await Bun.file(hooman)
-          .delete()
-          .catch(() => undefined)
-    }
-  } finally {
-    await Bun.file(worldFile)
-      .delete()
-      .catch(() => undefined)
-    await Bun.file(storyFile)
-      .delete()
-      .catch(() => undefined)
-  }
+  const store = app().assets
+  const jpeg = { httpMetadata: { contentType: 'image/jpeg' } }
+  await store.put(worldKey('pandoo', file), new TextEncoder().encode('world'), jpeg)
+  expect(await resolveAssetKey(store, story.id, story.world, file)).toBe(
+    worldKey('pandoo', file),
+  )
+  await store.put(storyKey(story.id, file), new TextEncoder().encode('story'), jpeg)
+  expect(await resolveAssetKey(store, story.id, story.world, file)).toBe(
+    storyKey(story.id, file),
+  )
+  const name = 'Hooman'
+  const image = assetFileName(name, 'image')
+  await store.put(worldKey('pandoo', image), new TextEncoder().encode('hooman'), jpeg)
+  const loaded = await loadStory(story.id)
+  const asset = loaded.assets.find((item) => item.name === name)
+  expect(asset?.url).toBe(assetUrl(story.id, name, 'image'))
+  expect(await store.head(storyKey(story.id, image))).toBeNull()
+})
+
+test('asset routes fall back from the story to its world', async () => {
+  const story = await forkWorld('pandoo')
+  await app().assets.put(
+    worldKey('pandoo', 'cover.jpg'),
+    new TextEncoder().encode('cover'),
+    {
+      httpMetadata: { contentType: 'image/jpeg' },
+    },
+  )
+  const response = await handle(
+    new Request(`http://verse.test/assets/${story.id}/cover.jpg`),
+  )
+  expect(response.status).toBe(200)
+  expect(await response.text()).toBe('cover')
+  const worlds = await handle(new Request('http://verse.test/api/worlds'))
+  expect(worlds.status).toBe(200)
+  const listed = (await worlds.json()) as { id: string }[]
+  expect(listed.map((world) => world.id)).toEqual(['her-fake-boyfriend', 'pandoo'])
+})
+
+test('admin password is a bearer token', () => {
+  const request = (authorization?: string) =>
+    new Request('http://verse.test/api/worlds', {
+      headers: authorization ? { Authorization: authorization } : {},
+    })
+  expect(adminOk(request(), 'secret')).toBe(false)
+  expect(adminOk(request('Bearer no'), 'secret')).toBe(false)
+  expect(adminOk(request('Bearer secret'), undefined)).toBe(false)
+  expect(adminOk(request('Bearer secret'), 'secret')).toBe(true)
 })

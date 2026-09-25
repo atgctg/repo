@@ -89,10 +89,12 @@ export async function streamTurn(
   at: number | undefined,
   selected: number[] | undefined,
   onMessage: (message: TurnMessage) => void,
+  signal: AbortSignal,
 ): Promise<void> {
   const res = await fetch(`/api/stories/${encodeURIComponent(id)}/turn`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal,
     body: JSON.stringify({
       text,
       ...(at === undefined ? {} : { at }),

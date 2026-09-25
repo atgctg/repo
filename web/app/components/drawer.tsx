@@ -6,7 +6,7 @@ import type { Scene, Story } from 'shared'
 import { Blocks } from './blocks'
 import { GenerateButton } from './grid'
 import { Icon } from './icons'
-import { Media, PlayButton } from './media'
+import { Media, PlayButton, ProgressiveMedia } from './media'
 import { sceneBlocks } from '~/lib/detail'
 import { closeDrawer } from '~/lib/store'
 import { canPrompt, sceneAsset, sceneName, speechSrc } from '~/lib/view'
@@ -27,7 +27,7 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem',
-    padding: '0.75rem',
+    padding: '0.75rem 0.75rem 0.75rem 0.25rem',
   },
   bar: {
     display: 'flex',
@@ -45,12 +45,6 @@ const styles = stylex.create({
     borderRadius: tokens.radiusCard,
     overflow: 'hidden',
     backgroundColor: tokens.bg,
-  },
-  previewBlur: {
-    position: 'absolute',
-    inset: 0,
-    filter: 'blur(2.75rem)',
-    transform: 'scale(1.15)',
   },
   title: {
     fontSize: tokens.textMd,
@@ -87,9 +81,11 @@ export function SceneDrawer({ story, scene }: { story: Story; scene: Scene }): R
           </div>
           {asset?.url ? (
             <div {...withClass(stylex.props(styles.preview), 'squircle')}>
-              <div {...stylex.props(scene.type === 'message' && styles.previewBlur)}>
+              {scene.type === 'message' ? (
+                <ProgressiveMedia url={asset.url} />
+              ) : (
                 <Media url={asset.url} video={scene.type === 'video'} />
-              </div>
+              )}
               {showPlay ? (
                 <PlayButton owner={`${story.id}:drawer`} audio={audio} />
               ) : null}

@@ -99,6 +99,29 @@ export function Avatar({ name, url }: { name: string; url?: string }): ReactNode
   )
 }
 
+export function MessageCaption({ text }: { text: string }): ReactNode {
+  const lines = captionLines(text)
+  if (lines.length === 0) return null
+  const size = captionSize(lines)
+  return (
+    <div {...stylex.props(styles.caption, styles.start)}>
+      <div
+        {...stylex.props(
+          size === 'lg' && styles.lg,
+          size === 'md' && styles.md,
+          size === 'sm' && styles.sm,
+        )}
+      >
+        {lines.map((line, index) => (
+          <p key={index} {...stylex.props(styles.line)}>
+            <RichText text={line} />
+          </p>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function Caption({
   scene,
   story,
@@ -245,6 +268,52 @@ export function StageMedia({
   )
 }
 
+const blurLayers = stylex.create({
+  stack: {
+    position: 'absolute',
+    inset: 0,
+    overflow: 'hidden',
+  },
+  base: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  veil: {
+    position: 'absolute',
+    inset: '-12%',
+    width: '124%',
+    height: '124%',
+    objectFit: 'cover',
+    pointerEvents: 'none',
+  },
+  soft: {
+    filter: 'blur(0.55rem)',
+    maskImage: 'linear-gradient(to bottom, transparent 0%, #000 62%)',
+  },
+  mid: {
+    filter: 'blur(1.35rem)',
+    maskImage: 'linear-gradient(to bottom, transparent 28%, #000 80%)',
+  },
+  deep: {
+    filter: 'blur(2.75rem)',
+    maskImage: 'linear-gradient(to bottom, transparent 55%, #000 100%)',
+  },
+})
+
+export function ProgressiveMedia({ url }: { url: string }): ReactNode {
+  return (
+    <div {...stylex.props(blurLayers.stack)}>
+      <img src={url} alt="" {...stylex.props(blurLayers.base)} />
+      <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.soft)} />
+      <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.mid)} />
+      <img src={url} alt="" {...stylex.props(blurLayers.veil, blurLayers.deep)} />
+    </div>
+  )
+}
+
 const tileStyles = stylex.create({
   scene: {
     borderRadius: tokens.radiusScene,
@@ -332,6 +401,7 @@ export function Tile({
   plain = false,
   blurred = false,
   heavy = false,
+  progressive = false,
   scene = false,
   video = false,
   onClick,
@@ -346,6 +416,7 @@ export function Tile({
   plain?: boolean
   blurred?: boolean
   heavy?: boolean
+  progressive?: boolean
   scene?: boolean
   video?: boolean
   onClick?: (event: MouseEvent<HTMLElement>) => void
@@ -355,17 +426,20 @@ export function Tile({
   action?: ReactNode
 }): ReactNode {
   const media = Boolean(image) && !plain
+  const sharp = media && !blurred
+  const washed = sharp || (progressive && media)
   const frame = stylex.props(
     ui.card,
     scene && tileStyles.scene,
     scene && selected && tileStyles.sceneOn,
     !image && ui.cardEmpty,
-    media && !blurred && ui.cardMedia,
+    washed && ui.cardMedia,
     onClick && ui.cardButton,
   )
   const body = (
     <>
-      {image ? (
+      {image && progressive ? <ProgressiveMedia url={image} /> : null}
+      {image && !progressive ? (
         video ? (
           <video
             src={image}
@@ -388,9 +462,11 @@ export function Tile({
           />
         )
       ) : null}
-      {media && !blurred ? <div {...stylex.props(ui.scrim)} /> : null}
-      {blurred && !heavy ? <div {...stylex.props(ui.scrim, ui.scrimFlat)} /> : null}
-      {heavy ? <div {...stylex.props(ui.scrim, ui.scrimHeavy)} /> : null}
+      {washed ? <div {...stylex.props(ui.scrim)} /> : null}
+      {blurred && !heavy && !progressive ? (
+        <div {...stylex.props(ui.scrim, ui.scrimFlat)} />
+      ) : null}
+      {heavy && !progressive ? <div {...stylex.props(ui.scrim, ui.scrimHeavy)} /> : null}
       <div
         {...stylex.props(
           ui.cardBody,

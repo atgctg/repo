@@ -7,7 +7,7 @@ import {
   storyAssetPath,
   worldAssetPath,
 } from './files'
-import { forkWorld, loadStory, StoryError } from './stories'
+import { forkWorld, loadStory, saveTiming, StoryError } from './stories'
 import { listWorlds, loadWorld } from './worlds'
 
 beforeAll(() => {
@@ -44,6 +44,13 @@ test('fork copies the world and no files', async () => {
   await expect(forkWorld('her-fake-boyfriend', story.id)).rejects.toBeInstanceOf(
     StoryError,
   )
+})
+
+test('latest turn timing reloads with the story', async () => {
+  const story = await forkWorld('pandoo')
+  const timing = { ttft: 0.42, total: 8.41, tps: 38.2, images: [6.12, 5.8] }
+  saveTiming(story.id, timing)
+  expect((await loadStory(story.id)).timing).toEqual(timing)
 })
 
 test('a story asset wins over the world asset', async () => {

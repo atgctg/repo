@@ -8,6 +8,7 @@ import type {
   StorySummary,
   TurnMessage,
   TurnPhase,
+  TurnTiming,
   World,
   WorldSource,
 } from 'shared'
@@ -42,6 +43,7 @@ export type Entry = {
   events: StoryEvent[]
   files: AssetFile[]
   speech: SpeechMark[]
+  timing?: TurnTiming
 }
 
 type StoryCache = {
@@ -83,6 +85,7 @@ let snapshot: Snapshot = { ...serverSnapshot }
 const listeners = new Set<() => void>()
 let clock: ReturnType<typeof setInterval> | undefined
 const forks = new Map<string, Promise<void>>()
+const turns = new Map<string, AbortController>()
 
 function syncClock(): void {
   const active = Object.values(snapshot.activity).some(
@@ -167,6 +170,7 @@ function entryFrom(story: Story, prev?: Entry): Entry {
     events: story.events,
     files: filesFrom(story),
     speech: speechFrom(story),
+    ...(story.timing ? { timing: story.timing } : {}),
   }
 }
 
@@ -398,6 +402,7 @@ function applyTurn(id: string, message: TurnMessage): void {
       return
     }
     case 'done':
+      if (entry && message.timing) publishEntry({ ...entry, timing: message.timing })
       patchActivity(id, () => ({}))
       return
     case 'error': {
@@ -430,7 +435,10 @@ export async function sendTurn(
     return false
   }
   const current = readCache(id)?.entry
-  if (!current) return false
+  if (!current) {
+    patchActivity(id, () => ({}))
+    return false
+  }
   const events =
     typeof at === 'number'
       ? previous
@@ -447,15 +455,34 @@ export async function sendTurn(
           },
         ]
   publishEntry({ ...current, events, updatedAt: new Date().toISOString() })
+  const controller = new AbortController()
+  turns.set(id, controller)
   try {
-    await streamTurn(id, text, at, selected, (message) => applyTurn(id, message))
+    await streamTurn(
+      id,
+      text,
+      at,
+      selected,
+      (message) => applyTurn(id, message),
+      controller.signal,
+    )
     const activity = snapshot.activity[id]
     if (activity?.turnStartedAt && !activity.error) patchActivity(id, () => ({}))
     return true
   } catch (error) {
+    if (controller.signal.aborted) {
+      patchActivity(id, () => ({}))
+      return true
+    }
     patchActivity(id, () => ({ error: messageOf(error) }))
     return false
+  } finally {
+    turns.delete(id)
   }
+}
+
+export function stopTurn(id: string): void {
+  turns.get(id)?.abort()
 }
 
 export function useGenerateAsset(): (

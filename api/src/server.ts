@@ -183,7 +183,7 @@ const server = Bun.serve({
         const pasted = typeof body.pasted === 'string' ? body.pasted : undefined
         const voice = readVoice(body.voice)
         return turnResponse(async (send) => {
-          await reply(id, { text, at, selected, pasted, voice }, send)
+          await reply(id, { text, at, selected, pasted, voice }, send, req.signal)
         })
       },
     },

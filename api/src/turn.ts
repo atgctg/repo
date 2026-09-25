@@ -12,6 +12,7 @@ import {
   type StoryEvent,
   type TurnMessage,
   type TurnPhase,
+  type TurnTiming,
   type VideoEvent,
 } from 'shared'
 import { assetUrl, storyAssetUrl } from './files'
@@ -24,7 +25,14 @@ import {
 } from './media'
 import { eventsToMessages, type ChatMessage, type ToolCall } from './messages'
 import { finishTools, noteToolDelta, type OpenTool, type ToolDelta } from './stream'
-import { changeStory, loadStory, persistStory, readSceneLines, refresh } from './stories'
+import {
+  changeStory,
+  loadStory,
+  persistStory,
+  readSceneLines,
+  refresh,
+  saveTiming,
+} from './stories'
 import { STORY_TOOLS } from './tools'
 
 const MODEL = 'accounts/fireworks/models/deepseek-v4p1-flash'
@@ -85,6 +93,59 @@ function applyInputFields(
   }
 }
 
+export function turnTiming(input: {
+  startedAt: number
+  endedAt: number
+  firstTokenAt?: number
+  modelMs: number
+  completionTokens: number
+  images: number[]
+}): TurnTiming {
+  const seconds = (ms: number) => Math.round((ms / 1000) * 100) / 100
+  const totalMs = Math.max(0, input.endedAt - input.startedAt)
+  const ttftMs =
+    input.firstTokenAt === undefined
+      ? totalMs
+      : Math.max(0, input.firstTokenAt - input.startedAt)
+  const modelSeconds = input.modelMs / 1000
+  return {
+    ttft: seconds(ttftMs),
+    total: seconds(totalMs),
+    tps:
+      modelSeconds > 0
+        ? Math.round((input.completionTokens / modelSeconds) * 100) / 100
+        : 0,
+    images: input.images.map((value) => Math.round(value * 100) / 100),
+  }
+}
+
+function isAbort(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError'
+}
+
+function abortError(): DOMException {
+  return new DOMException('The operation was aborted.', 'AbortError')
+}
+
+function raceAbort<T>(work: Promise<T>, signal: AbortSignal | undefined): Promise<T> {
+  if (!signal) return work
+  const settled = work.then(
+    (value) => ({ ok: true as const, value }),
+    (error: unknown) => ({ ok: false as const, error }),
+  )
+  if (signal.aborted) return Promise.reject(abortError())
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(abortError())
+    signal.addEventListener('abort', onAbort, { once: true })
+    void settled.then((result) => {
+      signal.removeEventListener('abort', onAbort)
+      if (signal.aborted) return
+      if (result.ok) resolve(result.value)
+      else reject(result.error)
+    })
+  })
+}
+
 export async function reply(
   storyId: string,
   input: {
@@ -95,8 +156,10 @@ export async function reply(
     voice?: InputEvent['voice']
   },
   emit: (message: TurnMessage) => void = () => {},
+  signal?: AbortSignal,
 ): Promise<Story> {
   const startedAt = Date.now()
+  const clock: Clock = { modelMs: 0, completionTokens: 0, images: [] }
   let length = 0
   try {
     const story = await changeStory(storyId, async (current) => {
@@ -118,13 +181,23 @@ export async function reply(
       emit({ type: 'start', turn: startedAt, keep })
       const user = current.events[keep]
       if (user) emit({ type: 'event', at: keep, event: user })
-      await run(current, { dry: false, startedAt, emit })
+      await run(current, { dry: false, startedAt, emit, signal, clock })
       length = current.events.length
       return current
     })
-    emit({ type: 'done', ms: Date.now() - startedAt })
+    const endedAt = Date.now()
+    const timing = turnTiming({ ...clock, startedAt, endedAt })
+    saveTiming(storyId, timing)
+    emit({ type: 'done', ms: endedAt - startedAt, timing })
     return story
   } catch (error) {
+    if (isAbort(error)) {
+      const endedAt = Date.now()
+      const timing = turnTiming({ ...clock, startedAt, endedAt })
+      saveTiming(storyId, timing)
+      emit({ type: 'done', ms: endedAt - startedAt, timing })
+      return loadStory(storyId)
+    }
     const failed = errorMessage(error)
     try {
       const story = await loadStory(storyId)
@@ -162,8 +235,21 @@ export async function replayEvents(
   await refresh(story)
   const start = story.events.length
   const trace: LlmExchange[] = []
-  await run(story, { dry: true, startedAt: Date.now(), emit: () => {}, trace })
+  await run(story, {
+    dry: true,
+    startedAt: Date.now(),
+    emit: () => {},
+    trace,
+    clock: { modelMs: 0, completionTokens: 0, images: [] },
+  })
   return { events: story.events.slice(start), trace }
+}
+
+type Clock = {
+  firstTokenAt?: number
+  modelMs: number
+  completionTokens: number
+  images: number[]
 }
 
 type RunOptions = {
@@ -171,6 +257,8 @@ type RunOptions = {
   startedAt: number
   emit: (message: TurnMessage) => void
   trace?: LlmExchange[]
+  signal?: AbortSignal
+  clock: Clock
 }
 
 type Save = {
@@ -243,59 +331,75 @@ async function run(story: Story, options: RunOptions): Promise<void> {
   emit({ type: 'status', phase: 'model' })
   await save.now(true)
   const messages = llmMessages(story.events, story.title)
+  const { signal, clock } = options
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
+    if (signal?.aborted) break
     if (loop > 0) emit({ type: 'status', phase: 'model' })
     const sent = options.trace ? structuredClone(messages) : undefined
     const calls: ToolCall[] = []
     const results: { id: string; content: string }[] = []
     let chain = Promise.resolve()
     let draft: OutputEvent | undefined
-    for await (const part of streamCompletion(messages)) {
-      if (part.type === 'text') {
-        const next = `${draft?.text ?? ''}${part.text}`
-        if (!next.trim()) continue
-        if (!draft) {
-          draft = { type: 'output', text: next }
-          story.events.push(draft)
-        } else {
-          draft.text = next
+    let requestTokens = 0
+    let stopped = false
+    const modelStarted = Date.now()
+    try {
+      for await (const part of streamCompletion(messages, signal, (tokens) => {
+        requestTokens = tokens
+      })) {
+        if (clock.firstTokenAt === undefined) clock.firstTokenAt = Date.now()
+        if (part.type === 'text') {
+          const next = `${draft?.text ?? ''}${part.text}`
+          if (!next.trim()) continue
+          if (!draft) {
+            draft = { type: 'output', text: next }
+            story.events.push(draft)
+          } else {
+            draft.text = next
+          }
+          emitFrom(story.events.indexOf(draft))
+          save.soon()
+          continue
         }
-        emitFrom(story.events.indexOf(draft))
-        save.soon()
-        continue
-      }
-      const call = part.call
-      const name = call.function.name
-      const args = parseArgs(call.function.arguments)
-      calls.push(call)
-      if (name === 'Read') {
-        chain = chain.then(async () => {
-          await save.now(true)
-          results.push({ id: call.id, content: readSceneLines(story, numbers(args)) })
-        })
-        continue
-      }
-      const event = toolEvent(name, args)
-      if (!event) {
-        chain = chain.then(async () => {
-          results.push({ id: call.id, content: `Unknown tool ${name}` })
-        })
-        continue
-      }
-      if (
-        event.type === 'delete' &&
-        !resolvesAt(story.events, event, story.events.length)
-      )
-        event.error = 'no scenes at those indices'
-      story.events.push(event)
-      const at = story.events.length - 1
-      emitFrom(at)
-      save.soon()
-      chain = chain.then(async () => {
-        const content = await sideEffect(story, event, live, at)
-        results.push({ id: call.id, content })
+        const call = part.call
+        const name = call.function.name
+        const args = parseArgs(call.function.arguments)
+        calls.push(call)
+        if (name === 'Read') {
+          chain = chain.then(async () => {
+            await save.now(true)
+            results.push({ id: call.id, content: readSceneLines(story, numbers(args)) })
+          })
+          continue
+        }
+        const event = toolEvent(name, args)
+        if (!event) {
+          chain = chain.then(async () => {
+            results.push({ id: call.id, content: `Unknown tool ${name}` })
+          })
+          continue
+        }
+        if (
+          event.type === 'delete' &&
+          !resolvesAt(story.events, event, story.events.length)
+        )
+          event.error = 'no scenes at those indices'
+        story.events.push(event)
+        const at = story.events.length - 1
         emitFrom(at)
-      })
+        save.soon()
+        chain = chain.then(async () => {
+          const content = await sideEffect(story, event, live, at)
+          results.push({ id: call.id, content })
+          emitFrom(at)
+        })
+      }
+    } catch (error) {
+      if (!isAbort(error)) throw error
+      stopped = true
+    } finally {
+      clock.modelMs += Date.now() - modelStarted
+      clock.completionTokens += requestTokens
     }
     await chain
     const spoken = draft?.text.trim() ?? ''
@@ -312,6 +416,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
         },
       })
     }
+    if (stopped || signal?.aborted) break
     if (!followUp(calls.map((call) => call.function.name))) break
     messages.push({
       role: 'assistant',
@@ -395,11 +500,14 @@ async function imageEffect(
   live: Live,
   at: number,
 ): Promise<string> {
-  if (!live.dry && !event.error && event.prompt) {
+  if (!live.dry && !event.error && event.prompt && !live.signal?.aborted) {
     const started = Date.now()
     phase(live, 'image', event.name)
     try {
-      await generateStoryImage(story, event.name, event.prompt, event.references ?? [])
+      await raceAbort(
+        generateStoryImage(story, event.name, event.prompt, event.references ?? []),
+        live.signal,
+      )
       live.note(at, {
         type: 'asset',
         name: event.name,
@@ -407,13 +515,16 @@ async function imageEffect(
         url: assetUrl(story.id, event.name, 'image'),
       })
     } catch (error) {
-      event.error = errorMessage(error)
-      console.error('img gen error', {
-        storyId: story.id,
-        name: event.name,
-        error: event.error,
-      })
+      if (!isAbort(error)) {
+        event.error = errorMessage(error)
+        console.error('img gen error', {
+          storyId: story.id,
+          name: event.name,
+          error: event.error,
+        })
+      }
     }
+    live.clock.images.push((Date.now() - started) / 1000)
     phase(live, 'image', event.name, Date.now() - started)
   }
   await live.publish()
@@ -430,11 +541,21 @@ async function dialogueEffect(
     ? story.cards.find((card) => card.name.toLowerCase() === event.speaker?.toLowerCase())
         ?.voice
     : undefined
-  if (!live.dry && event.speaker && event.caption && voice && resolveVoiceId(voice)) {
+  if (
+    !live.dry &&
+    !live.signal?.aborted &&
+    event.speaker &&
+    event.caption &&
+    voice &&
+    resolveVoiceId(voice)
+  ) {
     const started = Date.now()
     phase(live, 'voice', event.speaker)
     try {
-      const speech = await generateStoryVoice(story.id, voice, event.caption)
+      const speech = await raceAbort(
+        generateStoryVoice(story.id, voice, event.caption),
+        live.signal,
+      )
       live.note(at, {
         type: 'asset',
         name: event.speaker,
@@ -442,7 +563,8 @@ async function dialogueEffect(
         url: storyAssetUrl(story.id, speech.key),
       })
     } catch (error) {
-      console.error('voice skip', { storyId: story.id, error: errorMessage(error) })
+      if (!isAbort(error))
+        console.error('voice skip', { storyId: story.id, error: errorMessage(error) })
     }
     phase(live, 'voice', event.speaker, Date.now() - started)
   }
@@ -566,7 +688,11 @@ function resolvesAt(events: StoryEvent[], event: DeleteEvent, at: number): boole
 
 type StreamPart = { type: 'text'; text: string } | { type: 'tool'; call: ToolCall }
 
-async function* streamCompletion(messages: ChatMessage[]): AsyncGenerator<StreamPart> {
+async function* streamCompletion(
+  messages: ChatMessage[],
+  signal: AbortSignal | undefined,
+  onUsage: (tokens: number) => void,
+): AsyncGenerator<StreamPart> {
   const apiKey = Bun.env.FIREWORKS_API_KEY?.trim()
   if (!apiKey) throw new Error('FIREWORKS_API_KEY is required')
   const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
@@ -578,7 +704,9 @@ async function* streamCompletion(messages: ChatMessage[]): AsyncGenerator<Stream
       tools: STORY_TOOLS,
       tool_choice: 'auto',
       stream: true,
+      stream_options: { include_usage: true },
     }),
+    signal,
   })
   if (!response.ok) {
     const body = await response.text()
@@ -599,6 +727,8 @@ async function* streamCompletion(messages: ChatMessage[]): AsyncGenerator<Stream
     } catch {
       continue
     }
+    const tokens = completionTokens(parsed)
+    if (tokens !== undefined) onUsage(tokens)
     const delta = parsed.choices?.[0]?.delta
     if (!delta) continue
     if (typeof delta.content === 'string' && delta.content)
@@ -641,6 +771,15 @@ function plainCall(call: ToolCall): {
     name: call.function.name,
     arguments: parseArgs(call.function.arguments),
   }
+}
+
+function completionTokens(value: unknown): number | undefined {
+  if (value === null || typeof value !== 'object') return undefined
+  const usage = (value as { usage?: unknown }).usage
+  if (usage === null || typeof usage !== 'object') return undefined
+  const record = usage as Record<string, unknown>
+  const tokens = record.completion_tokens ?? record.output_tokens
+  return typeof tokens === 'number' && Number.isFinite(tokens) ? tokens : undefined
 }
 
 function parseArgs(raw: unknown): Record<string, unknown> {

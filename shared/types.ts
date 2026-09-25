@@ -122,6 +122,13 @@ export type VideoScene = { type: 'video'; name: string; event: number }
 
 export type Scene = MessageScene | ImageScene | DialogueScene | VideoScene
 
+export type TurnTiming = {
+  ttft: number
+  total: number
+  tps: number
+  images: number[]
+}
+
 export type Story = {
   id: string
   world: string
@@ -132,6 +139,7 @@ export type Story = {
   scenes: Scene[]
   assets: Asset[]
   cards: Card[]
+  timing?: TurnTiming
 }
 
 export type World = {

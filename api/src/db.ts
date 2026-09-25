@@ -11,6 +11,7 @@ export type StoryRow = {
   updated_at: number
   case_name: string | null
   passed: number | null
+  timing: string | null
 }
 
 let handle: Database | undefined
@@ -47,5 +48,7 @@ function openDatabase(path: string): Database {
     db.run('ALTER TABLE stories ADD COLUMN case_name TEXT')
   if (!columns.some((column) => column.name === 'passed'))
     db.run('ALTER TABLE stories ADD COLUMN passed INTEGER')
+  if (!columns.some((column) => column.name === 'timing'))
+    db.run('ALTER TABLE stories ADD COLUMN timing TEXT')
   return db
 }

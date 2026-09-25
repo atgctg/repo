@@ -4,8 +4,14 @@ import * as stylex from '@stylexjs/stylex'
 import type { Card, Scene, Story } from 'shared'
 import { Blocks } from './blocks'
 import { Icon } from './icons'
-import { Caption, PlayButton, Tile, sceneImage, sceneTitle } from './media'
-import { RichText } from '~/lib/text'
+import {
+  Caption,
+  MessageCaption,
+  PlayButton,
+  Tile,
+  sceneImage,
+  sceneTitle,
+} from './media'
 import { canGenerate, findAsset, sceneAsset, speechSrc } from '~/lib/view'
 import { selectScene, useActivity, useGenerateAsset, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
@@ -18,7 +24,7 @@ const styles = stylex.create({
     overflow: 'auto',
     containerType: 'inline-size',
     containerName: 'stage',
-    padding: '0.25rem 0.75rem',
+    padding: '0.25rem',
   },
   play: {
     position: 'absolute',
@@ -45,26 +51,9 @@ const styles = stylex.create({
     fontSize: tokens.textSm,
     lineHeight: 1.2,
   },
-  message: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 0,
-    textAlign: 'center',
-  },
-  messageText: {
-    margin: 0,
-    whiteSpace: 'pre-wrap',
-    textWrap: 'pretty',
-    fontSize: tokens.textMd,
-    fontWeight: 600,
-    lineHeight: 1.25,
-    letterSpacing: '-0.015em',
-  },
   home: {
     minHeight: '100dvh',
-    padding: '1.25rem 0.75rem',
+    padding: '1.25rem 0.75rem 1.25rem 0.25rem',
   },
   section: {
     display: 'flex',
@@ -116,20 +105,12 @@ function SceneTile({
       <Tile
         scene
         image={sceneImage(story, scene)}
-        blurred
-        heavy
+        progressive
         mark={index}
         selected={selected}
         onClick={(event) => selectScene(story.id, index, event.shiftKey)}
-      >
-        {scene.text ? (
-          <div {...stylex.props(styles.message)}>
-            <p {...stylex.props(styles.messageText)}>
-              <RichText text={scene.text} />
-            </p>
-          </div>
-        ) : null}
-      </Tile>
+        footer={scene.text ? <MessageCaption text={scene.text} /> : null}
+      />
     )
   }
   const audio =

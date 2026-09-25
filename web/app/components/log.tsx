@@ -8,6 +8,7 @@ import { Blocks } from './blocks'
 import { Avatar } from './media'
 import { Icon } from './icons'
 import { eventDetail, eventIcon, eventLead } from '~/lib/detail'
+import { formatTiming } from '~/lib/time'
 import { sendTurn } from '~/lib/store'
 import { selectScene } from '~/lib/store'
 import { portraitUrl, sceneIndexForEvent } from '~/lib/view'
@@ -39,7 +40,7 @@ const styles = stylex.create({
     minWidth: 0,
     maxWidth: '100%',
     boxSizing: 'border-box',
-    padding: '1rem 0.75rem 16rem',
+    padding: '1rem 0.5rem 16rem 0.75rem',
   },
   fold: {
     minWidth: 0,
@@ -143,6 +144,16 @@ const styles = stylex.create({
     whiteSpace: 'nowrap',
     color: tokens.textMid,
   },
+  stats: {
+    margin: '0.35rem 0 0',
+    color: tokens.muted,
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+    fontSize: '0.68rem',
+    lineHeight: 1.3,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
   edit: {
     width: '100%',
     minWidth: 0,
@@ -173,6 +184,9 @@ export function Log({ story }: { story: Story }): ReactNode {
               index={index}
             />
           ))}
+          {story.timing ? (
+            <p {...stylex.props(styles.stats)}>{formatTiming(story.timing)}</p>
+          ) : null}
         </ScrollArea.Content>
       </ScrollArea.Viewport>
     </ScrollArea.Root>

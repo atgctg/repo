@@ -31,7 +31,7 @@ const styles = stylex.create({
     gap: '0.35rem',
     minWidth: 0,
     margin: 0,
-    padding: '0.75rem 0.75rem 0.25rem',
+    padding: '0.75rem 0.5rem 0.25rem 0.75rem',
   },
   title: {
     flex: '1 1 auto',
@@ -56,8 +56,12 @@ const styles = stylex.create({
     flex: 'none',
     display: 'inline-flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '0.2rem',
-    padding: '0.4rem 0.7rem',
+    boxSizing: 'border-box',
+    height: '2.25rem',
+    minWidth: '3.75rem',
+    padding: '0 0.55rem',
     borderRadius: tokens.radiusPill,
     color: tokens.muted,
     backgroundColor: 'transparent',
@@ -86,7 +90,7 @@ const styles = stylex.create({
   dock: {
     position: 'absolute',
     left: '0.75rem',
-    right: '0.75rem',
+    right: '0.5rem',
     bottom: '1rem',
     zIndex: 2,
   },
@@ -153,6 +157,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
         <span {...stylex.props(styles.count)}>{story.scenes.length}</span>
         <Button
           type="button"
+          aria-label="Cards"
           aria-pressed={onCards}
           {...stylex.props(styles.tool, onCards && styles.toolOn)}
           onClick={() => show(onCards ? `/${story.id}` : `/${story.id}/cards`)}
@@ -164,11 +169,12 @@ export function Studio({ story }: { story: Story }): ReactNode {
         </Button>
         <Button
           type="button"
+          aria-label="Raw"
           aria-pressed={onRaw}
           {...stylex.props(styles.tool, onRaw && styles.toolOn)}
           onClick={() => show(onRaw ? `/${story.id}` : `/${story.id}/raw`)}
         >
-          Raw
+          <Icon name="raw" size="lg" />
         </Button>
       </header>
       <div {...stylex.props(styles.chat)}>

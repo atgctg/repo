@@ -118,6 +118,7 @@ export function toStory(entry: Entry, version: number): Story {
     scenes,
     assets,
     cards: projected.cards,
+    ...(entry.timing ? { timing: entry.timing } : {}),
   }
 }
 

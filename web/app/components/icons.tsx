@@ -13,6 +13,8 @@ export type IconName =
   | 'person'
   | 'mic'
   | 'pointer'
+  | 'raw'
+  | 'stop'
 
 const styles = stylex.create({
   icon: {
@@ -57,6 +59,8 @@ const PATHS: Record<IconName, ReactNode> = {
     <path d="M12 4.2a2.4 2.4 0 0 0-2.4 2.4v4.8a2.4 2.4 0 0 0 4.8 0V6.6A2.4 2.4 0 0 0 12 4.2ZM8 11.2a4 4 0 0 0 8 0M12 15.2v3.6" />
   ),
   pointer: <path d="M7.5 4.2 16.2 12l-3.4.7 3.2 5.2-1.7 1.1-3.2-5.1-3.6 3.2Z" />,
+  raw: <path d="M9 8.2 6.2 12 9 15.8M15 8.2 17.8 12 15 15.8M13.1 7l-2.2 10" />,
+  stop: <path d="M8 8h8v8H8z" fill="currentColor" stroke="none" />,
 }
 
 export function Icon({
@@ -68,7 +72,8 @@ export function Icon({
   size?: 'sm' | 'md' | 'lg'
   spin?: boolean
 }): ReactNode {
-  const filled = name === 'play' || name === 'pause' || name === 'pointer'
+  const filled =
+    name === 'play' || name === 'pause' || name === 'pointer' || name === 'stop'
   const svg = stylex.props(
     styles.icon,
     size === 'md' && styles.md,

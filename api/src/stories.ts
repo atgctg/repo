@@ -8,6 +8,8 @@ import {
   type Story,
   type StoryEvent,
   type StorySummary,
+  type TurnTiming,
+  isTurnTiming,
 } from 'shared'
 import { database, type StoryRow } from './db'
 import { parseEvents } from './events'
@@ -117,7 +119,7 @@ export function storyWorld(id: string): string | undefined {
 export async function listStories(): Promise<StorySummary[]> {
   const rows = database()
     .query<StoryRow, []>(
-      'SELECT id, world, title, events, created_at, updated_at, case_name, passed FROM stories ORDER BY updated_at DESC',
+      'SELECT id, world, title, events, created_at, updated_at, case_name, passed, timing FROM stories ORDER BY updated_at DESC',
     )
     .all()
   const stories: StorySummary[] = []
@@ -157,7 +159,7 @@ function rowById(id: string): StoryRow | undefined {
   return (
     database()
       .query<StoryRow, [string]>(
-        'SELECT id, world, title, events, created_at, updated_at, case_name, passed FROM stories WHERE id = ?',
+        'SELECT id, world, title, events, created_at, updated_at, case_name, passed, timing FROM stories WHERE id = ?',
       )
       .get(id) ?? undefined
   )
@@ -174,6 +176,7 @@ async function hydrate(row: StoryRow): Promise<Story> {
     scenes: [],
     assets: [],
     cards: [],
+    ...timingOf(row.timing),
   }
   await refresh(story)
   return story
@@ -231,6 +234,22 @@ async function attachFiles(story: Story): Promise<void> {
     if (!voice) continue
     const key = speechFileName(voice, scene.caption)
     if (await resolveAssetPath(story.id, story.world, key)) scene.speech = { key }
+  }
+}
+
+export function saveTiming(id: string, timing: TurnTiming): void {
+  database()
+    .query('UPDATE stories SET timing = ? WHERE id = ?')
+    .run(JSON.stringify(timing), id)
+}
+
+function timingOf(raw: string | null): { timing: TurnTiming } | undefined {
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    return isTurnTiming(parsed) ? { timing: parsed } : undefined
+  } catch {
+    return undefined
   }
 }
 

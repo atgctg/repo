@@ -30,7 +30,13 @@ export async function loadCase(name: string): Promise<CaseFile> {
 
 export async function listCases(): Promise<string[]> {
   const names: string[] = []
-  for (const file of new Bun.Glob('*.yaml').scanSync(DIR)) {
+  let files: string[]
+  try {
+    files = [...new Bun.Glob('*.yaml').scanSync(DIR)]
+  } catch {
+    return []
+  }
+  for (const file of files) {
     if (file.includes('.out.') || file.includes('.before.')) continue
     names.push(file.replace(/\.yaml$/, ''))
   }

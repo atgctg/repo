@@ -4,8 +4,8 @@ import type { StoryEvent } from './types'
 
 test('projects scenes from events and skips failures', () => {
   const events: StoryEvent[] = [
-    { type: 'message', user: 'user', text: 'User message' },
     { type: 'image', name: 'Cafe', prompt: { Subject: 'Cafe' } },
+    { type: 'message', user: 'user', text: 'User message' },
     { type: 'dialogue', background: 'Cafe', speaker: 'Mimi', caption: 'Hello' },
     {
       type: 'image',
@@ -16,7 +16,7 @@ test('projects scenes from events and skips failures', () => {
     {
       type: 'dialogue',
       replace: true,
-      index: 1,
+      index: 2,
       background: 'Cafe',
       speaker: 'Mimi',
       caption: 'Tea',
@@ -27,6 +27,7 @@ test('projects scenes from events and skips failures', () => {
   ]
   const state = project(events)
   expect(state.scenes).toEqual([
+    { type: 'message', text: 'User message', event: 1, background: 'Cafe' },
     { type: 'dialogue', background: 'Cafe', speaker: 'Mimi', caption: 'Tea', event: 4 },
   ])
   expect(state.assets).toEqual([
@@ -64,6 +65,24 @@ test('events point at the scene they still own', () => {
   ]
   expect(project(events).scenes).toEqual([
     { type: 'dialogue', background: 'Cafe', caption: 'Tea', event: 2 },
+  ])
+})
+
+test('messages sit on the previous image', () => {
+  const events: StoryEvent[] = [
+    { type: 'message', user: 'user', text: 'Before' },
+    { type: 'image', name: 'Cafe' },
+    { type: 'dialogue', background: 'Cafe', caption: 'Hi' },
+    { type: 'message', text: 'After' },
+    { type: 'message', user: 'user', text: 'Next', error: 'nope' },
+    { type: 'message', user: 'user', text: 'Again' },
+    { type: 'delete', indices: [0] },
+  ]
+  expect(project(events).scenes).toEqual([
+    { type: 'image', name: 'Cafe', event: 1 },
+    { type: 'dialogue', background: 'Cafe', caption: 'Hi', event: 2 },
+    { type: 'message', text: 'After', event: 3, background: 'Cafe' },
+    { type: 'message', text: 'Again', event: 5, background: 'Cafe' },
   ])
 })
 

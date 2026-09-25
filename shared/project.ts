@@ -1,5 +1,13 @@
 import { mergeAttributes } from './records'
-import type { Asset, Card, CardEvent, DialogueScene, Scene, StoryEvent } from './types'
+import type {
+  Asset,
+  Card,
+  CardEvent,
+  DialogueScene,
+  MessageScene,
+  Scene,
+  StoryEvent,
+} from './types'
 
 export function lastUserText(events: StoryEvent[]): string {
   for (let index = events.length - 1; index >= 0; index--) {
@@ -48,8 +56,13 @@ export function project(events: StoryEvent[]): {
     const event = events[index]
     if (event.error) continue
     switch (event.type) {
-      case 'message':
+      case 'message': {
+        const scene: MessageScene = { type: 'message', text: event.text, event: index }
+        const background = previousImage(scenes)
+        if (background) scene.background = background
+        placeAt(scenes, scene)
         break
+      }
       case 'image': {
         const asset: Asset = {
           type: 'image',
@@ -129,6 +142,29 @@ export function formatRanges(indices: number[]): string {
   }
   parts.push(start === prev ? String(start) : `${start}-${prev}`)
   return parts.join(',')
+}
+
+function previousImage(scenes: Scene[]): string | undefined {
+  for (let index = scenes.length - 1; index >= 0; index--) {
+    const scene = scenes[index]
+    if (!scene) continue
+    switch (scene.type) {
+      case 'image':
+        return scene.name
+      case 'dialogue':
+        return scene.background
+      case 'message':
+        if (scene.background) return scene.background
+        break
+      case 'video':
+        break
+      default: {
+        const _exhaustive: never = scene
+        return _exhaustive
+      }
+    }
+  }
+  return undefined
 }
 
 function placeAt<T>(items: T[], item: T, index?: number, replace?: boolean): void {

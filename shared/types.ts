@@ -87,6 +87,13 @@ export type Speech = {
   t?: number[]
 }
 
+export type MessageScene = {
+  type: 'message'
+  text: string
+  event: number
+  background?: string
+}
+
 export type ImageScene = { type: 'image'; name: string; event: number }
 
 export type DialogueScene = {
@@ -100,7 +107,7 @@ export type DialogueScene = {
 
 export type VideoScene = { type: 'video'; name: string; event: number }
 
-export type Scene = ImageScene | DialogueScene | VideoScene
+export type Scene = MessageScene | ImageScene | DialogueScene | VideoScene
 
 export type Story = {
   id: string

@@ -163,6 +163,10 @@ export const ui = stylex.create({
     filter: 'blur(1.125rem)',
     transform: 'scale(1.12)',
   },
+  cardImgHeavy: {
+    filter: 'blur(2.75rem)',
+    transform: 'scale(1.18)',
+  },
   scrim: {
     position: 'absolute',
     inset: 0,
@@ -175,6 +179,14 @@ export const ui = stylex.create({
     backgroundColor: 'color-mix(in srgb, #ffffff 78%, transparent)',
     '@media (prefers-color-scheme: dark)': {
       backgroundColor: 'color-mix(in srgb, #000000 78%, transparent)',
+    },
+  },
+  scrimHeavy: {
+    backgroundImage: 'none',
+    backgroundColor: 'color-mix(in srgb, #ffffff 48%, transparent)',
+    '@media (prefers-color-scheme: dark)': {
+      backgroundColor: 'color-mix(in srgb, #000000 48%, transparent)',
+      backgroundImage: 'none',
     },
   },
   cardBody: {

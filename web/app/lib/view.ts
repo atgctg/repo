@@ -32,6 +32,8 @@ export function sceneName(scene: Scene): string {
   switch (scene.type) {
     case 'dialogue':
       return scene.background
+    case 'message':
+      return scene.background ?? ''
     case 'image':
     case 'video':
       return scene.name

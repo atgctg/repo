@@ -204,6 +204,7 @@ function sceneImageName(scene: Scene): string | undefined {
     case 'image':
       return scene.name
     case 'dialogue':
+    case 'message':
       return scene.background
     case 'video':
       return undefined

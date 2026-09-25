@@ -331,6 +331,7 @@ export function Tile({
   selected = false,
   plain = false,
   blurred = false,
+  heavy = false,
   scene = false,
   video = false,
   onClick,
@@ -344,6 +345,7 @@ export function Tile({
   selected?: boolean
   plain?: boolean
   blurred?: boolean
+  heavy?: boolean
   scene?: boolean
   video?: boolean
   onClick?: (event: MouseEvent<HTMLElement>) => void
@@ -369,19 +371,26 @@ export function Tile({
             src={image}
             playsInline
             preload="metadata"
-            {...stylex.props(ui.cardImg, blurred && ui.cardImgBlur)}
+            {...stylex.props(
+              ui.cardImg,
+              blurred && (heavy ? ui.cardImgHeavy : ui.cardImgBlur),
+            )}
             onDoubleClick={enterFullscreen}
           />
         ) : (
           <img
             src={image}
             alt=""
-            {...stylex.props(ui.cardImg, blurred && ui.cardImgBlur)}
+            {...stylex.props(
+              ui.cardImg,
+              blurred && (heavy ? ui.cardImgHeavy : ui.cardImgBlur),
+            )}
           />
         )
       ) : null}
       {media && !blurred ? <div {...stylex.props(ui.scrim)} /> : null}
-      {blurred ? <div {...stylex.props(ui.scrim, ui.scrimFlat)} /> : null}
+      {blurred && !heavy ? <div {...stylex.props(ui.scrim, ui.scrimFlat)} /> : null}
+      {heavy ? <div {...stylex.props(ui.scrim, ui.scrimHeavy)} /> : null}
       <div
         {...stylex.props(
           ui.cardBody,
@@ -444,6 +453,6 @@ export function sceneImage(story: Story, scene: Scene): string | undefined {
 }
 
 export function sceneTitle(scene: Scene): string | undefined {
-  if (scene.type === 'dialogue') return undefined
+  if (scene.type === 'dialogue' || scene.type === 'message') return undefined
   return sceneName(scene)
 }

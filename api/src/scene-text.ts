@@ -3,6 +3,8 @@ import type { Asset, Scene } from 'shared'
 
 export function formatScene(scene: Scene, index: number, assets: Asset[]): string {
   switch (scene.type) {
+    case 'message':
+      return scene.text ? `[${index}] message\n${scene.text}` : `[${index}] message`
     case 'image':
       return `[${index}] image ${scene.name}`
     case 'dialogue':

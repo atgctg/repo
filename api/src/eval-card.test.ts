@@ -28,7 +28,7 @@ test('a turn is the last prompt and the model lines after it', () => {
     context: ['[0] image Tenno Sushi', "Yuki: Pretend you're my boyfriend."],
     output: [
       'Leo: Oh.. I must have forgotten',
-      '[3] image Leo Sweats',
+      '[4] image Leo Sweats',
       'He keeps the line.',
       'delete 0-1',
     ],

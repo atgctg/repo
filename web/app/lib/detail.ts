@@ -105,6 +105,8 @@ function relatedCard(story: Story, scene: Scene): Card | undefined {
 }
 
 export function sceneBlocks(story: Story, scene: Scene): DetailBlock[] {
+  if (scene.type === 'message')
+    return scene.text ? [{ type: 'quote', text: scene.text }] : []
   const name = sceneName(scene)
   const asset = sceneAsset(story, scene)
   const card = relatedCard(story, scene)

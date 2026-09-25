@@ -46,6 +46,12 @@ const styles = stylex.create({
     overflow: 'hidden',
     backgroundColor: tokens.bg,
   },
+  previewBlur: {
+    position: 'absolute',
+    inset: 0,
+    filter: 'blur(2.75rem)',
+    transform: 'scale(1.15)',
+  },
   title: {
     fontSize: tokens.textMd,
     fontWeight: 500,
@@ -81,13 +87,17 @@ export function SceneDrawer({ story, scene }: { story: Story; scene: Scene }): R
           </div>
           {asset?.url ? (
             <div {...withClass(stylex.props(styles.preview), 'squircle')}>
-              <Media url={asset.url} video={scene.type === 'video'} />
+              <div {...stylex.props(scene.type === 'message' && styles.previewBlur)}>
+                <Media url={asset.url} video={scene.type === 'video'} />
+              </div>
               {showPlay ? (
                 <PlayButton owner={`${story.id}:drawer`} audio={audio} />
               ) : null}
             </div>
           ) : null}
-          <h2 {...stylex.props(styles.title)}>{sceneName(scene)}</h2>
+          {scene.type === 'message' ? null : (
+            <h2 {...stylex.props(styles.title)}>{sceneName(scene)}</h2>
+          )}
           <Blocks blocks={sceneBlocks(story, scene)} />
         </ScrollArea.Content>
       </ScrollArea.Viewport>

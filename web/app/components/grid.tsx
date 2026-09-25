@@ -5,6 +5,7 @@ import type { Card, Scene, Story } from 'shared'
 import { Blocks } from './blocks'
 import { Icon } from './icons'
 import { Caption, PlayButton, Tile, sceneImage, sceneTitle } from './media'
+import { RichText } from '~/lib/text'
 import { canGenerate, findAsset, sceneAsset, speechSrc } from '~/lib/view'
 import { generateAsset, selectScene, useActivity, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
@@ -43,6 +44,23 @@ const styles = stylex.create({
     color: tokens.text,
     fontSize: tokens.textSm,
     lineHeight: 1.2,
+  },
+  message: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 0,
+    textAlign: 'center',
+  },
+  messageText: {
+    margin: 0,
+    whiteSpace: 'pre-wrap',
+    textWrap: 'pretty',
+    fontSize: tokens.textMd,
+    fontWeight: 600,
+    lineHeight: 1.25,
+    letterSpacing: '-0.015em',
   },
   home: {
     minHeight: '100dvh',
@@ -93,6 +111,27 @@ function SceneTile({
   selected: boolean
 }): ReactNode {
   const asset = sceneAsset(story, scene)
+  if (scene.type === 'message') {
+    return (
+      <Tile
+        scene
+        image={sceneImage(story, scene)}
+        blurred
+        heavy
+        mark={index}
+        selected={selected}
+        onClick={(event) => selectScene(story.id, index, event.shiftKey)}
+      >
+        {scene.text ? (
+          <div {...stylex.props(styles.message)}>
+            <p {...stylex.props(styles.messageText)}>
+              <RichText text={scene.text} />
+            </p>
+          </div>
+        ) : null}
+      </Tile>
+    )
+  }
   const audio =
     scene.type === 'dialogue' ? speechSrc(story, scene.speech?.key) : undefined
   const showPlay = scene.type === 'video' ? Boolean(asset?.url) : Boolean(audio)

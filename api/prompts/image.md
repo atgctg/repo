@@ -167,9 +167,7 @@ twelve — and if something is partly hidden, say so and describe the visible pa
 expression, hair, skin tone, and each garment with its colour and material. Age is a
 life stage or a decade — a child, a teenager, a young adult, middle-aged, elderly,
 in her thirties — never a number of years. If a face is turned away or cropped, say
-that instead of describing it. If the brief gives a character's established look —
-hair, eyes, build, clothes, marks — those traits are fixed. Copy them. Do not swap a
-colour, drop a mark, or invent a surname, age, or garment the brief did not give.
+that instead of describing it.
 
 **Objects by class, not by brand.** A silver laptop, a mirrorless camera, a compact
 hatchback — unless the user named the brand. Photographic and design vocabulary is

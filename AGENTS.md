@@ -16,12 +16,31 @@ Never call `useEffect` directly. Prefer derived state (React Compiler is enabled
 
 No animations and transitions for now.
 
+Only change `AGENTS.md` and `api/prompts/` when explicitly asked.
+
 # Starting points
 
-- src/server.ts
-- src/types.ts
-- src/tools.ts
-- prompts/system.md
+- shared/types.ts
+- shared/project.ts
+- api/src/server.ts
+- api/src/turn.ts
+- api/src/tools.ts
+- api/prompts/system.md
+- web/app
+
+# Concepts
+
+- World: a story template, YAML in `data/worlds/`
+- Story: a fork of a world; holds the append-only event log
+- Template: the events before the first input
+- Event: one log entry (input, output, image, dialogue, video, card, delete)
+- Input: what the user did (text, selected scenes, pasted text, voice)
+- Output: the model's plain text
+- Projection: state derived from events (`project()`): scenes, cards, assets
+- Scene: one timeline item, an image, video, dialogue, or message
+- Card: creator-defined persistent state the LLM or user keeps updated
+- Turn: one input plus the events the model adds in response
+- Eval: a small world plus one input, judged by Marton
 
 # Overview
 

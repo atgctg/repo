@@ -97,7 +97,8 @@ export const STORY_TOOLS = [
     type: 'function',
     function: {
       name: 'Card',
-      description: 'IF_ASKED Create or patch a named card (Character, Style, etc.).',
+      description:
+        'Create or patch a card for a recurring character, place, or lasting fact.',
       parameters: {
         type: 'object',
         properties: {

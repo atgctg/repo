@@ -80,8 +80,9 @@ const styles = stylex.create({
     top: '0.75rem',
     left: '50%',
     zIndex: 6,
-    width: 'min(16rem, calc(100% - 2rem))',
-    padding: '0.35rem 0.55rem',
+    width: '15rem',
+    height: '2.1rem',
+    padding: 0,
     borderRadius: tokens.radiusPill,
     backgroundColor: tokens.chip,
     transform: 'translateX(-50%)',
@@ -90,29 +91,38 @@ const styles = stylex.create({
     transform: 'translateX(-50%) translateY(calc(-100% - 1.25rem))',
     pointerEvents: 'none',
   },
+  slider: {
+    width: '100%',
+    height: '100%',
+  },
   control: {
     display: 'flex',
     alignItems: 'center',
     width: '100%',
+    height: '100%',
   },
   track: {
     position: 'relative',
     width: '100%',
-    height: '1.125rem',
+    height: '100%',
+    overflow: 'hidden',
     borderRadius: tokens.radiusPill,
     backgroundColor: tokens.chip,
   },
   indicator: {
     height: '100%',
-    borderRadius: tokens.radiusPill,
-    backgroundColor: tokens.text,
+    borderRadius: 0,
+    backgroundColor: `color-mix(in srgb, ${tokens.chip} 86%, ${tokens.text})`,
   },
   thumb: {
     width: '2px',
-    height: '0.7rem',
+    height: '1.25rem',
     padding: 0,
-    borderRadius: '1px',
-    backgroundColor: tokens.chip,
+    borderWidth: 0,
+    borderRadius: 0,
+    boxShadow: 'none',
+    backgroundColor: tokens.text,
+    zIndex: 1,
   },
 })
 
@@ -185,6 +195,7 @@ export function Storyboard({ story }: { story: Story }): ReactNode {
           step={1}
           thumbAlignment="edge"
           onValueChange={onSize}
+          {...stylex.props(styles.slider)}
         >
           <Slider.Control {...stylex.props(styles.control)}>
             <Slider.Track {...stylex.props(styles.track)}>

@@ -277,9 +277,12 @@ export function StageMedia({
   )
 }
 
-const SOFT_MASK = 'linear-gradient(to bottom, transparent 0%, #000 78%)'
-const MID_MASK = 'linear-gradient(to bottom, transparent 0%, transparent 30%, #000 100%)'
-const DEEP_MASK = 'linear-gradient(to bottom, transparent 0%, transparent 52%, #000 100%)'
+const SOFT_MASK =
+  'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.35) 42%, rgb(0 0 0 / 1) 100%)'
+const MID_MASK =
+  'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.16) 38%, rgb(0 0 0 / 0.62) 72%, rgb(0 0 0 / 1) 100%)'
+const DEEP_MASK =
+  'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.08) 32%, rgb(0 0 0 / 0.4) 66%, rgb(0 0 0 / 1) 100%)'
 
 const blurLayers = stylex.create({
   stack: {
@@ -299,8 +302,8 @@ const blurLayers = stylex.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: '33%',
-    minHeight: '4rem',
+    height: '40%',
+    zIndex: 1,
     overflow: 'hidden',
     pointerEvents: 'none',
     borderBottomLeftRadius: tokens.radiusScene,
@@ -313,7 +316,8 @@ const blurLayers = stylex.create({
   shade: {
     position: 'absolute',
     inset: 0,
-    backgroundImage: 'linear-gradient(to top, rgb(0 0 0 / 0.4), transparent)',
+    backgroundImage:
+      'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.05) 38%, rgb(0 0 0 / 0.5) 100%)',
   },
   soft: {
     backdropFilter: 'blur(1px)',
@@ -405,7 +409,7 @@ const tileStyles = stylex.create({
   captionLayer: {
     position: 'absolute',
     inset: 0,
-    zIndex: 4,
+    zIndex: 6,
     pointerEvents: 'none',
     transformOrigin: 'center',
     transform: 'scale(1)',

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { data, useParams } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { Studio } from '~/components/studio'
-import { useMountEffect } from '~/hooks/use-mount-effect'
 import { ensureIndex, ensureStory, hasEntry, useStory } from '~/lib/store'
 import { ui } from '~/styles/ui'
 import type { Route } from './+types/story'
@@ -27,13 +26,6 @@ export function HydrateFallback(): ReactNode {
   return <p {...stylex.props(ui.muted, styles.note)}>Loading</p>
 }
 
-function Title({ title }: { title: string }): null {
-  useMountEffect(() => {
-    document.title = title
-  })
-  return null
-}
-
 export default function StoryRoute(): ReactNode {
   const { id } = useParams()
   const story = useStory(id ?? '')
@@ -42,7 +34,7 @@ export default function StoryRoute(): ReactNode {
   }
   return (
     <>
-      <Title key={`${story.id}:${story.title}`} title={story.title} />
+      <title>{story.title}</title>
       <Studio story={story} />
     </>
   )

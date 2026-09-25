@@ -38,37 +38,40 @@ export default function Home(): ReactNode {
   const sidebar = usePaneWidth('pane.sidebar', 224, 160, 420)
   const studio = stylex.props(styles.studio)
   return (
-    <div
-      {...studio}
-      style={{
-        ...studio.style,
-        gridTemplateColumns: `${sidebar.width}px minmax(0, 1fr)`,
-      }}
-    >
-      <ResizeEdge
-        side="left"
-        width={sidebar.width}
-        sign={1}
-        min={160}
-        max={420}
-        onWidth={sidebar.setWidth}
-        onCommit={sidebar.commit}
-      />
-      <Sidebar />
-      <HomeSections
-        stories={[]}
-        worlds={worlds.map((world) => ({
-          id: world.id,
-          title: world.title,
-          image: world.cover,
-        }))}
-        onOpenStory={(id) => void navigate(`/${id}`)}
-        onOpenWorld={(id) => {
-          const storyId = forkWorld(id)
-          if (storyId) void navigate(`/${storyId}`)
+    <>
+      <title>Verse</title>
+      <div
+        {...studio}
+        style={{
+          ...studio.style,
+          gridTemplateColumns: `${sidebar.width}px minmax(0, 1fr)`,
         }}
-      />
-    </div>
+      >
+        <ResizeEdge
+          side="left"
+          width={sidebar.width}
+          sign={1}
+          min={160}
+          max={420}
+          onWidth={sidebar.setWidth}
+          onCommit={sidebar.commit}
+        />
+        <Sidebar />
+        <HomeSections
+          stories={[]}
+          worlds={worlds.map((world) => ({
+            id: world.id,
+            title: world.title,
+            image: world.cover,
+          }))}
+          onOpenStory={(id) => void navigate(`/${id}`)}
+          onOpenWorld={(id) => {
+            const storyId = forkWorld(id)
+            if (storyId) void navigate(`/${storyId}`)
+          }}
+        />
+      </div>
+    </>
   )
 }
 

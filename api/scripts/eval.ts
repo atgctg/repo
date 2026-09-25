@@ -12,6 +12,7 @@ import { openDatabase } from '../src/db'
 import { parseEvents } from '../src/events'
 import { replayEvents } from '../src/turn'
 import { saveEvalStory } from '../src/stories'
+import { nodeDatabaseUrl } from './database-url'
 
 const DIR = `${import.meta.dir}/../evals`
 const WORLDS = `${DIR}/worlds`
@@ -97,11 +98,21 @@ function readInput(raw: unknown, name: string): CaseFile['input'] {
   return { text: raw.text, selected: raw.selected }
 }
 
-async function loadWorldEvents(name: string): Promise<StoryEvent[]> {
-  const file = Bun.file(`${WORLDS}/${name}.yaml`)
-  if (!(await file.exists())) throw new Error(`No eval world ${name}`)
+export type WorldFile = { id: string; title: string; events: StoryEvent[] }
+
+async function readWorld(id: string): Promise<WorldFile> {
+  const file = Bun.file(`${WORLDS}/${id}.yaml`)
+  if (!(await file.exists())) throw new Error(`No eval world ${id}`)
   const raw = parse(await file.text()) as Record<string, unknown>
-  return strictEvents(raw.events, name)
+  const title = typeof raw.title === 'string' ? raw.title : id
+  return { id, title, events: strictEvents(raw.events, id) }
+}
+
+export function listEvalWorlds(): Promise<WorldFile[]> {
+  const ids = [...new Bun.Glob('*.yaml').scanSync(WORLDS)]
+    .map((file) => file.replace(/\.yaml$/, ''))
+    .sort()
+  return Promise.all(ids.map(readWorld))
 }
 
 export async function loadCase(name: string): Promise<CaseFile> {
@@ -120,7 +131,7 @@ export async function loadCase(name: string): Promise<CaseFile> {
 
 export async function caseEvents(name: string): Promise<StoryEvent[]> {
   const evalCase = await loadCase(name)
-  const world = await loadWorldEvents(evalCase.world)
+  const world = (await readWorld(evalCase.world)).events
   const input: InputEvent = {
     type: 'input',
     text: evalCase.input.text,

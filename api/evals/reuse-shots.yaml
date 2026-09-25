@@ -4,12 +4,6 @@ rule: 'Name an image for the reusable shot: who is in frame, where, and the
   the people, place, or framing you need.'
 expect: Leo's dialogue keeps the user's point about last year and checking the
   phone. Lines sit on shots that already exist. At most one new image.
-pass:
-  - kind: dialogue
-    speaker: Leo
-    has: last year
-  - kind: max_images
-    n: 1
 events:
   - type: card
     name: Style

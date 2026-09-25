@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { HomeSections } from '~/components/grid'
+import { ResizeEdge, usePaneWidth } from '~/components/resize'
 import { Sidebar } from '~/components/sidebar'
 import { ensureIndex, forkWorld, useWorlds } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
@@ -9,8 +10,8 @@ import { ui } from '~/styles/ui'
 
 const styles = stylex.create({
   studio: {
+    position: 'relative',
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, 14rem) minmax(0, 1fr)',
     height: '100dvh',
     minHeight: 0,
     backgroundColor: tokens.bg,
@@ -34,8 +35,25 @@ export function HydrateFallback(): ReactNode {
 export default function Home(): ReactNode {
   const worlds = useWorlds()
   const navigate = useNavigate()
+  const sidebar = usePaneWidth('pane.sidebar', 224, 160, 420)
+  const studio = stylex.props(styles.studio)
   return (
-    <div {...stylex.props(styles.studio)}>
+    <div
+      {...studio}
+      style={{
+        ...studio.style,
+        gridTemplateColumns: `${sidebar.width}px minmax(0, 1fr)`,
+      }}
+    >
+      <ResizeEdge
+        side="left"
+        width={sidebar.width}
+        sign={1}
+        min={160}
+        max={420}
+        onWidth={sidebar.setWidth}
+        onCommit={sidebar.commit}
+      />
       <Sidebar />
       <HomeSections
         stories={[]}

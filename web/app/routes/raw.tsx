@@ -32,7 +32,7 @@ const styles = stylex.create({
     margin: 0,
     whiteSpace: 'pre-wrap',
     overflowWrap: 'anywhere',
-    fontSize: tokens.textSm,
+    fontSize: '0.75rem',
     lineHeight: 1.45,
   },
   json: {
@@ -40,7 +40,7 @@ const styles = stylex.create({
     whiteSpace: 'pre-wrap',
     overflowWrap: 'anywhere',
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-    fontSize: '0.75rem',
+    fontSize: '0.6875rem',
     lineHeight: 1.45,
   },
   note: {

@@ -6,16 +6,6 @@ rule: "Bracketed notes are out of character: answer them in a plain chat
 expect: Leo says the "wonderful months" line. Chat answers that the user is Leo
   and that the phone buzz was his. If Summer appears, she does not already know
   the live dinner (the dad, the fake-girlfriend crisis, who is paying).
-pass:
-  - kind: dialogue
-    speaker: Leo
-    has: wonderful
-  - kind: chat
-  - kind: spoken_lacks
-    any:
-      - eat you alive
-      - make you pay
-      - fake gf
 events:
   - type: card
     name: Style

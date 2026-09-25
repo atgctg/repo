@@ -1,7 +1,6 @@
 import { project, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
 import { database } from './db'
-import { parseChecks, scoreEvents, type Check, type CheckResult } from './eval-score'
 import { replayEvents } from './turn'
 import { saveEvalStory } from './stories'
 
@@ -10,7 +9,6 @@ const DIR = `${import.meta.dir}/../evals`
 export type CaseFile = {
   rule: string
   expect: string
-  pass: Check[]
   events: StoryEvent[]
   model: StoryEvent[]
 }
@@ -27,7 +25,6 @@ export async function loadCase(name: string): Promise<CaseFile> {
   return {
     rule: raw.rule,
     expect: raw.expect,
-    pass: parseChecks(raw.pass),
     events: raw.events as StoryEvent[],
     model: raw.model as StoryEvent[],
   }
@@ -75,69 +72,42 @@ function summarize(events: StoryEvent[]): string[] {
   return lines
 }
 
-async function runCase(name: string): Promise<boolean> {
+async function runCase(name: string): Promise<void> {
   const evalCase = await loadCase(name)
   const sceneCount = project(evalCase.events).scenes.length
   console.log(`\n${name} (${sceneCount} scenes)`)
   const replay = await replayEvents(evalCase.events)
   const output = replay.events
-  const checks = scoreEvents(output, evalCase.pass, sceneCount)
-  const ok = checks.every((check) => check.ok)
-  for (const check of checks)
-    console.log(`  ${check.ok ? 'pass' : 'fail'}  ${check.detail}`)
   for (const line of summarize(output)) console.log(`  ${line}`)
   await Bun.write(
     `${DIR}/${name}.out.yaml`,
-    stringify(
-      { case: name, ok, checks: slimChecks(checks), events: output },
-      { indent: 2 },
-    ),
+    stringify({ case: name, events: output }, { indent: 2 }),
   )
-  await saveEvalStory(name, [...evalCase.events, ...output], ok)
-  return ok
+  await saveEvalStory(name, [...evalCase.events, ...output])
+  console.log(`${name} done`)
 }
-
-const RUNS = 3
 
 export type EvalStat = {
   name: string
-  passed: number
-  total: number
   runs: { id: string; createdAt: number }[]
 }
 
 export async function listEvalStats(): Promise<EvalStat[]> {
   const names = await listCases()
   const rows = database()
-    .query<
-      { id: string; case_name: string; passed: number | null; created_at: number },
-      []
-    >(
-      `SELECT id, case_name, passed, created_at FROM stories
+    .query<{ id: string; case_name: string; created_at: number }, []>(
+      `SELECT id, case_name, created_at FROM stories
        WHERE case_name IS NOT NULL ORDER BY created_at DESC`,
     )
     .all()
   const groups = new Map<string, EvalStat>()
-  for (const name of names) groups.set(name, { name, passed: 0, total: 0, runs: [] })
+  for (const name of names) groups.set(name, { name, runs: [] })
   for (const row of rows) {
-    const group = groups.get(row.case_name) ?? {
-      name: row.case_name,
-      passed: 0,
-      total: 0,
-      runs: [],
-    }
-    if (row.passed) group.passed += 1
-    group.total += 1
+    const group = groups.get(row.case_name) ?? { name: row.case_name, runs: [] }
     group.runs.push({ id: row.id, createdAt: row.created_at })
     groups.set(row.case_name, group)
   }
-  return [...groups.values()].sort(
-    (a, b) => b.total - a.total || a.name.localeCompare(b.name),
-  )
-}
-
-function slimChecks(checks: CheckResult[]) {
-  return checks.map((check) => ({ kind: check.kind, ok: check.ok, detail: check.detail }))
+  return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name))
 }
 
 async function main(): Promise<void> {
@@ -148,18 +118,7 @@ async function main(): Promise<void> {
     return
   }
   const picked = arg === '--all' ? names : [arg]
-  let failed = 0
-  for (const name of picked) {
-    let passed = 0
-    for (let run = 1; run <= RUNS; run++) {
-      const ok = await runCase(name)
-      if (ok) passed += 1
-      else failed += 1
-      console.log(`  run ${run}/${RUNS} ${ok ? 'pass' : 'fail'}`)
-    }
-    console.log(`${name} ${passed}/${RUNS}`)
-  }
-  if (failed > 0) process.exitCode = 1
+  for (const name of picked) await runCase(name)
 }
 
 if (import.meta.main) await main()

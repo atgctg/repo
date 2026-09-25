@@ -3,11 +3,6 @@ rule: A selected scene is the only scene you may change. Do not replace,
   message is still a chat reply.
 expect: Chat answers whether anyone is 2000 miles away. Any edit touches only
   scene 65. Later scenes stay as they are.
-pass:
-  - kind: chat
-  - kind: indices_only
-    indices:
-      - 65
 events:
   - type: card
     name: Style

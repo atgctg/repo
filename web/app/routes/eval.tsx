@@ -29,10 +29,6 @@ const styles = stylex.create({
     fontSize: tokens.textMd,
     fontWeight: 600,
   },
-  count: {
-    color: tokens.muted,
-    fontWeight: 500,
-  },
   runs: {
     display: 'flex',
     flexDirection: 'column',
@@ -70,18 +66,13 @@ export default function EvalRoute({ loaderData }: Route.ComponentProps): ReactNo
         <p {...stylex.props(styles.back)}>No eval runs</p>
       ) : null}
       {loaderData.map((item) =>
-        item.total === 0 ? (
+        item.runs.length === 0 ? (
           <h2 key={item.name} {...stylex.props(styles.stat, styles.idle)}>
             {item.name} <span>not run</span>
           </h2>
         ) : (
           <section key={item.name} {...stylex.props(styles.case)}>
-            <h2 {...stylex.props(styles.stat)}>
-              {item.name}{' '}
-              <span {...stylex.props(styles.count)}>
-                {item.passed}/{item.total}
-              </span>
-            </h2>
+            <h2 {...stylex.props(styles.stat)}>{item.name}</h2>
             <div {...stylex.props(styles.runs)}>
               {item.runs.map((run) => (
                 <Link key={run.id} to={`/${run.id}`} {...stylex.props(styles.run)}>

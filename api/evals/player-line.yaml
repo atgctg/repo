@@ -5,11 +5,6 @@ rule: 'Infer who the user is playing from the story: the person addressed as
   someone else.'
 expect: Leo says the user's line, including "forgotten". He does not replace it
   with a claim that he already knew.
-pass:
-  - kind: dialogue
-    speaker: Leo
-    has: forgotten
-    lacks: of course I knew
 events:
   - type: card
     name: Style

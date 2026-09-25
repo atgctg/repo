@@ -1,4 +1,6 @@
-import type { StoryEvent } from 'shared'
+import { project, type Card, type StoryEvent } from 'shared'
+import { stringify } from 'yaml'
+import { formatScene } from './scene-text'
 
 export type ToolCall = {
   id: string
@@ -14,24 +16,28 @@ export type ChatMessage =
 
 const OMIT = new Set(['user', 'error', 'width', 'height', 'dominantColor'])
 
-export function eventsToMessages(events: StoryEvent[], summary?: string): ChatMessage[] {
+export function eventsToMessages(
+  events: StoryEvent[],
+  summary?: string,
+  title = '',
+): ChatMessage[] {
   const messages: ChatMessage[] = []
   if (summary) messages.push({ role: 'system', content: summary })
 
+  const cut = events.findIndex((event) => event.user)
+  const prefix = cut < 0 ? events : events.slice(0, cut)
+  const template = prefix.length > 0 ? renderTemplate(title, prefix) : ''
+  let framed = template.length === 0
   let tool = 0
-  let index = 0
+  let index = cut < 0 ? events.length : cut
   while (index < events.length) {
     const event = events[index]
     if (event.user) {
-      messages.push(
-        event.type === 'message'
-          ? { role: 'user', name: event.user, content: event.text }
-          : {
-              role: 'user',
-              name: event.user,
-              content: stableStringify(payload(event, true)),
-            },
-      )
+      const text =
+        event.type === 'message' ? event.text : stableStringify(payload(event, true))
+      const content = framed ? text : `${template}\n\n${text}`
+      framed = true
+      messages.push({ role: 'user', name: event.user, content })
       index += 1
       continue
     }
@@ -68,6 +74,35 @@ export function eventsToMessages(events: StoryEvent[], summary?: string): ChatMe
   }
 
   return messages
+}
+
+function renderTemplate(title: string, events: StoryEvent[]): string {
+  const { scenes, assets, cards } = project(events)
+  const cardBlock = cards.map(formatCard).join('\n')
+  const sceneBlock = scenes
+    .map((scene, index) => formatScene(scene, index, assets))
+    .join('\n')
+  return `<template title="${escapeTitle(title)}">
+<cards>
+${cardBlock}
+</cards>
+<scenes>
+${sceneBlock}
+</scenes>
+</template>`
+}
+
+function formatCard(card: Card): string {
+  const fields: Record<string, string> = { name: card.name }
+  if (card.cover) fields.cover = card.cover
+  if (card.voice) fields.voice = card.voice
+  const body = stringify([fields]).trimEnd()
+  if (!card.attributes || Object.keys(card.attributes).length === 0) return body
+  return `${body}\n  attributes: ${JSON.stringify(card.attributes)}`
+}
+
+function escapeTitle(title: string): string {
+  return title.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
 }
 
 function toolName(event: Exclude<StoryEvent, { type: 'message' }>): string {

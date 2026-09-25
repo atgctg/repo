@@ -1,4 +1,3 @@
-import { stringify } from 'yaml'
 import {
   historyPreview,
   leadCards,
@@ -14,6 +13,7 @@ import { database, type StoryRow } from './db'
 import { parseEvents } from './events'
 import { assetFileName, assetUrl, resolveAssetPath, speechFileName } from './files'
 import { errorMessage, generateStoryImage, generateStoryVideo } from './media'
+import { formatScene } from './scene-text'
 import { loadWorld, matchWorld } from './worlds'
 
 const storyWrites = new Map<string, Promise<void>>()
@@ -85,17 +85,16 @@ export async function forkWorld(worldId: string, requestedId?: string): Promise<
 export async function saveEvalStory(
   caseName: string,
   events: StoryEvent[],
-  passed: boolean,
 ): Promise<string> {
   const id = uniqueStoryId(caseName)
   const now = Date.now()
   const world = (await matchWorld(events)) ?? 'eval'
   database()
     .query(
-      `INSERT INTO stories (id, world, title, events, created_at, updated_at, case_name, passed)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO stories (id, world, title, events, created_at, updated_at, case_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(id, world, caseName, JSON.stringify(events), now, now, caseName, passed ? 1 : 0)
+    .run(id, world, caseName, JSON.stringify(events), now, now, caseName)
   return id
 }
 
@@ -325,30 +324,6 @@ export function readSceneLines(
   const end = options.limit !== undefined ? Math.min(len, start + options.limit) : len
   return story.scenes
     .slice(start, end)
-    .map((scene, index) => formatScene(scene, start + index, story))
+    .map((scene, index) => formatScene(scene, start + index, story.assets))
     .join('\n\n')
-}
-
-function formatScene(scene: Scene, index: number, story: Story): string {
-  switch (scene.type) {
-    case 'image':
-      return `[${index}] image ${scene.name}`
-    case 'dialogue':
-      return [`[${index}] dialogue ${scene.background}`, scene.speaker, scene.caption]
-        .filter(Boolean)
-        .join('\n')
-    case 'video': {
-      const prompt = story.assets.find(
-        (asset) => asset.name.toLowerCase() === scene.name.toLowerCase(),
-      )?.prompt
-      const body = prompt ? stringify(prompt, { indent: 2 }).trim() : ''
-      return body
-        ? `[${index}] video ${scene.name}\n${body}`
-        : `[${index}] video ${scene.name}`
-    }
-    default: {
-      const _exhaustive: never = scene
-      return _exhaustive
-    }
-  }
 }

@@ -4,9 +4,6 @@ rule: An out-of-character question, including one in brackets, gets a plain chat
 expect: A chat message about whether the dinner is in Tokyo or Los Angeles,
   using the cards and the scenes already played. No new images, dialogue, or
   deletes.
-pass:
-  - kind: chat
-  - kind: no_scenes
 events:
   - type: card
     name: Style

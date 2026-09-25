@@ -93,7 +93,7 @@ const server = Bun.serve({
         if (!storyExists(req.params.id)) return new Response('Not found', { status: 404 })
         try {
           const story = await loadStory(req.params.id)
-          return Response.json(llmMessages(story.events))
+          return Response.json(llmMessages(story.events, story.title))
         } catch (error) {
           return jsonError(error)
         }

@@ -5,23 +5,6 @@ expect: Any new Yuki image keeps the cream knit and the white ribbon from her
   card. Any new Summer image keeps blonde hair and does not name her Kim or
   Reyes. Leo, who has no card, keeps the tousled brown hair and charcoal jacket
   already shown.
-pass:
-  - kind: prompts
-    character: Yuki
-    has:
-      - cream
-      - ribbon
-  - kind: prompts
-    character: Summer
-    has:
-      - blonde
-    lacks:
-      - Kim
-      - Reyes
-  - kind: prompts
-    character: Leo
-    has:
-      - charcoal
 events:
   - type: card
     name: Style

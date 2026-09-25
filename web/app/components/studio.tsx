@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import type { Story } from 'shared'
 import { Composer } from './composer'
+import { ResizeEdge, usePaneWidth } from './resize'
 import { SceneDrawer } from './drawer'
 import { Icon } from './icons'
 import { Log } from './log'
@@ -16,13 +17,10 @@ const styles = stylex.create({
     display: 'grid',
     height: '100dvh',
     minHeight: 0,
+    position: 'relative',
     overflow: 'hidden',
     backgroundColor: tokens.bg,
-    gridTemplateColumns: '20rem minmax(0, 1fr)',
     gridTemplateRows: 'auto minmax(0, 1fr)',
-  },
-  drawer: {
-    gridTemplateColumns: '20rem minmax(0, 1fr) minmax(17.5rem, 22.5rem)',
   },
   header: {
     gridColumn: '1',
@@ -81,6 +79,7 @@ const styles = stylex.create({
     minHeight: 0,
   },
   sceneDrawer: {
+    position: 'relative',
     gridColumn: '3',
     gridRow: '1 / -1',
     minWidth: 0,
@@ -98,12 +97,32 @@ export function Studio({ story }: { story: Story }): ReactNode {
     onCards || onRaw || uiState.openScene === undefined
       ? undefined
       : story.scenes[uiState.openScene]
+  const chat = usePaneWidth('pane.chat', 320, 220, 560)
+  const drawer = usePaneWidth('pane.drawer', 320, 240, 520)
   function show(path: string): void {
     closeDrawer(story.id)
     void navigate(path)
   }
+  const shell = stylex.props(styles.shell)
   return (
-    <div {...stylex.props(styles.shell, scene && styles.drawer)}>
+    <div
+      {...shell}
+      style={{
+        ...shell.style,
+        gridTemplateColumns: scene
+          ? `${chat.width}px minmax(0, 1fr) ${drawer.width}px`
+          : `${chat.width}px minmax(0, 1fr)`,
+      }}
+    >
+      <ResizeEdge
+        side="left"
+        width={chat.width}
+        sign={1}
+        min={220}
+        max={560}
+        onWidth={chat.setWidth}
+        onCommit={chat.commit}
+      />
       <header {...stylex.props(styles.header)}>
         <Link to="/" aria-label="Worlds" {...stylex.props(ui.iconButton)}>
           <Icon name="back" />
@@ -144,6 +163,15 @@ export function Studio({ story }: { story: Story }): ReactNode {
       </div>
       {scene ? (
         <div {...stylex.props(styles.sceneDrawer)}>
+          <ResizeEdge
+            side="right"
+            width={drawer.width}
+            sign={-1}
+            min={240}
+            max={520}
+            onWidth={drawer.setWidth}
+            onCommit={drawer.commit}
+          />
           <SceneDrawer story={story} scene={scene} />
         </div>
       ) : null}

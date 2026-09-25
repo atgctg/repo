@@ -1,177 +1,82 @@
 import { expect, test } from 'bun:test'
-import { leadCards } from 'shared'
-import { parse } from 'yaml'
-import { parseEvents } from './events'
-import { eventsToMessages, type ChatMessage } from './messages'
+import type { StoryEvent } from 'shared'
+import { eventsToMessages } from './messages'
 
-const fixture = parse(await Bun.file(`${import.meta.dir}/fixtures/muse.yaml`).text()) as {
-  events: unknown
-}
-const events = leadCards(parseEvents(fixture.events))
-
-const museMessages: ChatMessage[] = [
+const prefix: StoryEvent[] = [
   {
-    role: 'assistant',
-    tool_calls: [
-      {
-        id: '0',
-        type: 'function',
-        function: {
-          name: 'Card',
-          arguments:
-            '{"attributes":{"Fact":"I keep 40 tabs open and call it memory training","Hair":"Short silver-violet bob with cyan tips","Style":"Cream knit sweater, pleated skirt, holographic scarf"},"cover":"Muse","name":"Muse","voice":"Aiko"}',
-        },
-      },
-      {
-        id: '1',
-        type: 'function',
-        function: {
-          name: 'Video',
-          arguments:
-            '{"firstFrame":"Muse","name":"Muse Wave","prompt":{"Action":"Second 0 to 1: Muse smiles and waves at camera, holographic scarf flutters. Second 1 to 3: she says \\"Hi, I am Muse!\\" with bright happy voice, spark particles drift. Second 3 to 5: she laughs and says \\"I keep 40 tabs open and call it memory training!\\", playful mood, circular camera push, enable cheerful non-diagetic music."}}',
-        },
-      },
-      {
-        id: '2',
-        type: 'function',
-        function: {
-          name: 'Image',
-          arguments:
-            '{"name":"Muse","prompt":{"Character":"Muse (screen-center, front view, face visible to camera): young adult anime woman, pale skin, short silver-violet bob with cyan tips, amber eyes, oversized cream knit sweater with small spark pins, dark pleated skirt, thigh-high socks, translucent holographic scarf floating","Composition":"Vertical portrait, upper body, screen-center, front view","Environment":"Soft studio glow, pale gradient background with faint spark particles","Style":"Clean anime key art, flat color shapes, crisp line work"}}',
-        },
-      },
-      {
-        id: '3',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"*Waves*\\nHi. I am Muse.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '4',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"*Whispers*\\nSometimes a cloud is just a cloud. Not today.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '5',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"*Laughs*\\nI named a star after a sandwich once. It stuck.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '6',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"My sandwich star? Uh, I logged it on 04/20/2025.\\nAround 7:00 PM. The sky was being dramatic.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '7',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"It cost $19.99. Receipt went to muse@orbit.mail.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '8',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"Call (415) 555-1212 if a cloud steals it.\\nI crash at 123 Main St. Sometimes.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '9',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"Muse is spelled <spell>Muse</spell>. Not mews. Important.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '10',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"I had a thought.<break time=\\"1s\\"/>Nope. Completely gone.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '11',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"<speed ratio=\\"1.5\\"/> I talk fast when clouds do tricks!","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '12',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"*Leans in*\\n<volume ratio=\\"0.5\\"/> Do not tell the sandwich star.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '13',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"<emotion value=\\"curious\\"/> Did you hear that? A hiccup in the dark.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '14',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"[laughter] Stars do not hiccup. I checked twice.","speaker":"Muse"}',
-        },
-      },
-      {
-        id: '15',
-        type: 'function',
-        function: {
-          name: 'Dialogue',
-          arguments:
-            '{"background":"Muse","caption":"NASA noticed. The USA did not. Typical.","speaker":"Muse"}',
-        },
-      },
-    ],
+    type: 'card',
+    name: 'Yuki',
+    cover: 'Yuki',
+    voice: 'Aiko',
+    attributes: { Info: { Age: '22' }, Look: { Hair: 'Dark, white ribbon' } },
   },
-  ...Array.from({ length: 16 }, (_, index) => ({
-    role: 'tool' as const,
-    tool_call_id: String(index),
-    content: '',
-  })),
+  { type: 'image', name: 'Tenno Sushi' },
+  {
+    type: 'dialogue',
+    background: 'Booth wide',
+    speaker: 'Yuki',
+    caption: "Pretend you're my boyfriend.",
+  },
 ]
 
-test('muse converts to one model turn', () => {
-  expect(eventsToMessages(events)).toEqual(museMessages)
+const ask: StoryEvent = { type: 'message', user: 'user', text: 'I forgot the plan.' }
+
+const template = `<template title="Her Fake Boyfriend">
+<cards>
+- name: Yuki
+  cover: Yuki
+  voice: Aiko
+  attributes: {"Info":{"Age":"22"},"Look":{"Hair":"Dark, white ribbon"}}
+</cards>
+<scenes>
+[0] image Tenno Sushi
+[1] dialogue Booth wide
+Yuki
+Pretend you're my boyfriend.
+</scenes>
+</template>`
+
+const opening = [...prefix, ask]
+
+test('the opening is one template block', () => {
+  expect(eventsToMessages(opening, undefined, 'Her Fake Boyfriend')).toEqual([
+    {
+      role: 'user',
+      name: 'user',
+      content: `${template}\n\nI forgot the plan.`,
+    },
+  ])
+})
+
+test('later turns keep the same template bytes', () => {
+  const events: StoryEvent[] = [
+    ...opening,
+    {
+      type: 'dialogue',
+      background: 'Booth wide',
+      speaker: 'Leo',
+      caption: 'Right.',
+    },
+    { type: 'message', user: 'user', text: 'again' },
+  ]
+  const first = eventsToMessages(opening, undefined, 'Her Fake Boyfriend')
+  const full = eventsToMessages(events, undefined, 'Her Fake Boyfriend')
+  expect(full[0]).toEqual(first[0])
+  expect(full.at(-1)).toEqual({ role: 'user', name: 'user', content: 'again' })
 })
 
 test('a finished turn is a stable prefix', () => {
-  const full = eventsToMessages(events)
+  const events: StoryEvent[] = [
+    ...opening,
+    {
+      type: 'dialogue',
+      background: 'Booth wide',
+      speaker: 'Leo',
+      caption: 'Right.',
+    },
+    { type: 'message', user: 'user', text: 'again' },
+  ]
+  const full = eventsToMessages(events, undefined, 'Her Fake Boyfriend')
   const cuts = [0]
   for (let index = 0; index < events.length; index++) {
     const next = events[index + 1]
@@ -180,20 +85,39 @@ test('a finished turn is a stable prefix', () => {
     if (!next || !model || !nextModel) cuts.push(index + 1)
   }
   for (const count of cuts) {
-    const prefix = eventsToMessages(events.slice(0, count))
-    expect(full.slice(0, prefix.length)).toEqual(prefix)
+    const head = eventsToMessages(events.slice(0, count), undefined, 'Her Fake Boyfriend')
+    expect(full.slice(0, head.length)).toEqual(head)
   }
 })
 
 test('summary is a frozen prefix', () => {
   const summary = 'Summary of earlier events.'
-  const withSummary = eventsToMessages(events, summary)
+  const withSummary = eventsToMessages(opening, summary, 'Her Fake Boyfriend')
   expect(withSummary[0]).toEqual({ role: 'system', content: summary })
-  expect(withSummary.slice(1)).toEqual(eventsToMessages(events))
+  expect(withSummary.slice(1)).toEqual(
+    eventsToMessages(opening, undefined, 'Her Fake Boyfriend'),
+  )
+})
+
+test('a title escapes quotes and ampersands', () => {
+  const framed = eventsToMessages(
+    [...prefix.slice(0, 1), { type: 'message', user: 'user', text: 'go' }],
+    undefined,
+    'A & B "C"',
+  )
+  const content = framed[0]?.role === 'user' ? framed[0].content : ''
+  expect(content.startsWith('<template title="A &amp; B &quot;C&quot;">')).toBe(true)
+})
+
+test('an empty prefix has no template wrapper', () => {
+  expect(
+    eventsToMessages([{ type: 'message', user: 'user', text: 'go' }], undefined, 'Title'),
+  ).toEqual([{ role: 'user', name: 'user', content: 'go' }])
 })
 
 test('a failed tool returns the error and keeps the prompt', () => {
   const failed: StoryEvent[] = [
+    { type: 'message', user: 'user', text: 'go' },
     {
       type: 'image',
       name: 'Night',

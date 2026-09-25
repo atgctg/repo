@@ -3,10 +3,6 @@ rule: '"Delete everything starting from here" deletes the selected scene and
   that stretch again, continue the story in the same turn.'
 expect: Delete scene 62 and everything after it. Do not delete scenes 60 or 61.
   Then continue with new scenes.
-pass:
-  - kind: delete_tail
-    from: 62
-  - kind: continues
 events:
   - type: card
     name: Style

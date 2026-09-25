@@ -218,8 +218,6 @@ export async function fetchMessages(id: string): Promise<RawMessage[] | undefine
 
 export type EvalStat = {
   name: string
-  passed: number
-  total: number
   runs: { id: string; createdAt: number }[]
 }
 
@@ -230,7 +228,6 @@ export async function fetchEvalStats(): Promise<EvalStat[]> {
   if (!Array.isArray(body)) return []
   return body.flatMap((item) => {
     if (!isRecord(item) || typeof item.name !== 'string') return []
-    if (typeof item.passed !== 'number' || typeof item.total !== 'number') return []
     const runs = Array.isArray(item.runs)
       ? item.runs.flatMap((run) => {
           if (!isRecord(run) || typeof run.id !== 'string') return []
@@ -238,7 +235,7 @@ export async function fetchEvalStats(): Promise<EvalStat[]> {
           return [{ id: run.id, createdAt: run.createdAt }]
         })
       : []
-    return [{ name: item.name, passed: item.passed, total: item.total, runs }]
+    return [{ name: item.name, runs }]
   })
 }
 

@@ -1,31 +1,25 @@
 import { stringify } from 'yaml'
-import type { Speech, Story } from 'shared'
+import { concatBytes, type Speech, type Story } from 'shared'
 import { readAssetBytes, resolveAssetKey, storyKey, writeAsset } from './assets'
 import { app } from './context'
 import { assetFileName, assetUrl, speechFileName } from './files'
+import { sseData } from './stream'
 
 const PRUNA_MODEL = 'p-image' as const
 const PRUNA_EDIT_MODEL = 'p-image-edit' as const
 const IMAGE_ASPECT_RATIO = '9:16' as const
 
-export const PRUNA_VIDEO_MODEL = 'p-video-2-pro' as const
-export const VIDEO_RESOLUTION = '480p' as const
-export const VIDEO_MODE = 'speed' as const
-export const VIDEO_MIN_SECONDS = 5 as const
-export const VIDEO_MAX_SECONDS = 15 as const
-export const VIDEO_DEFAULT_SECONDS = 5 as const
+const PRUNA_VIDEO_MODEL = 'p-video-2-pro' as const
+const VIDEO_RESOLUTION = '480p' as const
+const VIDEO_MODE = 'speed' as const
+const VIDEO_MIN_SECONDS = 5 as const
+const VIDEO_MAX_SECONDS = 15 as const
+const VIDEO_DEFAULT_SECONDS = 5 as const
 
-export const VOICE_NAMES = [
-  'Skylar',
-  'Daniel',
-  'Jacqueline',
-  'Gemma',
-  'Archie',
-  'Aiko',
-] as const
-export type VoiceName = (typeof VOICE_NAMES)[number]
+const VOICE_NAMES = ['Skylar', 'Daniel', 'Jacqueline', 'Gemma', 'Archie', 'Aiko'] as const
+type VoiceName = (typeof VOICE_NAMES)[number]
 
-export const VOICE_IDS: Record<VoiceName, string> = {
+const VOICE_IDS: Record<VoiceName, string> = {
   Skylar: 'db6b0ed5-d5d3-463d-ae85-518a07d3c2b4',
   Daniel: '47c38ca4-5f35-497b-b1a3-415245fb35e1',
   Jacqueline: '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc',
@@ -48,7 +42,7 @@ export function resolveVoiceId(input: string): string | undefined {
   return undefined
 }
 
-export function captionToTranscript(caption?: string): string {
+function captionToTranscript(caption?: string): string {
   if (!caption) return ''
   return caption
     .split('\n')
@@ -450,17 +444,9 @@ async function generateCartesiaVoiceSse(
   const pcmParts: Uint8Array[] = []
   const words: string[] = []
   const t: number[] = []
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buf = ''
 
-  const handleEvent = (raw: string): boolean => {
-    const data = raw
-      .split('\n')
-      .filter((line) => line.startsWith('data:'))
-      .map((line) => line.slice(5).trim())
-      .join('')
-    if (!data || data === '[DONE]') return false
+  const handleEvent = (data: string): boolean => {
+    if (data === '[DONE]') return false
     let parsed: {
       type?: unknown
       data?: unknown
@@ -511,33 +497,12 @@ async function generateCartesiaVoiceSse(
     }
   }
 
-  while (true) {
-    const { done, value } = await reader.read()
-    buf += decoder.decode(value, { stream: !done })
-    const parts = buf.split('\n\n')
-    buf = done ? '' : (parts.pop() ?? '')
-    for (const part of parts) {
-      if (handleEvent(part.trim())) {
-        await reader.cancel()
-        return { wav: pcmS16leToWav(concatBytes(pcmParts)), words, t }
-      }
-    }
-    if (done) break
+  for await (const data of sseData(response.body)) {
+    if (handleEvent(data)) break
   }
 
   if (pcmParts.length === 0) throw new Error('Cartesia SSE returned no audio')
   return { wav: pcmS16leToWav(concatBytes(pcmParts)), words, t }
-}
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  const total = parts.reduce((n, p) => n + p.byteLength, 0)
-  const out = new Uint8Array(total)
-  let offset = 0
-  for (const part of parts) {
-    out.set(part, offset)
-    offset += part.byteLength
-  }
-  return out
 }
 
 function pcmS16leToWav(pcm: Uint8Array, sampleRate = 44100): Uint8Array {

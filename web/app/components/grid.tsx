@@ -19,17 +19,6 @@ const styles = stylex.create({
     containerName: 'stage',
     padding: '0.25rem',
   },
-  footer: {
-    marginTop: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    width: '100%',
-  },
-  caption: {
-    marginLeft: '-0.85rem',
-    marginBottom: '-0.7rem',
-  },
   play: {
     position: 'absolute',
     left: '50%',
@@ -140,9 +129,7 @@ function SceneTile({
       }
       footer={
         scene.type === 'dialogue' ? (
-          <div {...stylex.props(styles.footer, styles.caption)}>
-            <Caption scene={scene} story={story} placement="card" />
-          </div>
+          <Caption scene={scene} story={story} placement="card" />
         ) : null
       }
     />

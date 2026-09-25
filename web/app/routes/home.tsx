@@ -36,7 +36,7 @@ export default function Home(): ReactNode {
   const navigate = useNavigate()
   return (
     <div {...stylex.props(styles.studio)}>
-      <Sidebar onFork={(id) => void navigate(`/${id}`)} />
+      <Sidebar />
       <HomeSections
         stories={[]}
         worlds={worlds.map((world) => ({

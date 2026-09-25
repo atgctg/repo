@@ -1,8 +1,8 @@
 import { project, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
-import { recordEval } from './db'
+import { evalRow, listEvalRows, recordEval } from './db'
 import { parseChecks, scoreEvents, type Check, type CheckResult } from './eval-score'
-import { replayEvents } from './turn'
+import { replayEvents, type LlmExchange } from './turn'
 
 const DIR = `${import.meta.dir}/../evals`
 
@@ -78,7 +78,8 @@ async function runCase(name: string): Promise<boolean> {
   const evalCase = await loadCase(name)
   const sceneCount = project(evalCase.events).scenes.length
   console.log(`\n${name} (${sceneCount} scenes)`)
-  const output = await replayEvents(evalCase.events)
+  const replay = await replayEvents(evalCase.events)
+  const output = replay.events
   const checks = scoreEvents(output, evalCase.pass, sceneCount)
   const ok = checks.every((check) => check.ok)
   for (const check of checks)
@@ -91,8 +92,43 @@ async function runCase(name: string): Promise<boolean> {
       { indent: 2 },
     ),
   )
-  recordEval(`${name}.yaml`, output)
+  recordEval(`${name}.yaml`, output, replay.trace)
   return ok
+}
+
+export function listEvals(): { id: string; name: string; createdAt: number }[] {
+  return listEvalRows().map((row) => ({
+    id: row.id,
+    name: row.name.replace(/\.yaml$/, ''),
+    createdAt: row.created_at,
+  }))
+}
+
+export async function readEval(id: string): Promise<
+  | {
+      id: string
+      name: string
+      createdAt: number
+      input: StoryEvent[]
+      expected: string
+      output: StoryEvent[]
+      trace: LlmExchange[]
+    }
+  | undefined
+> {
+  const row = evalRow(id)
+  if (!row) return undefined
+  const name = row.name.replace(/\.yaml$/, '')
+  const evalCase = await loadCase(name)
+  return {
+    id: row.id,
+    name,
+    createdAt: row.created_at,
+    input: evalCase.events,
+    expected: evalCase.expect,
+    output: JSON.parse(row.output) as StoryEvent[],
+    trace: JSON.parse(row.trace) as LlmExchange[],
+  }
 }
 
 function slimChecks(checks: CheckResult[]) {

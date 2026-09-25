@@ -60,7 +60,17 @@ export async function reply(
   return story
 }
 
-export async function replayEvents(events: StoryEvent[]): Promise<StoryEvent[]> {
+export type LlmExchange = {
+  sent: ChatMessage[]
+  received: {
+    content?: string
+    tool_calls?: { id: string; name: string; arguments: unknown }[]
+  }
+}
+
+export async function replayEvents(
+  events: StoryEvent[],
+): Promise<{ events: StoryEvent[]; trace: LlmExchange[] }> {
   const story: Story = {
     id: 'eval',
     title: 'Eval',
@@ -74,14 +84,16 @@ export async function replayEvents(events: StoryEvent[]): Promise<StoryEvent[]> 
   }
   await refresh(story)
   const start = story.events.length
-  await run(story, { dry: true, startedAt: Date.now(), emit: () => {} })
-  return story.events.slice(start)
+  const trace: LlmExchange[] = []
+  await run(story, { dry: true, startedAt: Date.now(), emit: () => {}, trace })
+  return { events: story.events.slice(start), trace }
 }
 
 type RunOptions = {
   dry: boolean
   startedAt: number
   emit: (event: TurnStreamEvent) => void
+  trace?: LlmExchange[]
 }
 
 type Save = {
@@ -143,6 +155,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
   ]
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
     if (loop > 0) emit({ event: 'status', data: { phase: 'model', startedAt } })
+    const sent = options.trace ? structuredClone(messages) : undefined
     const calls: ToolCall[] = []
     const results: { id: string; content: string }[] = []
     let chain = Promise.resolve()
@@ -177,6 +190,15 @@ async function run(story: Story, options: RunOptions): Promise<void> {
         const at = story.events.indexOf(draft)
         if (at >= 0) story.events.splice(at, 1)
       }
+    }
+    if (options.trace && sent) {
+      options.trace.push({
+        sent,
+        received: {
+          ...(spoken ? { content: spoken } : {}),
+          ...(calls.length > 0 ? { tool_calls: calls.map(plainCall) } : {}),
+        },
+      })
     }
     if (!followUp(calls.map((call) => call.function.name))) break
     messages.push({
@@ -508,6 +530,18 @@ async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string
       if (data) yield data
     }
     if (done) break
+  }
+}
+
+function plainCall(call: ToolCall): {
+  id: string
+  name: string
+  arguments: unknown
+} {
+  return {
+    id: call.id,
+    name: call.function.name,
+    arguments: parseArgs(call.function.arguments),
   }
 }
 

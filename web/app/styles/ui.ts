@@ -195,12 +195,4 @@ export const ui = stylex.create({
     textAlign: 'left',
     marginBottom: '0.75rem',
   },
-  ring: {
-    position: 'absolute',
-    inset: 0,
-    zIndex: 5,
-    borderRadius: 'inherit',
-    boxShadow: 'inset 0 0 0 4px #ffffffaa',
-    pointerEvents: 'none',
-  },
 })

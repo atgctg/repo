@@ -2,6 +2,7 @@ import { stringify } from 'yaml'
 import {
   leadCards,
   project,
+  storyId,
   type Asset,
   type Scene,
   type Story,
@@ -60,7 +61,7 @@ export function changeStory<T>(
 export async function forkWorld(worldId: string, requestedId?: string): Promise<Story> {
   const world = await loadWorld(worldId)
   if (!world) throw new StoryError('World not found', 404)
-  const id = requestedId === undefined ? crypto.randomUUID() : requestedId.trim()
+  const id = requestedId === undefined ? uniqueStoryId(world.id) : requestedId.trim()
   if (!ID_PATTERN.test(id)) throw new StoryError('id is invalid', 400)
   const existing = rowById(id)
   if (existing) {
@@ -78,6 +79,14 @@ export async function forkWorld(worldId: string, requestedId?: string): Promise<
   const created = rowById(id)
   if (!created) throw new StoryError('Story was not saved', 500)
   return hydrate(created)
+}
+
+function uniqueStoryId(worldId: string): string {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const id = storyId(worldId)
+    if (!rowById(id)) return id
+  }
+  throw new StoryError('id is in use', 409)
 }
 
 export function storyExists(id: string): boolean {

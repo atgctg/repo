@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react'
-import { Button } from '@base-ui/react/button'
 import { ScrollArea } from '@base-ui/react/scroll-area'
 import { Separator } from '@base-ui/react/separator'
 import { NavLink, useParams } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { ago } from '~/lib/time'
-import { forkWorld, useEvals, useNow, useStoryList, useWorlds } from '~/lib/store'
+import { useEvals, useNow, useStoryList } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 
 const styles = stylex.create({
@@ -21,18 +20,18 @@ const styles = stylex.create({
   content: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+    gap: '0.75rem',
     padding: '0.75rem 0.5rem 1.5rem',
-  },
-  label: {
-    fontSize: tokens.textXs,
-    color: tokens.muted,
-    padding: '0.25rem 0.75rem',
   },
   list: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.125rem',
+  },
+  empty: {
+    padding: '0.45rem 0.75rem',
+    color: tokens.muted,
+    fontSize: tokens.textSm,
   },
   row: {
     display: 'flex',
@@ -71,8 +70,7 @@ const styles = stylex.create({
   },
 })
 
-export function Sidebar({ onFork }: { onFork: (id: string) => void }): ReactNode {
-  const worlds = useWorlds()
+export function Sidebar(): ReactNode {
   const stories = useStoryList()
   const evals = useEvals()
   const now = useNow()
@@ -82,47 +80,33 @@ export function Sidebar({ onFork }: { onFork: (id: string) => void }): ReactNode
       <ScrollArea.Viewport {...stylex.props(styles.viewport)}>
         <ScrollArea.Content {...stylex.props(styles.content)}>
           <section {...stylex.props(styles.list)}>
-            <p {...stylex.props(styles.label)}>Stories</p>
             {stories.length === 0 ? (
-              <p {...stylex.props(styles.label)}>None yet</p>
-            ) : null}
-            {stories.map((story) => (
-              <NavLink
-                key={story.id}
-                to={`/${story.id}`}
-                {...stylex.props(styles.row, params.id === story.id && styles.active)}
-              >
-                <span {...stylex.props(styles.name)}>{story.title}</span>
-              </NavLink>
-            ))}
-          </section>
-          <Separator {...stylex.props(styles.rule)} />
-          <section {...stylex.props(styles.list)}>
-            <p {...stylex.props(styles.label)}>Worlds</p>
-            {worlds.map((world) => (
-              <Button
-                key={world.id}
-                type="button"
-                {...stylex.props(styles.row)}
-                onClick={() => {
-                  const id = forkWorld(world.id)
-                  if (id) onFork(id)
-                }}
-              >
-                <span {...stylex.props(styles.name)}>{world.title}</span>
-              </Button>
-            ))}
+              <p {...stylex.props(styles.empty)}>No stories yet</p>
+            ) : (
+              stories.map((story) => (
+                <NavLink
+                  key={story.id}
+                  to={`/${story.id}`}
+                  {...stylex.props(styles.row, params.id === story.id && styles.active)}
+                >
+                  <span {...stylex.props(styles.name)}>{story.title}</span>
+                </NavLink>
+              ))
+            )}
           </section>
           {import.meta.env.DEV && evals.length > 0 ? (
             <>
               <Separator {...stylex.props(styles.rule)} />
               <section {...stylex.props(styles.list)}>
-                <p {...stylex.props(styles.label)}>Evals</p>
                 {evals.map((run) => (
-                  <div key={run.id} {...stylex.props(styles.row)}>
+                  <NavLink
+                    key={run.id}
+                    to={`/evals/${run.id}`}
+                    {...stylex.props(styles.row, params.id === run.id && styles.active)}
+                  >
                     <span {...stylex.props(styles.name)}>{run.name}</span>
                     <span {...stylex.props(styles.meta)}>{ago(run.createdAt, now)}</span>
-                  </div>
+                  </NavLink>
                 ))}
               </section>
             </>

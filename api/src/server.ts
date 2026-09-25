@@ -12,6 +12,7 @@ import {
 } from './stories'
 import { reply } from './turn'
 import { resolveAssetPath, safeAssetFile, safeStoryId, worldAssetPath } from './files'
+import { listEvals, readEval } from './eval'
 import { loadWorld, listWorlds, worldExists } from './worlds'
 
 function jsonError(error: unknown, status = 500): Response {
@@ -79,6 +80,16 @@ const server = Bun.serve({
         } catch (error) {
           return jsonError(error)
         }
+      },
+    },
+    '/api/evals': {
+      GET: () => Response.json(listEvals()),
+    },
+    '/api/evals/:id': {
+      GET: async (req) => {
+        const view = await readEval(req.params.id)
+        if (!view) return new Response('Not found', { status: 404 })
+        return Response.json(view)
       },
     },
     '/api/stories': {

@@ -248,7 +248,10 @@ export function StageMedia({
 const tileStyles = stylex.create({
   scene: {
     borderRadius: tokens.radiusScene,
-    padding: '0.75rem',
+    padding: 0,
+  },
+  sceneBody: {
+    padding: '1rem 1.25rem',
   },
   hit: {
     position: 'absolute',
@@ -265,10 +268,40 @@ const tileStyles = stylex.create({
     zIndex: 4,
   },
   footer: {
-    marginTop: 'auto',
-    width: '100%',
-    pointerEvents: 'auto',
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
     zIndex: 4,
+    width: '100%',
+    margin: 0,
+    padding: '0.75rem 1rem',
+    pointerEvents: 'none',
+  },
+  face: {
+    position: 'absolute',
+    inset: 0,
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    borderRadius: tokens.radiusScene,
+    transitionProperty: 'inset, border-radius',
+    transitionDuration: '160ms',
+    transitionTimingFunction: 'ease-out',
+  },
+  faceOn: {
+    inset: `calc(${tokens.ringWidth} + ${tokens.ringGap})`,
+    borderRadius: `max(0px, calc(${tokens.radiusScene} - ${tokens.ringWidth} - ${tokens.ringGap}))`,
+  },
+  ring: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 5,
+    borderRadius: 'inherit',
+    borderWidth: tokens.ringWidth,
+    borderStyle: 'solid',
+    borderColor: tokens.ring,
+    pointerEvents: 'none',
+    backgroundColor: 'transparent',
   },
 })
 
@@ -305,16 +338,8 @@ export function Tile({
     media && !blurred && ui.cardMedia,
     onClick && ui.cardButton,
   )
-  return (
-    <div {...withClass(frame, 'squircle')}>
-      {onClick ? (
-        <Button
-          type="button"
-          aria-label={title ?? 'Open'}
-          {...stylex.props(tileStyles.hit)}
-          onClick={onClick}
-        />
-      ) : null}
+  const body = (
+    <>
       {image ? (
         video ? (
           <video
@@ -334,7 +359,13 @@ export function Tile({
       ) : null}
       {media && !blurred ? <div {...stylex.props(ui.scrim)} /> : null}
       {blurred ? <div {...stylex.props(ui.scrim, ui.scrimFlat)} /> : null}
-      <div {...stylex.props(ui.cardBody, onClick && tileStyles.inert)}>
+      <div
+        {...stylex.props(
+          ui.cardBody,
+          scene && tileStyles.sceneBody,
+          onClick && tileStyles.inert,
+        )}
+      >
         {title ? (
           <div {...stylex.props(ui.cardTitle, (plain || blurred) && ui.cardTitlePlain)}>
             {title}
@@ -344,7 +375,33 @@ export function Tile({
         {footer ? <div {...stylex.props(tileStyles.footer)}>{footer}</div> : null}
       </div>
       {action ? <div {...stylex.props(tileStyles.live)}>{action}</div> : null}
-      {selected ? <span {...stylex.props(ui.ring)} /> : null}
+    </>
+  )
+  return (
+    <div {...withClass(frame, 'squircle')}>
+      {onClick ? (
+        <Button
+          type="button"
+          aria-label={title ?? 'Open'}
+          {...stylex.props(tileStyles.hit)}
+          onClick={onClick}
+        />
+      ) : null}
+      {scene ? (
+        <div
+          {...withClass(
+            stylex.props(tileStyles.face, selected && tileStyles.faceOn),
+            'squircle',
+          )}
+        >
+          {body}
+        </div>
+      ) : (
+        body
+      )}
+      {scene && selected ? (
+        <span {...withClass(stylex.props(tileStyles.ring), 'squircle')} />
+      ) : null}
     </div>
   )
 }

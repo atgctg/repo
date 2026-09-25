@@ -194,6 +194,36 @@ export async function postGenerate(
   return undefined
 }
 
+export type EvalView = {
+  id: string
+  name: string
+  createdAt: number
+  input: unknown
+  expected: string
+  output: unknown
+  trace: unknown
+}
+
+export async function fetchEval(id: string): Promise<EvalView | undefined> {
+  const res = await fetch(`/api/evals/${encodeURIComponent(id)}`, { cache: 'no-store' })
+  if (res.status === 404) return undefined
+  if (!res.ok) throw new Error(await errorText(res))
+  const body = (await res.json()) as unknown
+  if (!isRecord(body)) return undefined
+  if (typeof body.id !== 'string' || typeof body.name !== 'string') return undefined
+  if (typeof body.expected !== 'string' || typeof body.createdAt !== 'number')
+    return undefined
+  return {
+    id: body.id,
+    name: body.name,
+    createdAt: body.createdAt,
+    input: body.input,
+    expected: body.expected,
+    output: body.output,
+    trace: body.trace,
+  }
+}
+
 export async function fetchEvals(): Promise<EvalRun[]> {
   try {
     const res = await fetch('/api/evals', { cache: 'no-store' })

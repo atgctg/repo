@@ -33,7 +33,7 @@ test('fork copies the world and no files', async () => {
   const world = await loadWorld('pandoo')
   const story = await forkWorld('pandoo')
   expect(story.world).toBe('pandoo')
-  expect(story.id).not.toBe('pandoo')
+  expect(story.id).toMatch(/^pandoo-[a-z0-9]{4}$/)
   expect(story.events).toEqual(world?.events)
   expect(await Bun.file(storyAssetPath(story.id, 'pandoo.jpg')).exists()).toBe(false)
   const again = await forkWorld('pandoo')

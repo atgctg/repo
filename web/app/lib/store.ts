@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { leadCards } from 'shared'
+import { leadCards, storyId } from 'shared'
 import type {
   Speech,
   Story,
@@ -296,10 +296,22 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+function unusedStoryId(worldId: string): string {
+  const taken = new Set([
+    ...snapshot.summaries.map((item) => item.id),
+    ...Object.keys(snapshot.entries),
+  ])
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const id = storyId(worldId)
+    if (!taken.has(id)) return id
+  }
+  return storyId(worldId)
+}
+
 export function forkWorld(worldId: string): string | undefined {
   const source = snapshot.sources[worldId]
   if (!source) return undefined
-  const id = crypto.randomUUID()
+  const id = unusedStoryId(worldId)
   const now = new Date().toISOString()
   const entry: Entry = {
     id,

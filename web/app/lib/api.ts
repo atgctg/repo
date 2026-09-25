@@ -1,19 +1,41 @@
-import { readTurn, type TurnMessage } from 'shared'
-import type { Story, StoryEvent, StorySummary, World, WorldSource } from 'shared'
+import { isPlainObject, readTurn, type TurnMessage } from 'shared'
+import type { Story, StorySummary, World, WorldSource } from 'shared'
 
 async function errorText(res: Response): Promise<string> {
-  const body = (await res.json().catch(() => null)) as { error?: unknown } | null
-  if (body && typeof body.error === 'string' && body.error) return body.error
+  const body: unknown = await res.json().catch(() => null)
+  if (isPlainObject(body) && typeof body.error === 'string' && body.error)
+    return body.error
   return `Request failed (${res.status})`
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
+async function request(path: string, init?: RequestInit): Promise<Response | undefined> {
+  const res = await fetch(path, init)
+  if (res.status === 404) return undefined
+  if (!res.ok) throw new Error(await errorText(res))
+  return res
+}
+
+async function getJson(path: string): Promise<unknown> {
+  return (await request(path, { cache: 'no-store' }))?.json()
+}
+
+async function postJson(path: string, body: unknown): Promise<unknown> {
+  const res = await request(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res) throw new Error('Request failed (404)')
+  return res.json()
+}
+
+function listOf<T>(body: unknown, guard: (value: unknown) => value is T): T[] {
+  return Array.isArray(body) ? body.filter(guard) : []
 }
 
 export function isStory(value: unknown): value is Story {
-  if (!isRecord(value)) return false
   return (
+    isPlainObject(value) &&
     typeof value.id === 'string' &&
     typeof value.world === 'string' &&
     typeof value.title === 'string' &&
@@ -22,8 +44,11 @@ export function isStory(value: unknown): value is Story {
 }
 
 function isWorld(value: unknown): value is World {
-  if (!isRecord(value)) return false
-  return typeof value.id === 'string' && typeof value.title === 'string'
+  return (
+    isPlainObject(value) &&
+    typeof value.id === 'string' &&
+    typeof value.title === 'string'
+  )
 }
 
 function isWorldSource(value: unknown): value is WorldSource {
@@ -31,8 +56,8 @@ function isWorldSource(value: unknown): value is WorldSource {
 }
 
 function isSummary(value: unknown): value is StorySummary {
-  if (!isRecord(value)) return false
   return (
+    isPlainObject(value) &&
     typeof value.id === 'string' &&
     typeof value.world === 'string' &&
     typeof value.title === 'string' &&
@@ -41,44 +66,28 @@ function isSummary(value: unknown): value is StorySummary {
   )
 }
 
+const path = (...parts: string[]) => `/api/${parts.map(encodeURIComponent).join('/')}`
+
 export async function fetchWorlds(): Promise<World[]> {
-  const res = await fetch('/api/worlds', { cache: 'no-store' })
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
-  return Array.isArray(body) ? body.filter(isWorld) : []
+  return listOf(await getJson(path('worlds')), isWorld)
 }
 
 export async function fetchWorld(id: string): Promise<WorldSource | undefined> {
-  const res = await fetch(`/api/worlds/${encodeURIComponent(id)}`, { cache: 'no-store' })
-  if (res.status === 404) return undefined
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
+  const body = await getJson(path('worlds', id))
   return isWorldSource(body) ? body : undefined
 }
 
 export async function fetchStories(): Promise<StorySummary[]> {
-  const res = await fetch('/api/stories', { cache: 'no-store' })
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
-  return Array.isArray(body) ? body.filter(isSummary) : []
+  return listOf(await getJson(path('stories')), isSummary)
 }
 
 export async function fetchStory(id: string): Promise<Story | undefined> {
-  const res = await fetch(`/api/stories/${encodeURIComponent(id)}`, { cache: 'no-store' })
-  if (res.status === 404) return undefined
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
+  const body = await getJson(path('stories', id))
   return isStory(body) ? body : undefined
 }
 
 export async function postFork(worldId: string, id: string): Promise<Story> {
-  const res = await fetch(`/api/worlds/${encodeURIComponent(worldId)}/fork`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
-  })
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
+  const body = await postJson(path('worlds', worldId, 'fork'), { id })
   if (!isStory(body)) throw new Error('Fork failed')
   return body
 }
@@ -91,7 +100,7 @@ export async function streamTurn(
   onMessage: (message: TurnMessage) => void,
   signal: AbortSignal,
 ): Promise<void> {
-  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/turn`, {
+  const res = await fetch(path('stories', id, 'turn'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal,
@@ -111,17 +120,10 @@ export async function postGenerate(
   name: string,
   type: 'image' | 'video',
 ): Promise<Story | undefined> {
-  const path = type === 'video' ? 'generate-video' : 'generate-image'
+  const action = type === 'video' ? 'generate-video' : 'generate-image'
   const payload = type === 'video' ? { name, duration: 5 } : { name }
-  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
-  if (isRecord(body) && isStory(body.story)) return body.story
-  return undefined
+  const body = await postJson(path('stories', id, action), payload)
+  return isPlainObject(body) && isStory(body.story) ? body.story : undefined
 }
 
 export type RawMessage = {
@@ -133,17 +135,12 @@ export type RawMessage = {
 }
 
 function isRawMessage(value: unknown): value is RawMessage {
-  return isRecord(value) && typeof value.role === 'string'
+  return isPlainObject(value) && typeof value.role === 'string'
 }
 
 export async function fetchMessages(id: string): Promise<RawMessage[] | undefined> {
-  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/messages`, {
-    cache: 'no-store',
-  })
-  if (res.status === 404) return undefined
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
-  return Array.isArray(body) ? body.filter(isRawMessage) : []
+  const body = await getJson(path('stories', id, 'messages'))
+  return body === undefined ? undefined : listOf(body, isRawMessage)
 }
 
 export type EvalVerdict = 'pass' | 'fail'
@@ -160,8 +157,8 @@ function isVerdict(value: unknown): value is EvalVerdict | null {
 }
 
 function isEvalRun(value: unknown): value is EvalRun {
-  if (!isRecord(value)) return false
   return (
+    isPlainObject(value) &&
     typeof value.id === 'string' &&
     typeof value.caseName === 'string' &&
     typeof value.description === 'string' &&
@@ -170,22 +167,12 @@ function isEvalRun(value: unknown): value is EvalRun {
 }
 
 export async function fetchEvalRuns(): Promise<EvalRun[]> {
-  const res = await fetch('/api/evals', { cache: 'no-store' })
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
-  return Array.isArray(body) ? body.filter(isEvalRun) : []
+  return listOf(await getJson(path('evals')), isEvalRun)
 }
 
 export async function writeVerdict(
   id: string,
   verdict: EvalVerdict | null,
 ): Promise<void> {
-  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/eval`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ verdict }),
-  })
-  if (!res.ok) throw new Error(await errorText(res))
+  await postJson(path('stories', id, 'eval'), { verdict })
 }
-
-export type { StoryEvent }

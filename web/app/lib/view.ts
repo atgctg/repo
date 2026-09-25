@@ -1,5 +1,5 @@
 import { leadCards, project } from 'shared'
-import type { Asset, Scene, Story, StoryEvent } from 'shared'
+import type { Asset, Scene, Story } from 'shared'
 import type { Entry } from './store'
 
 export function findAsset(assets: Asset[], name?: string | null): Asset | undefined {
@@ -142,5 +142,3 @@ function stripVersion(url: string): string {
     return url.replace(/([?&])v=\d+/, '').replace(/\?$/, '')
   }
 }
-
-export type { StoryEvent }

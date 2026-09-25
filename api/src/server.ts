@@ -1,5 +1,5 @@
 import { turnResponse } from 'shared'
-import { resolveAssetKey, worldKey } from './assets'
+import { hasBody, storyKey, worldKey } from './assets'
 import { app } from './context'
 import { runEvalCase, listEvalRuns, setVerdict, type EvalVerdict } from './eval-runs'
 import { assetContentType, safeAssetFile, safeStoryId } from './files'
@@ -15,7 +15,7 @@ import {
   StoryError,
 } from './stories'
 import { llmMessages, reply } from './turn'
-import { listWorlds, loadWorld, worldExists } from './worlds'
+import { listWorlds, loadWorld } from './worlds'
 
 function jsonError(error: unknown, status = 500): Response {
   if (error instanceof StoryError) {
@@ -47,13 +47,19 @@ function segment(value: string): string {
   }
 }
 
-async function assetResponse(key: string, file: string): Promise<Response> {
-  const object = await app().assets.get(key)
-  if (!object?.body) return new Response('Not found', { status: 404 })
+async function assetResponse(
+  request: Request,
+  key: string,
+  file: string,
+): Promise<Response | undefined> {
+  const object = await app().assets.get(key, { onlyIf: request.headers })
+  if (!object) return undefined
   const headers = new Headers()
   object.writeHttpMetadata(headers)
   if (!headers.has('Content-Type')) headers.set('Content-Type', assetContentType(file))
-  headers.set('Cache-Control', 'no-store')
+  headers.set('Cache-Control', 'private, no-cache')
+  headers.set('ETag', object.httpEtag)
+  if (!hasBody(object)) return new Response(null, { status: 304, headers })
   return new Response(object.body, { headers })
 }
 
@@ -143,10 +149,10 @@ async function route(
     parts[0] === 'assets' &&
     parts[1] === 'worlds'
   ) {
-    return worldAsset(parts[2] ?? '', parts[3] ?? '')
+    return worldAsset(request, parts[2] ?? '', parts[3] ?? '')
   }
   if (method === 'GET' && parts.length === 3 && parts[0] === 'assets') {
-    return storyAsset(parts[1] ?? '', parts[2] ?? '')
+    return storyAsset(request, parts[1] ?? '', parts[2] ?? '')
   }
   return new Response('Not found', { status: 404 })
 }
@@ -225,7 +231,6 @@ async function setEval(request: Request, id: string): Promise<Response> {
 }
 
 async function messages(id: string): Promise<Response> {
-  if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
   try {
     const story = await loadStory(id)
     return Response.json(llmMessages(story.events, story.title))
@@ -235,7 +240,6 @@ async function messages(id: string): Promise<Response> {
 }
 
 async function storyJson(id: string): Promise<Response> {
-  if (!(await storyExists(id))) return new Response('Not found', { status: 404 })
   try {
     return Response.json(await loadStory(id))
   } catch (error) {
@@ -330,20 +334,28 @@ async function generateVideoRoute(request: Request, id: string): Promise<Respons
   }
 }
 
-async function worldAsset(worldIdRaw: string, file: string): Promise<Response> {
+const notFound = () => new Response('Not found', { status: 404 })
+
+async function worldAsset(
+  request: Request,
+  worldIdRaw: string,
+  file: string,
+): Promise<Response> {
   const worldId = safeStoryId(worldIdRaw)
-  if (!safeAssetFile(file) || !(await worldExists(worldId))) {
-    return new Response('Not found', { status: 404 })
-  }
-  return assetResponse(worldKey(worldId, file), file)
+  if (!safeAssetFile(file)) return notFound()
+  return (await assetResponse(request, worldKey(worldId, file), file)) ?? notFound()
 }
 
-async function storyAsset(storyIdRaw: string, file: string): Promise<Response> {
+async function storyAsset(
+  request: Request,
+  storyIdRaw: string,
+  file: string,
+): Promise<Response> {
   const storyId = safeStoryId(storyIdRaw)
-  if (!safeAssetFile(file)) return new Response('Not found', { status: 404 })
+  if (!safeAssetFile(file)) return notFound()
+  const own = await assetResponse(request, storyKey(storyId, file), file)
+  if (own) return own
   const worldId = await storyWorld(storyId)
-  if (!worldId) return new Response('Not found', { status: 404 })
-  const key = await resolveAssetKey(app().assets, storyId, worldId, file)
-  if (!key) return new Response('Not found', { status: 404 })
-  return assetResponse(key, file)
+  if (!worldId) return notFound()
+  return (await assetResponse(request, worldKey(worldId, file), file)) ?? notFound()
 }

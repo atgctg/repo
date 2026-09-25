@@ -237,14 +237,16 @@ export async function ensureIndex(): Promise<void> {
     queryClient.ensureQueryData({ queryKey: worldsKey, queryFn: fetchWorlds }),
     queryClient.ensureQueryData({ queryKey: storiesKey, queryFn: fetchStories }),
   ])
-  await Promise.all(
-    worlds.map((world) =>
-      queryClient.ensureQueryData({
-        queryKey: worldKey(world.id),
-        queryFn: () => fetchWorldCache(world.id),
-      }),
-    ),
-  )
+  for (const world of worlds) {
+    void queryClient.prefetchQuery({
+      queryKey: worldKey(world.id),
+      queryFn: () => fetchWorldCache(world.id),
+    })
+  }
+}
+
+export function prefetchIndex(): void {
+  void ensureIndex().catch(() => undefined)
 }
 
 function messageOf(error: unknown): string {
@@ -279,20 +281,24 @@ export function useForkWorld(): (worldId: string) => string | undefined {
   })
   return (worldId) => {
     const source = queryClient.getQueryData<WorldSource | null>(worldKey(worldId))
-    if (!source) return undefined
+    const world = queryClient
+      .getQueryData<World[]>(worldsKey)
+      ?.find((item) => item.id === worldId)
+    const title = source?.title ?? world?.title
+    if (!title) return undefined
     const id = unusedStoryId(worldId)
     const now = new Date().toISOString()
     const entry: Entry = {
       id,
       world: worldId,
-      title: source.title,
+      title,
       createdAt: now,
       updatedAt: now,
-      events: leadCards(structuredClone(source.events)),
+      events: source ? leadCards(structuredClone(source.events)) : [],
       files: [],
       speech: [],
     }
-    publishEntry(entry, source.cover)
+    publishEntry(entry, source?.cover ?? world?.cover)
     const task = mutation.mutateAsync({ worldId, id }).then(() => undefined)
     forks.set(id, task)
     void task.catch(() => undefined)

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { data } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { fetchMessages, type RawMessage } from '~/lib/api'
-import { ensureIndex, ensureStory, hasEntry } from '~/lib/store'
+import { prefetchIndex, ensureStory, hasEntry } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 import type { Route } from './+types/raw'
@@ -53,10 +53,12 @@ export async function clientLoader({
 }: Route.ClientLoaderArgs): Promise<RawMessage[]> {
   const id = params.id
   if (!id) throw data(null, { status: 404 })
-  await Promise.all([ensureIndex(), hasEntry(id) ? Promise.resolve() : ensureStory(id)])
-  if (!hasEntry(id)) throw data(null, { status: 404 })
-  const messages = await fetchMessages(id)
-  if (!messages) throw data(null, { status: 404 })
+  prefetchIndex()
+  const [, messages] = await Promise.all([
+    hasEntry(id) ? Promise.resolve() : ensureStory(id),
+    fetchMessages(id),
+  ])
+  if (!hasEntry(id) || !messages) throw data(null, { status: 404 })
   return messages
 }
 

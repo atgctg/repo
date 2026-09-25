@@ -15,12 +15,12 @@ import { desc, eq } from 'drizzle-orm'
 import { database } from './db'
 import { parseEvents } from './events'
 import { stories as storyTable } from './schema'
-import { resolveAssetKey } from './assets'
+import { listAssetKeys, pickAssetKey, storyAssetKeys } from './assets'
 import { app } from './context'
 import { assetFileName, assetUrl, speechFileName } from './files'
 import { errorMessage, generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
-import { loadWorld, matchWorld } from './worlds'
+import { loadWorld, matchWorld, worldRows } from './worlds'
 
 const storyWrites = new Map<string, Promise<void>>()
 
@@ -36,11 +36,15 @@ export class StoryError extends Error {
 }
 
 export async function refresh(story: Story): Promise<void> {
+  applyProjection(story, await storyAssetKeys(app().assets, story.id, story.world))
+}
+
+function applyProjection(story: Story, keys: Set<string>): void {
   const next = project(story.events)
   story.scenes = next.scenes
   story.cards = next.cards
   story.assets = next.assets
-  await attachFiles(story)
+  attachFiles(story, keys)
 }
 
 export function changeStory<T>(
@@ -99,7 +103,7 @@ export async function saveEvalStory(
 ): Promise<string> {
   const id = await uniqueStoryId(caseName)
   const now = new Date()
-  const world = (await matchWorld(events)) ?? 'eval'
+  const world = matchWorld(await worldRows(), events) ?? 'eval'
   await database().insert(storyTable).values({
     id,
     world,
@@ -129,16 +133,18 @@ export async function storyWorld(id: string): Promise<string | undefined> {
 }
 
 export async function listStories(): Promise<StorySummary[]> {
-  const rows = await database()
-    .select()
-    .from(storyTable)
-    .orderBy(desc(storyTable.updatedAt))
+  const [rows, keys] = await Promise.all([
+    database().select().from(storyTable).orderBy(desc(storyTable.updatedAt)),
+    listAssetKeys(app().assets, ['stories/', 'worlds/']),
+  ])
+  let known: Awaited<ReturnType<typeof worldRows>> | undefined
   const stories: StorySummary[] = []
   for (const row of rows) {
-    const story = await hydrate(row)
+    const story = hydrateWith(row, keys)
     let world = story.world
     if (row.caseName && world === 'eval') {
-      const matched = await matchWorld(story.events)
+      known ??= await worldRows()
+      const matched = matchWorld(known, story.events)
       if (matched) {
         world = matched
         await database()
@@ -177,6 +183,10 @@ async function rowById(id: string): Promise<StoryRow | undefined> {
 }
 
 async function hydrate(row: StoryRow): Promise<Story> {
+  return hydrateWith(row, await storyAssetKeys(app().assets, row.id, row.world))
+}
+
+function hydrateWith(row: StoryRow, keys: Set<string>): Story {
   const story: Story = {
     id: row.id,
     world: row.world,
@@ -189,7 +199,7 @@ async function hydrate(row: StoryRow): Promise<Story> {
     cards: [],
     ...timingOf(row.timing),
   }
-  await refresh(story)
+  applyProjection(story, keys)
   return story
 }
 
@@ -230,14 +240,12 @@ function sceneImageName(scene: Scene): string | undefined {
   }
 }
 
-async function attachFiles(story: Story): Promise<void> {
-  story.assets = await Promise.all(
-    story.assets.map(async (asset) => {
-      const file = assetFileName(asset.name, asset.type)
-      const key = await resolveAssetKey(app().assets, story.id, story.world, file)
-      return key ? { ...asset, url: assetUrl(story.id, asset.name, asset.type) } : asset
-    }),
-  )
+function attachFiles(story: Story, keys: Set<string>): void {
+  story.assets = story.assets.map((asset) => {
+    const file = assetFileName(asset.name, asset.type)
+    const key = pickAssetKey(keys, story.id, story.world, file)
+    return key ? { ...asset, url: assetUrl(story.id, asset.name, asset.type) } : asset
+  })
   for (const scene of story.scenes) {
     if (scene.type !== 'dialogue' || !scene.caption || !scene.speaker) continue
     const voice = story.cards.find(
@@ -245,8 +253,7 @@ async function attachFiles(story: Story): Promise<void> {
     )?.voice
     if (!voice) continue
     const key = speechFileName(voice, scene.caption)
-    if (await resolveAssetKey(app().assets, story.id, story.world, key))
-      scene.speech = { key }
+    if (pickAssetKey(keys, story.id, story.world, key)) scene.speech = { key }
   }
 }
 

@@ -17,7 +17,10 @@ export const tokens = stylex.defineVars({
   },
   tint: { default: 'rgba(0, 0, 0, 0.05)', [DARK]: 'rgba(255, 255, 255, 0.16)' },
   accent: { default: '#3b82f6', [DARK]: '#60a5fa' },
-  ring: { default: '#007aff', [DARK]: '#0a84ff' },
+  ring: {
+    default: 'color-mix(in srgb, #007aff 42%, transparent)',
+    [DARK]: 'color-mix(in srgb, #0a84ff 42%, transparent)',
+  },
   ringWidth: '3px',
   ringGap: '3px',
   danger: { default: '#ef4444', [DARK]: '#f87171' },

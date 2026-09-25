@@ -31,7 +31,7 @@ const styles = stylex.create({
     gap: '0.5rem',
     minWidth: 0,
     margin: 0,
-    padding: '0.75rem 0.75rem 0.25rem',
+    padding: '0.75rem 1.5rem 0.25rem 0.75rem',
   },
   title: {
     minWidth: 0,
@@ -70,7 +70,7 @@ const styles = stylex.create({
   dock: {
     position: 'absolute',
     left: '0.75rem',
-    right: '0.75rem',
+    right: '1.5rem',
     bottom: '1rem',
     zIndex: 2,
   },
@@ -102,7 +102,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
     showNote || onCards || onRaw || uiState.openScene === undefined
       ? undefined
       : story.scenes[uiState.openScene]
-  const chat = usePaneWidth('pane.chat', 320, 220, 560)
+  const chat = usePaneWidth('pane.chat', 260, 220, 560)
   const drawer = usePaneWidth('pane.drawer', 320, 240, 520)
   function show(path: string): void {
     closeDrawer(story.id)

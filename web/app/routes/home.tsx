@@ -35,7 +35,7 @@ export function HydrateFallback(): ReactNode {
 export default function Home(): ReactNode {
   const worlds = useWorlds()
   const navigate = useNavigate()
-  const sidebar = usePaneWidth('pane.sidebar', 224, 160, 420)
+  const sidebar = usePaneWidth('pane.sidebar', 200, 160, 420)
   const studio = stylex.props(styles.studio)
   return (
     <>

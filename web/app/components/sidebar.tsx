@@ -28,7 +28,7 @@ const styles = stylex.create({
     width: '100%',
     minWidth: 0,
     boxSizing: 'border-box',
-    padding: '0.5rem 0.4rem 1.5rem',
+    padding: '0.5rem 0.65rem 1.5rem 0.4rem',
   },
   empty: {
     padding: '0.55rem 0.65rem',

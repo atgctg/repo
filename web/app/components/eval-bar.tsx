@@ -12,7 +12,7 @@ const styles = stylex.create({
   note: {
     height: '100%',
     minHeight: 0,
-    padding: '1.35rem 1.15rem',
+    padding: '1.35rem 1.15rem 1.35rem 1.9rem',
     display: 'flex',
     flexDirection: 'column',
     gap: '0.4rem',
@@ -40,7 +40,7 @@ const styles = stylex.create({
     gap: '0.4rem',
     padding: '0.5rem',
     borderRadius: tokens.radiusPill,
-    backgroundColor: tokens.bg,
+    backgroundColor: tokens.chip,
   },
   button: {
     borderRadius: tokens.radiusPill,
@@ -51,7 +51,7 @@ const styles = stylex.create({
     lineHeight: 1.2,
     color: tokens.text,
     ':hover': {
-      backgroundColor: tokens.chip,
+      backgroundColor: 'color-mix(in srgb, currentColor 8%, transparent)',
     },
   },
   done: {
@@ -63,7 +63,7 @@ const styles = stylex.create({
     transform: 'translateX(-50%)',
     padding: '0.65rem 1.1rem',
     borderRadius: tokens.radiusPill,
-    backgroundColor: tokens.bg,
+    backgroundColor: tokens.chip,
     color: tokens.muted,
     fontSize: tokens.textMd,
     fontWeight: 400,

@@ -14,7 +14,7 @@ const styles = stylex.create({
   note: {
     height: '100%',
     minHeight: 0,
-    padding: '1.35rem 1.15rem 1.35rem 0.25rem',
+    padding: '1.35rem 1.15rem 1.35rem 1.75rem',
     display: 'flex',
     flexDirection: 'column',
     gap: '0.4rem',

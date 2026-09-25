@@ -1,4 +1,10 @@
-import { useRef, useState, type CSSProperties, type ReactNode, type UIEvent } from 'react'
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+  type ReactNode,
+} from 'react'
 import { Button } from '@base-ui/react/button'
 import { Slider } from '@base-ui/react/slider'
 import * as stylex from '@stylexjs/stylex'
@@ -75,31 +81,56 @@ const styles = stylex.create({
     overflow: 'auto',
     padding: '3.25rem 0.15rem 0.25rem',
   },
-  bar: {
+  size: {
     position: 'absolute',
     top: '0.75rem',
-    left: '50%',
+    left: '0.15rem',
     zIndex: 6,
-    width: '15rem',
-    height: '2.1rem',
-    padding: 0,
-    borderRadius: tokens.radiusPill,
-    backgroundColor: tokens.chip,
-    transform: 'translateX(-50%)',
+    display: 'flex',
+    alignItems: 'center',
+    width: '2.25rem',
+    height: '2.25rem',
+    cursor: 'pointer',
   },
-  barHidden: {
-    transform: 'translateX(-50%) translateY(calc(-100% - 1.25rem))',
+  sizeOpen: {
+    width: '15rem',
+    cursor: 'ew-resize',
+  },
+  sizeDrag: {
+    cursor: 'grab',
+  },
+  sizeIcon: {
+    width: '2.25rem',
+    height: '2.25rem',
+    padding: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 'none',
+    borderRadius: tokens.radiusPill,
+    color: tokens.text,
+    backgroundColor: tokens.bg,
+    cursor: 'pointer',
+  },
+  sizeIconHidden: {
+    position: 'absolute',
+    opacity: 0,
     pointerEvents: 'none',
   },
   slider: {
     width: '100%',
-    height: '100%',
+    height: '2.25rem',
+    cursor: 'inherit',
+  },
+  sliderHidden: {
+    display: 'none',
   },
   control: {
     display: 'flex',
     alignItems: 'center',
     width: '100%',
     height: '100%',
+    cursor: 'inherit',
   },
   track: {
     position: 'relative',
@@ -108,11 +139,7 @@ const styles = stylex.create({
     overflow: 'hidden',
     borderRadius: tokens.radiusPill,
     backgroundColor: tokens.chip,
-  },
-  indicator: {
-    height: '100%',
-    borderRadius: 0,
-    backgroundColor: `color-mix(in srgb, ${tokens.chip} 86%, ${tokens.text})`,
+    cursor: 'inherit',
   },
   thumb: {
     width: '2px',
@@ -123,6 +150,7 @@ const styles = stylex.create({
     boxShadow: 'none',
     backgroundColor: tokens.text,
     zIndex: 1,
+    cursor: 'inherit',
   },
 })
 
@@ -144,26 +172,35 @@ function boardMin(size: number): string {
 export function Storyboard({ story }: { story: Story }): ReactNode {
   const uiState = useStoryUi(story.id)
   const [size, setSize] = useState(DEFAULT_SIZE)
-  const [hidden, setHidden] = useState(false)
-  const scrollTop = useRef(0)
+  const [open, setOpen] = useState(false)
+  const [grab, setGrab] = useState(false)
+  const dragging = useRef(false)
+  const sizeRoot = useRef<HTMLDivElement>(null)
   useMountEffect(() => {
     setSize(readSize())
   })
-  function onScroll(event: UIEvent<HTMLDivElement>): void {
-    const top = event.currentTarget.scrollTop
-    const delta = top - scrollTop.current
-    if (top < 8) setHidden(false)
-    else if (delta > 6) setHidden(true)
-    else if (delta < -6) setHidden(false)
-    scrollTop.current = top
-  }
   function onSize(next: number): void {
     setSize(next)
     localStorage.setItem(SIZE_KEY, String(next))
   }
+  function finishDrag(): void {
+    if (!dragging.current) return
+    dragging.current = false
+    setGrab(false)
+    document.body.style.cursor = ''
+    if (!sizeRoot.current?.matches(':hover')) setOpen(false)
+  }
+  function onSizeDown(event: PointerEvent<HTMLDivElement>): void {
+    if (!open) return
+    dragging.current = true
+    setGrab(true)
+    document.body.style.cursor = 'grab'
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+  const wide = open || grab
   return (
     <div aria-label="Storyboard" {...stylex.props(styles.frame)}>
-      <div {...stylex.props(styles.scroller)} onScroll={onScroll}>
+      <div {...stylex.props(styles.scroller)}>
         {story.scenes.length === 0 ? (
           <p {...stylex.props(ui.muted)}>No scenes</p>
         ) : (
@@ -187,7 +224,26 @@ export function Storyboard({ story }: { story: Story }): ReactNode {
           </div>
         )}
       </div>
-      <div {...stylex.props(styles.bar, hidden && styles.barHidden)}>
+      <div
+        ref={sizeRoot}
+        {...stylex.props(styles.size, wide && styles.sizeOpen, grab && styles.sizeDrag)}
+        onPointerEnter={() => setOpen(true)}
+        onPointerLeave={() => {
+          if (!dragging.current) setOpen(false)
+        }}
+        onPointerDown={onSizeDown}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+      >
+        <Button
+          type="button"
+          aria-label="Storyboard size"
+          aria-expanded={wide}
+          tabIndex={wide ? -1 : 0}
+          {...stylex.props(styles.sizeIcon, wide && styles.sizeIconHidden)}
+        >
+          <Icon name="grid" />
+        </Button>
         <Slider.Root
           value={size}
           min={0}
@@ -195,11 +251,11 @@ export function Storyboard({ story }: { story: Story }): ReactNode {
           step={1}
           thumbAlignment="edge"
           onValueChange={onSize}
-          {...stylex.props(styles.slider)}
+          onValueCommitted={finishDrag}
+          {...stylex.props(styles.slider, !wide && styles.sliderHidden)}
         >
           <Slider.Control {...stylex.props(styles.control)}>
             <Slider.Track {...stylex.props(styles.track)}>
-              <Slider.Indicator {...stylex.props(styles.indicator)} />
               <Slider.Thumb
                 aria-label="Storyboard size"
                 {...stylex.props(styles.thumb)}

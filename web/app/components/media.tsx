@@ -277,13 +277,6 @@ export function StageMedia({
   )
 }
 
-const SOFT_MASK =
-  'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.35) 42%, rgb(0 0 0 / 1) 100%)'
-const MID_MASK =
-  'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.16) 38%, rgb(0 0 0 / 0.62) 72%, rgb(0 0 0 / 1) 100%)'
-const DEEP_MASK =
-  'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.08) 32%, rgb(0 0 0 / 0.4) 66%, rgb(0 0 0 / 1) 100%)'
-
 const blurLayers = stylex.create({
   stack: {
     position: 'absolute',
@@ -297,45 +290,34 @@ const blurLayers = stylex.create({
     height: '100%',
     objectFit: 'cover',
   },
-  band: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '40%',
-    zIndex: 1,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    borderBottomLeftRadius: tokens.radiusScene,
-    borderBottomRightRadius: tokens.radiusScene,
-  },
   veil: {
     position: 'absolute',
     inset: 0,
+    zIndex: 1,
+    pointerEvents: 'none',
+    maskImage: 'linear-gradient(to top, black 30%, transparent 55%)',
+    WebkitMaskImage: 'linear-gradient(to top, black 30%, transparent 55%)',
+    maskRepeat: 'no-repeat',
+    WebkitMaskRepeat: 'no-repeat',
+    maskSize: '100% 100%',
+    WebkitMaskSize: '100% 100%',
+  },
+  copy: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    filter: 'blur(24px)',
+    transform: 'scale(1.12)',
   },
   shade: {
     position: 'absolute',
     inset: 0,
+    zIndex: 2,
+    pointerEvents: 'none',
     backgroundImage:
-      'linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.05) 38%, rgb(0 0 0 / 0.5) 100%)',
-  },
-  soft: {
-    backdropFilter: 'blur(1px)',
-    WebkitBackdropFilter: 'blur(1px)',
-    maskImage: SOFT_MASK,
-    WebkitMaskImage: SOFT_MASK,
-  },
-  mid: {
-    backdropFilter: 'blur(4px)',
-    WebkitBackdropFilter: 'blur(4px)',
-    maskImage: MID_MASK,
-    WebkitMaskImage: MID_MASK,
-  },
-  deep: {
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    maskImage: DEEP_MASK,
-    WebkitMaskImage: DEEP_MASK,
+      'linear-gradient(to bottom, transparent 0%, rgb(0 0 0 / 0.06) 38%, rgb(0 0 0 / 0.62) 100%)',
   },
 })
 
@@ -343,12 +325,10 @@ export function ProgressiveMedia({ url }: { url: string }): ReactNode {
   return (
     <div {...stylex.props(blurLayers.stack)}>
       <img src={url} alt="" {...stylex.props(blurLayers.base)} />
-      <div {...stylex.props(blurLayers.band)}>
-        <div {...stylex.props(blurLayers.shade)} />
-        <div {...stylex.props(blurLayers.veil, blurLayers.soft)} />
-        <div {...stylex.props(blurLayers.veil, blurLayers.mid)} />
-        <div {...stylex.props(blurLayers.veil, blurLayers.deep)} />
+      <div {...stylex.props(blurLayers.veil)}>
+        <img src={url} alt="" {...stylex.props(blurLayers.copy)} />
       </div>
+      <div {...stylex.props(blurLayers.shade)} />
     </div>
   )
 }

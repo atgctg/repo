@@ -33,7 +33,7 @@ import {
   loadStory,
   persistStory,
   readSceneLines,
-  refresh,
+  reproject,
   saveTiming,
 } from './stories'
 import { STORY_TOOLS } from './tools'
@@ -159,12 +159,12 @@ export async function reply(
   emit: (message: TurnMessage) => void = () => {},
   signal?: AbortSignal,
   options?: { dry?: boolean },
-): Promise<Story> {
+): Promise<void> {
   const startedAt = Date.now()
   const clock: Clock = { modelMs: 0, completionTokens: 0, images: [] }
   let length = 0
   try {
-    const story = await changeStory(storyId, async (current) => {
+    await changeStory(storyId, async (current) => {
       length = current.events.length
       const text = input.text.trim()
       const keep = typeof input.at === 'number' ? input.at : current.events.length
@@ -192,31 +192,24 @@ export async function reply(
         waitUntil: app().waitUntil,
       })
       length = current.events.length
-      return current
     })
-    const endedAt = Date.now()
-    const timing = turnTiming({ ...clock, startedAt, endedAt })
-    await saveTiming(storyId, timing)
-    emit({ type: 'done', ms: endedAt - startedAt, timing })
-    return story
   } catch (error) {
-    if (isAbort(error)) {
-      const endedAt = Date.now()
-      const timing = turnTiming({ ...clock, startedAt, endedAt })
-      await saveTiming(storyId, timing)
-      emit({ type: 'done', ms: endedAt - startedAt, timing })
-      return loadStory(storyId)
-    }
-    const failed = errorMessage(error)
-    try {
-      const story = await loadStory(storyId)
-      emit({ type: 'error', error: failed, length: story.events.length })
-      return story
-    } catch {
-      emit({ type: 'error', error: failed, length })
-      throw error
+    if (!isAbort(error)) {
+      const failed = errorMessage(error)
+      try {
+        const story = await loadStory(storyId)
+        emit({ type: 'error', error: failed, length: story.events.length })
+        return
+      } catch {
+        emit({ type: 'error', error: failed, length })
+        throw error
+      }
     }
   }
+  const endedAt = Date.now()
+  const timing = turnTiming({ ...clock, startedAt, endedAt })
+  await saveTiming(storyId, timing)
+  emit({ type: 'done', ms: endedAt - startedAt, timing })
 }
 
 export type LlmExchange = {
@@ -241,7 +234,7 @@ export async function replayEvents(
     assets: [],
     cards: [],
   }
-  await refresh(story)
+  reproject(story)
   const start = story.events.length
   const trace: LlmExchange[] = []
   await run(story, {
@@ -274,7 +267,7 @@ type RunOptions = {
 
 type Save = {
   soon: () => void
-  now: (project: boolean) => Promise<void>
+  now: () => Promise<void>
 }
 
 type Live = RunOptions & {
@@ -287,11 +280,8 @@ type NotedAsset = { at: number; asset: Extract<TurnMessage, { type: 'asset' }> }
 function disk(story: Story): Save {
   let writing = Promise.resolve()
   let timer: ReturnType<typeof setTimeout> | undefined
-  const enqueue = (project: boolean) => {
-    writing = writing.then(async () => {
-      if (project) await refresh(story)
-      await persistStory(story)
-    })
+  const enqueue = () => {
+    writing = writing.then(() => persistStory(story))
     return writing
   }
   return {
@@ -299,15 +289,16 @@ function disk(story: Story): Save {
       if (timer) return
       timer = setTimeout(() => {
         timer = undefined
-        void enqueue(false)
+        void enqueue()
       }, 150)
     },
-    now(project: boolean) {
+    now() {
       if (timer) {
         clearTimeout(timer)
         timer = undefined
       }
-      return enqueue(project)
+      reproject(story)
+      return enqueue()
     },
   }
 }
@@ -315,8 +306,8 @@ function disk(story: Story): Save {
 function memorySave(story: Story): Save {
   return {
     soon() {},
-    now(project: boolean) {
-      return project ? refresh(story) : Promise.resolve()
+    async now() {
+      reproject(story)
     },
   }
 }
@@ -334,13 +325,13 @@ async function run(story: Story, options: RunOptions): Promise<void> {
   }
   const live: Live = {
     ...options,
-    publish: () => save.now(true),
+    publish: () => save.now(),
     note(at, asset) {
       noted.push({ at, asset })
     },
   }
   emit({ type: 'status', phase: 'model' })
-  await save.now(true)
+  await save.now()
   const messages = llmMessages(story.events, story.title)
   const { signal, clock } = options
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
@@ -378,7 +369,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
         calls.push(call)
         if (name === 'Read') {
           chain = chain.then(async () => {
-            await save.now(true)
+            await save.now()
             results.push({ id: call.id, content: readSceneLines(story, numbers(args)) })
           })
           continue
@@ -437,7 +428,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
     for (const result of results)
       messages.push({ role: 'tool', tool_call_id: result.id, content: result.content })
   }
-  await save.now(true)
+  await save.now()
 }
 
 function toolEvent(name: string, args: Record<string, unknown>): StoryEvent | undefined {

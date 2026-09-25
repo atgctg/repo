@@ -35,16 +35,11 @@ export class StoryError extends Error {
   }
 }
 
-export async function refresh(story: Story): Promise<void> {
-  applyProjection(story, await storyAssetKeys(app().assets, story.id, story.world))
-}
-
-function applyProjection(story: Story, keys: Set<string>): void {
+export function reproject(story: Story): void {
   const next = project(story.events)
   story.scenes = next.scenes
   story.cards = next.cards
   story.assets = next.assets
-  attachFiles(story, keys)
 }
 
 export function changeStory<T>(
@@ -55,7 +50,6 @@ export function changeStory<T>(
   const next = previous.then(async () => {
     const story = await loadStory(storyId)
     const result = await fn(story)
-    await refresh(story)
     await persistStory(story)
     return result
   })
@@ -177,7 +171,8 @@ function hydrateWith(row: StoryRow, keys: Set<string>): Story {
     cards: [],
     ...timingOf(row.timing),
   }
-  applyProjection(story, keys)
+  reproject(story)
+  attachFiles(story, keys)
   return story
 }
 

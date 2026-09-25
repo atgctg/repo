@@ -18,10 +18,16 @@ const styles = stylex.create({
   root: {
     height: '100%',
     minHeight: 0,
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
     position: 'relative',
   },
   viewport: {
     height: '100%',
+    width: '100%',
+    minWidth: 0,
+    maxWidth: '100%',
     maskImage:
       'linear-gradient(to bottom, transparent, #000 2rem, #000 calc(100% - 8rem), transparent)',
   },
@@ -29,13 +35,28 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
-    padding: '1rem 0.25rem 16rem',
+    width: '100%',
+    minWidth: 0,
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    padding: '1rem 0.75rem 16rem',
+  },
+  fold: {
+    minWidth: 0,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   event: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.35rem',
-    padding: '0.5rem 0.75rem',
+    width: '100%',
+    maxWidth: '100%',
+    minWidth: 0,
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    padding: '0.5rem 1.25rem',
     borderRadius: tokens.radiusCard,
     fontSize: tokens.textSm,
     lineHeight: 1.4,
@@ -45,11 +66,26 @@ const styles = stylex.create({
   },
   message: {
     color: tokens.text,
+    minWidth: 0,
+    overflow: 'hidden',
+    overflowWrap: 'anywhere',
     whiteSpace: 'pre-wrap',
   },
   user: {
     padding: 0,
     backgroundColor: 'transparent',
+  },
+  bubble: {
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
+  },
+  clip: {
+    minWidth: 0,
+    flex: '1 1 auto',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   line: {
     display: 'flex',
@@ -72,7 +108,8 @@ const styles = stylex.create({
   },
   copyOpen: {
     whiteSpace: 'pre-wrap',
-    overflow: 'visible',
+    overflow: 'hidden',
+    overflowWrap: 'anywhere',
     textOverflow: 'unset',
     fontSize: tokens.textMd,
     lineHeight: 1.35,
@@ -102,8 +139,10 @@ const styles = stylex.create({
   },
   edit: {
     width: '100%',
+    minWidth: 0,
     fieldSizing: 'content',
     maxHeight: '9rem',
+    overflow: 'auto',
     backgroundColor: 'transparent',
     color: 'inherit',
     font: 'inherit',
@@ -112,10 +151,14 @@ const styles = stylex.create({
 })
 
 export function Log({ story }: { story: Story }): ReactNode {
+  const content = stylex.props(styles.content)
   return (
     <ScrollArea.Root {...stylex.props(styles.root)}>
       <ScrollArea.Viewport {...stylex.props(styles.viewport)}>
-        <ScrollArea.Content {...stylex.props(styles.content)}>
+        <ScrollArea.Content
+          {...content}
+          style={{ ...content.style, minWidth: 0, width: '100%', maxWidth: '100%' }}
+        >
           {story.events.map((event, index) => (
             <EventRow
               key={`${event.type}-${index}`}
@@ -170,7 +213,7 @@ function MessageRow({
     return (
       <div data-event={index} {...stylex.props(styles.event, styles.user)}>
         {editing ? (
-          <div {...stylex.props(ui.pillow)}>
+          <div {...stylex.props(ui.pillow, styles.bubble)}>
             <textarea
               rows={1}
               value={draft}
@@ -201,13 +244,13 @@ function MessageRow({
         ) : (
           <button
             type="button"
-            {...stylex.props(ui.pillow)}
+            {...stylex.props(ui.pillow, styles.bubble)}
             onClick={() => {
               setDraft(event.text)
               setEditing(true)
             }}
           >
-            {event.text}
+            <span {...stylex.props(styles.clip)}>{event.text}</span>
           </button>
         )}
         <Blocks blocks={event.error ? [{ type: 'error', text: event.error }] : []} />
@@ -246,7 +289,7 @@ function FoldRow({
       ? portraitUrl(story, event.speaker || event.background)
       : undefined
   return (
-    <Collapsible.Root open={open} onOpenChange={setOpen}>
+    <Collapsible.Root open={open} onOpenChange={setOpen} {...stylex.props(styles.fold)}>
       <div data-event={index} {...stylex.props(styles.event)}>
         <Collapsible.Trigger
           {...stylex.props(styles.line)}

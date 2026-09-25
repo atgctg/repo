@@ -7,7 +7,7 @@ import {
 import * as stylex from '@stylexjs/stylex'
 import { useMountEffect } from '~/hooks/use-mount-effect'
 
-const line = 'rgba(115, 115, 115, 0.9)'
+const line = 'color-mix(in srgb, currentColor 14%, transparent)'
 
 const styles = stylex.create({
   edge: {

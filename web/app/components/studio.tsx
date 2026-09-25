@@ -31,7 +31,7 @@ const styles = stylex.create({
     gap: '0.5rem',
     minWidth: 0,
     margin: 0,
-    padding: '0.75rem 0.25rem 0.25rem',
+    padding: '0.75rem 0.75rem 0.25rem',
   },
   title: {
     minWidth: 0,
@@ -65,6 +65,7 @@ const styles = stylex.create({
     flexDirection: 'column',
     minWidth: 0,
     minHeight: 0,
+    overflow: 'hidden',
   },
   dock: {
     position: 'absolute',

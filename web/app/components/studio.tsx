@@ -4,11 +4,12 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import type { Story } from 'shared'
 import { Composer } from './composer'
+import { EvalBar, EvalFocus, EvalNote, LoadEvalRuns, PreloadNext } from './eval-bar'
 import { ResizeEdge, usePaneWidth } from './resize'
 import { SceneDrawer } from './drawer'
 import { Icon } from './icons'
 import { Log } from './log'
-import { closeDrawer, useStoryUi } from '~/lib/store'
+import { closeDrawer, useStoryList, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 
@@ -73,6 +74,7 @@ const styles = stylex.create({
     zIndex: 2,
   },
   main: {
+    position: 'relative',
     gridColumn: '2',
     gridRow: '1 / -1',
     minWidth: 0,
@@ -92,9 +94,11 @@ export function Studio({ story }: { story: Story }): ReactNode {
   const { pathname } = useLocation()
   const onCards = pathname.endsWith('/cards')
   const onRaw = pathname.endsWith('/raw')
+  const caseName = useStoryList().find((item) => item.id === story.id)?.case
+  const showNote = Boolean(caseName) && !onCards && !onRaw
   const uiState = useStoryUi(story.id)
   const scene =
-    onCards || onRaw || uiState.openScene === undefined
+    showNote || onCards || onRaw || uiState.openScene === undefined
       ? undefined
       : story.scenes[uiState.openScene]
   const chat = usePaneWidth('pane.chat', 320, 220, 560)
@@ -109,9 +113,10 @@ export function Studio({ story }: { story: Story }): ReactNode {
       {...shell}
       style={{
         ...shell.style,
-        gridTemplateColumns: scene
-          ? `${chat.width}px minmax(0, 1fr) ${drawer.width}px`
-          : `${chat.width}px minmax(0, 1fr)`,
+        gridTemplateColumns:
+          scene || showNote
+            ? `${chat.width}px minmax(0, 1fr) ${drawer.width}px`
+            : `${chat.width}px minmax(0, 1fr)`,
       }}
     >
       <ResizeEdge
@@ -160,7 +165,29 @@ export function Studio({ story }: { story: Story }): ReactNode {
       </div>
       <div {...stylex.props(styles.main)}>
         <Outlet />
+        {caseName ? (
+          <>
+            <LoadEvalRuns />
+            <EvalFocus key={story.id} story={story} />
+            <PreloadNext storyId={story.id} />
+            <EvalBar storyId={story.id} />
+          </>
+        ) : null}
       </div>
+      {showNote && caseName ? (
+        <div {...stylex.props(styles.sceneDrawer)}>
+          <ResizeEdge
+            side="right"
+            width={drawer.width}
+            sign={-1}
+            min={240}
+            max={520}
+            onWidth={drawer.setWidth}
+            onCommit={drawer.commit}
+          />
+          <EvalNote storyId={story.id} caseName={caseName} />
+        </div>
+      ) : null}
       {scene ? (
         <div {...stylex.props(styles.sceneDrawer)}>
           <ResizeEdge

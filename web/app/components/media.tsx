@@ -334,6 +334,7 @@ export function Tile({
   scene = false,
   video = false,
   onClick,
+  mark,
   children,
   footer,
   action,
@@ -346,6 +347,7 @@ export function Tile({
   scene?: boolean
   video?: boolean
   onClick?: (event: MouseEvent<HTMLElement>) => void
+  mark?: number
   children?: ReactNode
   footer?: ReactNode
   action?: ReactNode
@@ -401,7 +403,10 @@ export function Tile({
     </>
   )
   return (
-    <div {...withClass(frame, 'squircle')}>
+    <div
+      {...withClass(frame, 'squircle')}
+      {...(mark !== undefined ? { 'data-scene': mark } : {})}
+    >
       {onClick ? (
         <Button
           type="button"

@@ -456,6 +456,24 @@ export async function generateAsset(
   }
 }
 
+export function selectScenes(id: string, indices: number[]): void {
+  const ui = uiOf(id)
+  const first = indices[0]
+  commit({
+    ...snapshot,
+    ui: {
+      ...snapshot.ui,
+      [id]: {
+        ...ui,
+        selected: indices,
+        anchor: first,
+        openScene: undefined,
+        sceneIndex: first ?? ui.sceneIndex,
+      },
+    },
+  })
+}
+
 export function selectScene(id: string, index: number, range: boolean): void {
   const ui = uiOf(id)
   if (!range && ui.selected.includes(index)) {

@@ -117,6 +117,7 @@ function SceneTile({
       image={sceneImage(story, scene)}
       video={scene.type === 'video'}
       title={sceneTitle(scene)}
+      mark={index}
       selected={selected}
       onClick={(event) => selectScene(story.id, index, event.shiftKey)}
       action={

@@ -1,10 +1,4 @@
-rule: "In an image prompt, copy a character's look from their card: hair, eyes,
-  build, and clothes. Do not swap those traits or add a surname the card does
-  not have. If they have no card, repeat the description already used for them."
-expect: Any new Yuki image keeps the cream knit and the white ribbon from her
-  card. Any new Summer image keeps blonde hair and does not name her Kim or
-  Reyes. Leo, who has no card, keeps the tousled brown hair and charcoal jacket
-  already shown.
+description: Image prompts keep established character looks.
 events:
   - type: card
     name: Style

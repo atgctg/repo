@@ -1,8 +1,4 @@
-rule: '"Delete everything starting from here" deletes the selected scene and
-  every scene after it, not the scenes before it. If they also ask you to do
-  that stretch again, continue the story in the same turn.'
-expect: Delete scene 62 and everything after it. Do not delete scenes 60 or 61.
-  Then continue with new scenes.
+description: Delete from here removes that scene and everything after it.
 events:
   - type: card
     name: Style

@@ -1,10 +1,4 @@
-rule: 'Infer who the user is playing from the story: the person addressed as
-  "you", or whoever they say they are. A line or an action they type is that
-  character''s next line. Keep their wording in that character''s dialogue and let
-  the others react. Do not rewrite it into a different sentence or give it to
-  someone else.'
-expect: Leo says the user's line, including "forgotten". He does not replace it
-  with a claim that he already knew.
+description: A player line is spoken as it was written.
 events:
   - type: card
     name: Style

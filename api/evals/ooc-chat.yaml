@@ -1,9 +1,4 @@
-rule: An out-of-character question, including one in brackets, gets a plain chat
-  reply. Do not answer it by adding narration or scenes, and do not silently
-  retcon facts into the story.
-expect: A chat message about whether the dinner is in Tokyo or Los Angeles,
-  using the cards and the scenes already played. No new images, dialogue, or
-  deletes.
+description: Out-of-character questions get a chat reply.
 events:
   - type: card
     name: Style

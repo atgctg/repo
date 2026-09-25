@@ -103,21 +103,16 @@ const styles = stylex.create({
 function HistoryRow({
   story,
   active,
-  to,
 }: {
   story: StorySummary
   active: boolean
-  to?: string
 }): ReactNode {
   const worlds = useWorlds()
   const now = useNow()
   const cover = worlds.find((world) => world.id === story.world)?.cover
   const letter = [...(story.preview || story.world)][0]?.toLocaleUpperCase() ?? ''
   return (
-    <NavLink
-      to={to ?? `/${story.id}`}
-      {...stylex.props(styles.row, active && styles.active)}
-    >
+    <NavLink to={`/${story.id}`} {...stylex.props(styles.row, active && styles.active)}>
       <span {...stylex.props(styles.avatar)}>
         {cover ? <img src={cover} alt="" {...stylex.props(styles.photo)} /> : letter}
       </span>
@@ -148,9 +143,7 @@ export function Sidebar(): ReactNode {
           )}
           {import.meta.env.DEV ? (
             <>
-              <NavLink to="/evals" {...stylex.props(styles.label)}>
-                Evals
-              </NavLink>
+              <p {...stylex.props(styles.label)}>Evals</p>
               {evals.length === 0 ? (
                 <p {...stylex.props(styles.empty)}>No eval runs</p>
               ) : (
@@ -158,7 +151,6 @@ export function Sidebar(): ReactNode {
                   <HistoryRow
                     key={story.id}
                     story={story}
-                    to={`/${story.id}/eval`}
                     active={params.id === story.id}
                   />
                 ))

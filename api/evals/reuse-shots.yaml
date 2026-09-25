@@ -1,9 +1,4 @@
-rule: 'Name an image for the reusable shot: who is in frame, where, and the
-  angle. Do not name the moment. Reuse an existing image for dialogue when that
-  shot can carry the line. Create a new image only when no existing shot shows
-  the people, place, or framing you need.'
-expect: Leo's dialogue keeps the user's point about last year and checking the
-  phone. Lines sit on shots that already exist. At most one new image.
+description: Dialogue reuses a shot that already fits.
 events:
   - type: card
     name: Style

@@ -218,74 +218,32 @@ export async function fetchMessages(id: string): Promise<RawMessage[] | undefine
 
 export type EvalVerdict = 'pass' | 'fail'
 
-export type EvalCard = {
+export type EvalRun = {
   id: string
   caseName: string
-  rule: string
-  expect: string
-  prompt: string
-  output: string[]
-  context: string[]
+  description: string
   verdict: EvalVerdict | null
-}
-
-export type EvalCount = {
-  name: string
-  pass: number
-  fail: number
-}
-
-export type EvalReview = {
-  cards: EvalCard[]
-  counts: EvalCount[]
 }
 
 function isVerdict(value: unknown): value is EvalVerdict | null {
   return value === null || value === 'pass' || value === 'fail'
 }
 
-function isStringList(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === 'string')
-}
-
-function isEvalCard(value: unknown): value is EvalCard {
+function isEvalRun(value: unknown): value is EvalRun {
   if (!isRecord(value)) return false
   return (
     typeof value.id === 'string' &&
     typeof value.caseName === 'string' &&
-    typeof value.rule === 'string' &&
-    typeof value.expect === 'string' &&
-    typeof value.prompt === 'string' &&
-    isStringList(value.output) &&
-    isStringList(value.context) &&
+    typeof value.description === 'string' &&
     isVerdict(value.verdict)
   )
 }
 
-export async function fetchEvalReview(): Promise<EvalReview> {
+export async function fetchEvalRuns(): Promise<EvalRun[]> {
   const res = await fetch('/api/evals', { cache: 'no-store' })
   if (!res.ok) throw new Error(await errorText(res))
   const body = (await res.json()) as unknown
-  if (!isRecord(body)) return { cards: [], counts: [] }
-  const cards = Array.isArray(body.cards) ? body.cards.filter(isEvalCard) : []
-  const counts = Array.isArray(body.counts)
-    ? body.counts.flatMap((item) => {
-        if (!isRecord(item) || typeof item.name !== 'string') return []
-        if (typeof item.pass !== 'number' || typeof item.fail !== 'number') return []
-        return [{ name: item.name, pass: item.pass, fail: item.fail }]
-      })
-    : []
-  return { cards, counts }
-}
-
-export async function fetchEvalCard(id: string): Promise<EvalCard | undefined> {
-  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/eval`, {
-    cache: 'no-store',
-  })
-  if (res.status === 404) return undefined
-  if (!res.ok) throw new Error(await errorText(res))
-  const body = (await res.json()) as unknown
-  return isEvalCard(body) ? body : undefined
+  return Array.isArray(body) ? body.filter(isEvalRun) : []
 }
 
 const verdictTails = new Map<string, Promise<void>>()

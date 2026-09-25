@@ -1,9 +1,4 @@
-rule: A delete does not end the turn. When the user asked you to replace, redo,
-  or go on, write the new scenes in the same turn. Do not stop after the delete
-  and wait for them to say continue.
-expect: Delete the unrealistic Summer beats and, in the same turn, write a more
-  realistic version. Summer does not already know the live dinner. The user
-  should not have to send another message to continue.
+description: A delete does not end the turn.
 events:
   - type: card
     name: Style

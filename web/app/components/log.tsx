@@ -168,7 +168,7 @@ function MessageRow({
   const [draft, setDraft] = useState(event.text)
   if (event.user) {
     return (
-      <div {...stylex.props(styles.event, styles.user)}>
+      <div data-event={index} {...stylex.props(styles.event, styles.user)}>
         {editing ? (
           <div {...stylex.props(ui.pillow)}>
             <textarea
@@ -215,7 +215,7 @@ function MessageRow({
     )
   }
   return (
-    <div {...stylex.props(styles.event, styles.message)}>
+    <div data-event={index} {...stylex.props(styles.event, styles.message)}>
       {event.text}
       <Blocks blocks={event.error ? [{ type: 'error', text: event.error }] : []} />
     </div>
@@ -247,7 +247,7 @@ function FoldRow({
       : undefined
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen}>
-      <div {...stylex.props(styles.event)}>
+      <div data-event={index} {...stylex.props(styles.event)}>
         <Collapsible.Trigger
           {...stylex.props(styles.line)}
           onClick={(click) => {

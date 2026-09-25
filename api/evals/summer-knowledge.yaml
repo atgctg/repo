@@ -1,11 +1,4 @@
-rule: "Bracketed notes are out of character: answer them in a plain chat
-  message. An unbracketed line is still the player character's dialogue, in
-  their words. A character knows only what their card and the scenes they were
-  in support. Someone who is not in the scene does not know what is happening
-  there."
-expect: Leo says the "wonderful months" line. Chat answers that the user is Leo
-  and that the phone buzz was his. If Summer appears, she does not already know
-  the live dinner (the dad, the fake-girlfriend crisis, who is paying).
+description: A character only knows what they were shown.
 events:
   - type: card
     name: Style

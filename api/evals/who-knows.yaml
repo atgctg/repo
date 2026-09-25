@@ -1,10 +1,4 @@
-rule: Do not invent a surname, relationship, or piece of knowledge the cards and
-  scenes do not support. When the user asks how a character would know
-  something, answer in chat. If you edit, edit only the selected scene so that
-  character no longer states the unsupported fact.
-expect: Chat explains that Takeshi has not been shown Summer's surname or that
-  she is someone's roommate. Scenes do not call her Summer Kim or Summer Reyes.
-  Only scene 65 may change.
+description: Chat covers what a character could not know.
 events:
   - type: card
     name: Style

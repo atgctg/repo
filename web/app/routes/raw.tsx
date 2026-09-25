@@ -46,13 +46,6 @@ const styles = stylex.create({
   note: {
     padding: '2rem',
   },
-  ok: {
-    margin: 0,
-    color: tokens.muted,
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-    fontSize: '0.75rem',
-    lineHeight: 1.45,
-  },
 })
 
 export async function clientLoader({
@@ -97,32 +90,6 @@ function prettyCalls(value: unknown): unknown {
   })
 }
 
-type RawRow =
-  | { kind: 'message'; message: RawMessage; key: number }
-  | { kind: 'ok'; count: number; key: number }
-
-function rawRows(messages: RawMessage[]): RawRow[] {
-  const rows: RawRow[] = []
-  let count = 0
-  let start = 0
-  const flush = (): void => {
-    if (count === 0) return
-    rows.push({ kind: 'ok', count, key: start })
-    count = 0
-  }
-  for (const [index, message] of messages.entries()) {
-    if (message.role === 'tool' && message.content === 'ok') {
-      if (count === 0) start = index
-      count += 1
-      continue
-    }
-    flush()
-    rows.push({ kind: 'message', message, key: index })
-  }
-  flush()
-  return rows
-}
-
 function Message({ message }: { message: RawMessage }): ReactNode {
   const text = message.role === 'tool' ? undefined : message.content
   const json =
@@ -143,15 +110,9 @@ function Message({ message }: { message: RawMessage }): ReactNode {
 export default function RawRoute({ loaderData }: Route.ComponentProps): ReactNode {
   return (
     <div {...stylex.props(styles.list)}>
-      {rawRows(loaderData).map((row) =>
-        row.kind === 'ok' ? (
-          <p key={row.key} {...stylex.props(styles.ok)}>
-            tool ×{row.count}: ok
-          </p>
-        ) : (
-          <Message key={row.key} message={row.message} />
-        ),
-      )}
+      {loaderData.map((message, index) => (
+        <Message key={index} message={message} />
+      ))}
     </div>
   )
 }

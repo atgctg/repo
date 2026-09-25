@@ -56,7 +56,7 @@ export function eventsToMessages(events: StoryEvent[], summary?: string): ChatMe
           arguments: stableStringify(payload(current, false)),
         },
       })
-      results.push({ role: 'tool', tool_call_id: id, content: current.error ?? 'ok' })
+      results.push({ role: 'tool', tool_call_id: id, content: current.error ?? '' })
     }
 
     messages.push({

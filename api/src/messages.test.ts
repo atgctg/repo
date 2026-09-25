@@ -162,7 +162,7 @@ const museMessages: ChatMessage[] = [
   ...Array.from({ length: 16 }, (_, index) => ({
     role: 'tool' as const,
     tool_call_id: String(index),
-    content: 'ok',
+    content: '',
   })),
 ]
 

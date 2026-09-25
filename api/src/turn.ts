@@ -207,9 +207,8 @@ async function run(story: Story, options: RunOptions): Promise<void> {
       ...(spoken ? { content: spoken } : {}),
       tool_calls: calls,
     })
-    for (const result of results) {
+    for (const result of results)
       messages.push({ role: 'tool', tool_call_id: result.id, content: result.content })
-    }
   }
   await save.now(true)
 }
@@ -278,7 +277,7 @@ async function apply(
     case 'card':
       story.events.push(event)
       await live.publish()
-      return { content: event.error ?? 'ok' }
+      return { content: event.error ?? '' }
     case 'delete':
       if (!resolves(story, event)) event.error = 'no scenes at those indices'
       story.events.push(event)
@@ -320,7 +319,7 @@ async function applyImage(
     phase(live, 'image', event.name, phaseStartedAt, Date.now() - phaseStartedAt)
     await live.publish()
   }
-  return { content: event.error ?? 'ok' }
+  return { content: event.error ?? '' }
 }
 
 async function applyDialogue(
@@ -345,7 +344,7 @@ async function applyDialogue(
     phase(live, 'voice', event.speaker, phaseStartedAt, Date.now() - phaseStartedAt)
     await live.publish()
   }
-  return { content: 'ok' }
+  return { content: '' }
 }
 
 async function applyVideo(
@@ -377,7 +376,7 @@ async function applyVideo(
     })
   }
   await live.publish()
-  return { content: event.error ?? 'ok' }
+  return { content: event.error ?? '' }
 }
 
 function imageEvent(args: Record<string, unknown>): ImageEvent {

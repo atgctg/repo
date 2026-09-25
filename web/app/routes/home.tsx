@@ -59,13 +59,11 @@ export default function Home(): ReactNode {
         />
         <Sidebar />
         <HomeSections
-          stories={[]}
           worlds={worlds.map((world) => ({
             id: world.id,
             title: world.title,
             image: world.cover,
           }))}
-          onOpenStory={(id) => void navigate(`/${id}`)}
           onOpenWorld={(id) => {
             const storyId = forkWorld(id)
             if (storyId) void navigate(`/${storyId}`)

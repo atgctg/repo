@@ -58,14 +58,6 @@ const styles = stylex.create({
     minWidth: '1.5rem',
     minHeight: '1.5rem',
   },
-  spin: {
-    animationName: stylex.keyframes({
-      to: { transform: 'rotate(360deg)' },
-    }),
-    animationDuration: '0.8s',
-    animationTimingFunction: 'linear',
-    animationIterationCount: 'infinite',
-  },
 })
 
 const ICONS: Record<IconName, LucideIcon> = {
@@ -93,11 +85,9 @@ const FILLED = new Set<IconName>(['play', 'pause', 'stop'])
 export function Icon({
   name,
   size = 'sm',
-  spin = false,
 }: {
   name: IconName
   size?: 'sm' | 'md' | 'lg'
-  spin?: boolean
 }): ReactNode {
   const Glyph = ICONS[name]
   const filled = FILLED.has(name)
@@ -105,7 +95,6 @@ export function Icon({
     styles.icon,
     size === 'md' && styles.md,
     size === 'lg' && styles.lg,
-    spin && styles.spin,
   )
   return (
     <Glyph

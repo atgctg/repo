@@ -39,5 +39,4 @@ export const tokens = stylex.defineVars({
   captionSm: '0.875rem',
   captionMd: '1.25rem',
   captionLg: '1.5rem',
-  captionStage: 'clamp(1.75rem, 4vw, 2.75rem)',
 })

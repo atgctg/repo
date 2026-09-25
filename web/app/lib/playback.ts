@@ -1,7 +1,7 @@
 let voice: HTMLAudioElement | null = null
 let voiceOwner: string | null = null
 
-export function stopVoice(): void {
+function stopVoice(): void {
   voice?.pause()
   voice = null
   voiceOwner = null

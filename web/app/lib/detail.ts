@@ -1,5 +1,5 @@
 import { formatRanges, isPlainObject } from 'shared'
-import type { Asset, Attributes, Card, Scene, Story, StoryEvent } from 'shared'
+import type { Attributes, Card, Scene, Story, StoryEvent } from 'shared'
 import type { IconName } from '~/components/icons'
 import { findAsset, sceneAsset, sceneName } from './view'
 
@@ -225,8 +225,4 @@ export function eventIcon(event: StoryEvent): IconName | undefined {
       return _exhaustive
     }
   }
-}
-
-export function assetOf(story: Story, name?: string | null): Asset | undefined {
-  return findAsset(story.assets, name)
 }

@@ -42,24 +42,6 @@ export const ui = stylex.create({
     fontSize: tokens.textSm,
     lineHeight: 1.2,
   },
-  ghost: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.25rem',
-    padding: '0.5rem 0.75rem',
-    borderRadius: tokens.radiusPill,
-    color: tokens.muted,
-    backgroundColor: 'transparent',
-    fontSize: tokens.textSm,
-    [hover]: {
-      ':hover': {
-        backgroundColor: tokens.chip,
-      },
-    },
-  },
-  ghostOn: {
-    color: tokens.accent,
-  },
   pillow: {
     width: '100%',
     display: 'flex',
@@ -163,10 +145,6 @@ export const ui = stylex.create({
     filter: 'blur(1.125rem)',
     transform: 'scale(1.12)',
   },
-  cardImgHeavy: {
-    filter: 'blur(2.75rem)',
-    transform: 'scale(1.18)',
-  },
   scrim: {
     position: 'absolute',
     inset: 0,
@@ -179,14 +157,6 @@ export const ui = stylex.create({
     backgroundColor: 'color-mix(in srgb, #ffffff 78%, transparent)',
     '@media (prefers-color-scheme: dark)': {
       backgroundColor: 'color-mix(in srgb, #000000 78%, transparent)',
-    },
-  },
-  scrimHeavy: {
-    backgroundImage: 'none',
-    backgroundColor: 'color-mix(in srgb, #ffffff 48%, transparent)',
-    '@media (prefers-color-scheme: dark)': {
-      backgroundColor: 'color-mix(in srgb, #000000 48%, transparent)',
-      backgroundImage: 'none',
     },
   },
   cardBody: {

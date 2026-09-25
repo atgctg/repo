@@ -321,18 +321,12 @@ function SceneTile({
       selected={selected}
       onClick={(event) => selectScene(story.id, index, event.shiftKey)}
       action={
-        generate || play ? (
-          <>
-            {generate}
-            {play}
-          </>
-        ) : null
+        <>
+          {generate}
+          {play}
+        </>
       }
-      footer={
-        scene.type === 'dialogue' ? (
-          <Caption scene={scene} story={story} placement="card" />
-        ) : null
-      }
+      footer={scene.type === 'dialogue' ? <Caption scene={scene} story={story} /> : null}
     />
   )
 }
@@ -414,64 +408,21 @@ export function GenerateButton({
         generateAsset(storyId, name, type)
       }}
     >
-      {floating ? null : <Icon name="refresh" spin={busy} />}
+      {floating ? null : <Icon name="refresh" />}
       <span>{busy ? 'Generating…' : label}</span>
     </Button>
   )
 }
 
-export function PosterGrid({
-  items,
-  onOpen,
-}: {
-  items: { id: string; title: string; image?: string }[]
-  onOpen: (id: string) => void
-}): ReactNode {
-  if (items.length === 0) return <p {...stylex.props(ui.muted)}>no worlds</p>
-  return (
-    <div {...stylex.props(styles.stage, styles.home)}>
-      <div className="tile-grid">
-        {items.map((item) => (
-          <Tile
-            key={item.id}
-            title={item.title}
-            image={item.image}
-            onClick={() => onOpen(item.id)}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export function HomeSections({
-  stories,
   worlds,
-  onOpenStory,
   onOpenWorld,
 }: {
-  stories: { id: string; title: string; image?: string }[]
   worlds: { id: string; title: string; image?: string }[]
-  onOpenStory: (id: string) => void
   onOpenWorld: (id: string) => void
 }): ReactNode {
   return (
     <div {...stylex.props(styles.stage, styles.home)}>
-      {stories.length > 0 ? (
-        <section {...stylex.props(styles.section)}>
-          <p {...stylex.props(ui.muted)}>Stories</p>
-          <div className="tile-grid">
-            {stories.map((item) => (
-              <Tile
-                key={item.id}
-                title={item.title}
-                image={item.image}
-                onClick={() => onOpenStory(item.id)}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
       <section {...stylex.props(styles.section)}>
         {worlds.length === 0 ? <p {...stylex.props(ui.muted)}>no worlds</p> : null}
         <div className="tile-grid">

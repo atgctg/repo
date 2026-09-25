@@ -20,10 +20,6 @@ const styles = stylex.create({
     lineHeight: 1.1,
     letterSpacing: '-0.015em',
   },
-  center: {
-    alignItems: 'center',
-    textAlign: 'center',
-  },
   start: {
     alignItems: 'flex-start',
     textAlign: 'left',
@@ -31,7 +27,6 @@ const styles = stylex.create({
   lg: { fontSize: tokens.captionLg },
   md: { fontSize: tokens.captionMd },
   sm: { fontSize: tokens.captionSm },
-  stage: { fontSize: tokens.captionStage },
   line: {
     margin: 0,
     width: '100%',
@@ -44,9 +39,6 @@ const styles = stylex.create({
     gap: '0.5rem',
     fontSize: tokens.textXs,
     fontWeight: 550,
-  },
-  speakerStage: {
-    fontSize: tokens.textMd,
   },
   speakerHold: {
     width: '1.5rem',
@@ -66,20 +58,6 @@ const styles = stylex.create({
     color: tokens.onMedia,
     backgroundColor: 'transparent',
   },
-  generate: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    zIndex: 3,
-    transform: 'translate(-50%, -50%)',
-    padding: '0.5rem 0.75rem',
-    borderRadius: tokens.radiusPill,
-    backgroundColor: tokens.bg,
-    color: tokens.text,
-    fontSize: tokens.textSm,
-    lineHeight: 1.2,
-    maxWidth: 'calc(100% - 2rem)',
-  },
   fill: {
     position: 'absolute',
     inset: 0,
@@ -87,11 +65,6 @@ const styles = stylex.create({
     height: '100%',
     objectFit: 'cover',
     backgroundColor: tokens.chip,
-  },
-  stageMedia: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
   },
 })
 
@@ -104,25 +77,31 @@ export function Avatar({ name, url }: { name: string; url?: string }): ReactNode
   )
 }
 
+function CaptionLines({ lines }: { lines: string[] }): ReactNode {
+  const size = captionSize(lines)
+  return (
+    <div
+      {...stylex.props(
+        size === 'lg' && styles.lg,
+        size === 'md' && styles.md,
+        size === 'sm' && styles.sm,
+      )}
+    >
+      {lines.map((line, index) => (
+        <p key={index} {...stylex.props(styles.line)}>
+          <RichText text={line} />
+        </p>
+      ))}
+    </div>
+  )
+}
+
 export function MessageCaption({ text }: { text: string }): ReactNode {
   const lines = captionLines(text)
   if (lines.length === 0) return null
-  const size = captionSize(lines)
   return (
     <div {...stylex.props(styles.caption, styles.start)}>
-      <div
-        {...stylex.props(
-          size === 'lg' && styles.lg,
-          size === 'md' && styles.md,
-          size === 'sm' && styles.sm,
-        )}
-      >
-        {lines.map((line, index) => (
-          <p key={index} {...stylex.props(styles.line)}>
-            <RichText text={line} />
-          </p>
-        ))}
-      </div>
+      <CaptionLines lines={lines} />
     </div>
   )
 }
@@ -130,42 +109,17 @@ export function MessageCaption({ text }: { text: string }): ReactNode {
 export function Caption({
   scene,
   story,
-  placement,
 }: {
   scene: Extract<Scene, { type: 'dialogue' }>
   story: Story
-  placement: 'card' | 'stage'
 }): ReactNode {
   const lines = captionLines(scene.caption)
   const speaker = scene.speaker?.trim() ?? ''
   if (lines.length === 0 && !speaker) return null
-  const size = captionSize(lines)
   return (
-    <div
-      {...stylex.props(
-        styles.caption,
-        placement === 'stage' ? styles.center : styles.start,
-      )}
-    >
-      {lines.length > 0 ? (
-        <div
-          {...stylex.props(
-            placement === 'stage' && styles.stage,
-            placement === 'card' && size === 'lg' && styles.lg,
-            placement === 'card' && size === 'md' && styles.md,
-            placement === 'card' && size === 'sm' && styles.sm,
-          )}
-        >
-          {lines.map((line, index) => (
-            <p key={index} {...stylex.props(styles.line)}>
-              <RichText text={line} />
-            </p>
-          ))}
-        </div>
-      ) : null}
-      <div
-        {...stylex.props(styles.speaker, placement === 'stage' && styles.speakerStage)}
-      >
+    <div {...stylex.props(styles.caption, styles.start)}>
+      {lines.length > 0 ? <CaptionLines lines={lines} /> : null}
+      <div {...stylex.props(styles.speaker)}>
         {speaker ? (
           <>
             <Avatar name={speaker} url={portraitUrl(story, speaker)} />
@@ -240,43 +194,6 @@ export function Media({
   return <img src={url} alt="" {...stylex.props(styles.fill)} />
 }
 
-export function StageMedia({
-  url,
-  video = false,
-  color,
-}: {
-  url?: string
-  video?: boolean
-  color?: string
-}): ReactNode {
-  if (video && url)
-    return (
-      <video
-        src={url}
-        playsInline
-        preload="metadata"
-        {...stylex.props(styles.stageMedia)}
-        style={{ backgroundColor: color }}
-        onDoubleClick={enterFullscreen}
-      />
-    )
-  if (url)
-    return (
-      <img
-        src={url}
-        alt=""
-        {...stylex.props(styles.stageMedia)}
-        style={{ backgroundColor: color }}
-      />
-    )
-  return (
-    <div
-      {...stylex.props(styles.stageMedia)}
-      style={{ backgroundColor: color ?? '#111' }}
-    />
-  )
-}
-
 const blurLayers = stylex.create({
   stack: {
     position: 'absolute',
@@ -338,9 +255,6 @@ const tileStyles = stylex.create({
     borderRadius: tokens.radiusScene,
     padding: 0,
     containerType: 'inline-size',
-    transitionProperty: 'border-radius',
-    transitionDuration: '60ms',
-    transitionTimingFunction: 'ease-out',
   },
   sceneOn: {
     borderRadius: `calc(${tokens.radiusScene} + ${tokens.ringWidth} + ${tokens.ringGap})`,
@@ -379,9 +293,6 @@ const tileStyles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     borderRadius: tokens.radiusScene,
-    transitionProperty: 'inset',
-    transitionDuration: '60ms',
-    transitionTimingFunction: 'ease-out',
   },
   faceOn: {
     inset: `calc(${tokens.ringWidth} + ${tokens.ringGap})`,
@@ -393,9 +304,6 @@ const tileStyles = stylex.create({
     pointerEvents: 'none',
     transformOrigin: 'center',
     transform: 'scale(1)',
-    transitionProperty: 'transform',
-    transitionDuration: '60ms',
-    transitionTimingFunction: 'ease-out',
   },
   captionOn: {
     transform: `scale(calc((100cqw - 2 * (${tokens.ringWidth} + ${tokens.ringGap})) / 100cqw))`,
@@ -417,9 +325,7 @@ export function Tile({
   title,
   image,
   selected = false,
-  plain = false,
   blurred = false,
-  heavy = false,
   progressive = false,
   scene = false,
   video = false,
@@ -432,9 +338,7 @@ export function Tile({
   title?: string
   image?: string
   selected?: boolean
-  plain?: boolean
   blurred?: boolean
-  heavy?: boolean
   progressive?: boolean
   scene?: boolean
   video?: boolean
@@ -444,7 +348,7 @@ export function Tile({
   footer?: ReactNode
   action?: ReactNode
 }): ReactNode {
-  const media = Boolean(image) && !plain
+  const media = Boolean(image)
   const sharp = media && !blurred
   const washed = sharp || (progressive && media)
   const frame = stylex.props(
@@ -464,28 +368,19 @@ export function Tile({
             src={image}
             playsInline
             preload="metadata"
-            {...stylex.props(
-              ui.cardImg,
-              blurred && (heavy ? ui.cardImgHeavy : ui.cardImgBlur),
-            )}
+            {...stylex.props(ui.cardImg, blurred && ui.cardImgBlur)}
             onDoubleClick={enterFullscreen}
           />
         ) : (
           <img
             src={image}
             alt=""
-            {...stylex.props(
-              ui.cardImg,
-              blurred && (heavy ? ui.cardImgHeavy : ui.cardImgBlur),
-            )}
+            {...stylex.props(ui.cardImg, blurred && ui.cardImgBlur)}
           />
         )
       ) : null}
       {washed && !progressive ? <div {...stylex.props(ui.scrim)} /> : null}
-      {blurred && !heavy && !progressive ? (
-        <div {...stylex.props(ui.scrim, ui.scrimFlat)} />
-      ) : null}
-      {heavy && !progressive ? <div {...stylex.props(ui.scrim, ui.scrimHeavy)} /> : null}
+      {blurred && !progressive ? <div {...stylex.props(ui.scrim, ui.scrimFlat)} /> : null}
       <div
         {...stylex.props(
           ui.cardBody,
@@ -494,9 +389,7 @@ export function Tile({
         )}
       >
         {title ? (
-          <div {...stylex.props(ui.cardTitle, (plain || blurred) && ui.cardTitlePlain)}>
-            {title}
-          </div>
+          <div {...stylex.props(ui.cardTitle, blurred && ui.cardTitlePlain)}>{title}</div>
         ) : null}
         {children}
         {footer && !scene ? (

@@ -20,7 +20,7 @@ import { app } from './context'
 import { assetFileName, assetUrl, speechFileName } from './files'
 import { generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
-import { loadWorld } from './worlds'
+import { findWorld } from './worlds'
 
 const storyWrites = new Map<string, Promise<void>>()
 
@@ -71,30 +71,18 @@ export function changeStory<T>(
 
 type StoryRow = typeof storyTable.$inferSelect
 
+type NewStory = Omit<typeof storyTable.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
+
 export async function forkWorld(worldId: string, requestedId?: string): Promise<Story> {
-  const world = await loadWorld(worldId)
+  const world = await findWorld(worldId)
   if (!world) throw new StoryError('World not found', 404)
-  const id =
-    requestedId === undefined ? await uniqueStoryId(world.id) : requestedId.trim()
+  const story = { world: world.id, title: world.title, events: leadCards(world.events) }
+  if (requestedId === undefined) return hydrate(await insertStory(world.id, story))
+  const id = requestedId.trim()
   if (!ID_PATTERN.test(id)) throw new StoryError('id is invalid', 400)
-  const existing = await rowById(id)
-  if (existing) {
-    if (existing.world !== world.id) throw new StoryError('id is in use', 409)
-    return hydrate(existing)
-  }
-  const now = new Date()
-  const events = leadCards(structuredClone(world.events))
-  await database().insert(storyTable).values({
-    id,
-    world: world.id,
-    title: world.title,
-    events,
-    createdAt: now,
-    updatedAt: now,
-  })
-  const created = await rowById(id)
-  if (!created) throw new StoryError('Story was not saved', 500)
-  return hydrate(created)
+  const row = (await insertRow(id, story)) ?? (await rowById(id))
+  if (row?.world !== world.id) throw new StoryError('id is in use', 409)
+  return hydrate(row)
 }
 
 export async function saveEvalStory(
@@ -102,24 +90,24 @@ export async function saveEvalStory(
   world: string,
   events: StoryEvent[],
 ): Promise<string> {
-  const id = await uniqueStoryId(caseName)
-  const now = new Date()
-  await database().insert(storyTable).values({
-    id,
-    world,
-    title: caseName,
-    events,
-    createdAt: now,
-    updatedAt: now,
-    caseName,
-  })
-  return id
+  const row = await insertStory(caseName, { world, title: caseName, events, caseName })
+  return row.id
 }
 
-async function uniqueStoryId(worldId: string): Promise<string> {
+async function insertRow(id: string, story: NewStory): Promise<StoryRow | undefined> {
+  const now = new Date()
+  const [row] = await database()
+    .insert(storyTable)
+    .values({ ...story, id, createdAt: now, updatedAt: now })
+    .onConflictDoNothing()
+    .returning()
+  return row
+}
+
+async function insertStory(prefix: string, story: NewStory): Promise<StoryRow> {
   for (let attempt = 0; attempt < 8; attempt++) {
-    const id = storyId(worldId)
-    if (!(await rowById(id))) return id
+    const row = await insertRow(storyId(prefix), story)
+    if (row) return row
   }
   throw new StoryError('id is in use', 409)
 }

@@ -29,17 +29,21 @@ export async function listWorlds(): Promise<World[]> {
   })
 }
 
+export async function findWorld(id: string): Promise<WorldSource | undefined> {
+  const rows = await database().select().from(worlds).where(eq(worlds.id, id)).limit(1)
+  const row = rows[0]
+  return row && { id: row.id, title: row.title, events: parseEvents(row.events) }
+}
+
 export async function loadWorld(id: string): Promise<WorldSource | undefined> {
   const safe = safeStoryId(id)
-  const [rows, keys] = await Promise.all([
-    database().select().from(worlds).where(eq(worlds.id, safe)).limit(1),
+  const [world, keys] = await Promise.all([
+    findWorld(safe),
     listAssetKeys(app().assets, [worldPrefix(safe)]),
   ])
-  const row = rows[0]
-  if (!row) return undefined
-  const events = parseEvents(row.events)
-  const cover = worldCover(safe, events, keys)
-  return { id: safe, title: row.title, events, ...(cover ? { cover } : {}) }
+  if (!world) return undefined
+  const cover = worldCover(safe, world.events, keys)
+  return { ...world, ...(cover ? { cover } : {}) }
 }
 
 function worldCover(

@@ -6,7 +6,7 @@ import { parseEvents } from './events'
 import { evals, stories as storyTable } from './schema'
 import { saveEvalStory, StoryError } from './stories'
 import { reply } from './turn'
-import { loadWorld } from './worlds'
+import { findWorld } from './worlds'
 
 export type EvalVerdict = 'pass' | 'fail'
 
@@ -68,7 +68,7 @@ export async function runEvalCase(
   const rows = await database().select().from(evals).where(eq(evals.name, name)).limit(1)
   const evalCase = rows[0]
   if (!evalCase) throw new StoryError('Eval not found', 404)
-  const world = await loadWorld(evalCase.world)
+  const world = await findWorld(evalCase.world)
   if (!world) throw new StoryError('World not found', 404)
   const id = await saveEvalStory(name, world.id, [
     ...world.events,

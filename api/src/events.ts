@@ -61,12 +61,7 @@ function parseEvent(value: unknown): StoryEvent | undefined {
       return {
         type: 'card',
         name: value.name,
-        ...(value.cover === null || typeof value.cover === 'string'
-          ? { cover: value.cover }
-          : {}),
-        ...(value.voice === null || typeof value.voice === 'string'
-          ? { voice: value.voice }
-          : {}),
+        ...cardLinks(value),
         ...(isRecord(value.attributes) ? { attributes: value.attributes } : {}),
         ...shared,
       }
@@ -140,6 +135,21 @@ function voice(value: Record<string, unknown>): {
   const transcript = value.voice.transcript
   if (typeof audio !== 'string' || typeof transcript !== 'string') return {}
   return { voice: { audio, transcript } }
+}
+
+export function cardLinks(value: Record<string, unknown>): {
+  cover?: string | null
+  voice?: string | null
+} {
+  const { cover, voice } = value
+  return {
+    ...(isLink(cover) ? { cover } : {}),
+    ...(isLink(voice) ? { voice } : {}),
+  }
+}
+
+function isLink(value: unknown): value is string | null {
+  return value === null || typeof value === 'string'
 }
 
 function insert(value: Record<string, unknown>): { index?: number; replace?: boolean } {

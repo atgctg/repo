@@ -44,8 +44,9 @@ export function eventsToMessages(
     const texts: string[] = []
     const toolCalls: ToolCall[] = []
     const results: ChatMessage[] = []
-    while (index < events.length && events[index].type !== 'input') {
+    while (index < events.length) {
       const current = events[index]
+      if (current.type === 'input') break
       index += 1
       if (current.type === 'output') {
         texts.push(current.text)

@@ -25,6 +25,7 @@ import {
   generateStoryVoice,
   resolveVoiceId,
 } from './media'
+import { cardLinks } from './events'
 import { eventsToMessages, type ChatMessage, type ToolCall } from './messages'
 import { finishTools, noteToolDelta, type OpenTool, type ToolDelta } from './stream'
 import {
@@ -667,12 +668,7 @@ function cardEvent(args: Record<string, unknown>): CardEvent {
   const event: CardEvent = {
     type: 'card',
     name: name || 'Card',
-    ...(args.cover === null || typeof args.cover === 'string'
-      ? { cover: args.cover }
-      : {}),
-    ...(args.voice === null || typeof args.voice === 'string'
-      ? { voice: args.voice }
-      : {}),
+    ...cardLinks(args),
     ...(attributes ? { attributes } : {}),
   }
   if (!name) event.error = 'name is required'

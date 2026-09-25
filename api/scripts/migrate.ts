@@ -12,7 +12,7 @@ const client = new Client({ connectionString })
 await client.connect()
 try {
   await migrate(drizzle({ client }), {
-    migrationsFolder: `${import.meta.dir}/../api/drizzle`,
+    migrationsFolder: `${import.meta.dir}/../drizzle`,
   })
 } finally {
   await client.end()

@@ -2,7 +2,11 @@ Be concise.
 
 Read files fully once from beginning to end, not many small partial reads.
 
-Use Bun APIs (Bun.file, Bun.write, Bun.Glob, bun:sqlite, Bun.$); use node:* only when Bun has no equivalent.
+App code runs on Cloudflare Workers: use Web and Workers APIs, no Bun or node:* in `api/src` or `web/`. Bun is only the package manager and script runner.
+
+Before touching Hyperdrive, R2, placement, or wrangler config, read the current Cloudflare docs.
+
+The database schema lives in `api/src/schema.ts` (Drizzle). Change it only through `drizzle-kit` migrations.
 
 Do not write comments.
 
@@ -22,15 +26,18 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 
 - shared/types.ts
 - shared/project.ts
-- api/src/server.ts
+- api/src/worker.ts
 - api/src/turn.ts
 - api/src/tools.ts
+- api/src/schema.ts
 - api/prompt.md
+- api/wrangler.jsonc, web/wrangler.jsonc
 - web/app
 
 # Concepts
 
-- World: a story template, YAML in `data/worlds/`
+- Verse: the app. `verse-web` (global) and `verse-api` (pinned to aws:us-east-2)
+- World: a story template, stored in Postgres
 - Story: a fork of a world; holds the append-only event log
 - Template: the events before the first input
 - Event: one log entry (input, output, image, dialogue, video, card, delete)
@@ -38,6 +45,7 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 - Output: the model's plain text
 - Projection: state derived from events (`project()`): scenes, cards, assets
 - Scene: one timeline item, an image, video, dialogue, or message
+- Storyboard: the grid view of a story's scenes
 - Card: creator-defined persistent state the LLM or user keeps updated
 - Turn: one input plus the events the model adds in response
 - Eval: a small world plus one input, judged by Marton
@@ -46,7 +54,7 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 
 Interactive visual storytelling app.
 
-Currently focusing on the internal studio, playtesting/evaluation, improving storytelling, coming up with data structures, coming up with the architecture design.
+Currently focusing on the studio, playtesting/evaluation, improving storytelling, coming up with data structures, coming up with the architecture design.
 
 ## Interface (eventually)
 

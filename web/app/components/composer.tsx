@@ -39,22 +39,28 @@ const styles = stylex.create({
   count: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.25rem',
+    gap: '0.2rem',
     flex: 'none',
+    borderRadius: tokens.radiusPill,
+    padding: '0.1rem 0.4rem 0.1rem 0.15rem',
     color: tokens.accent,
     fontSize: tokens.textSm,
     lineHeight: 1,
+    ':hover': {
+      backgroundColor: tokens.accent,
+      color: tokens.bg,
+    },
   },
   mark: {
-    width: '1rem',
-    height: '1rem',
+    width: '1.25rem',
+    height: '1.25rem',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     flex: 'none',
     padding: 0,
     color: 'inherit',
-    fontSize: tokens.textSm,
+    fontSize: '1.15rem',
     lineHeight: 1,
   },
   clip: {
@@ -129,7 +135,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
               </button>
             ) : (
               <span {...stylex.props(styles.mark)}>
-                <Icon name="pointer" />
+                <Icon name="pointer" size="md" />
               </span>
             )}
             <span>{selected.length}</span>

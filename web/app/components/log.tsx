@@ -39,7 +39,7 @@ const styles = stylex.create({
     minWidth: 0,
     maxWidth: '100%',
     boxSizing: 'border-box',
-    padding: '1rem 1.5rem 16rem 0.75rem',
+    padding: '1rem 0.75rem 16rem',
   },
   fold: {
     minWidth: 0,

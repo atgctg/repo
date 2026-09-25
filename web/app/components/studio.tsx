@@ -31,7 +31,7 @@ const styles = stylex.create({
     gap: '0.35rem',
     minWidth: 0,
     margin: 0,
-    padding: '0.75rem 1.5rem 0.25rem 0.75rem',
+    padding: '0.75rem 0.75rem 0.25rem',
   },
   title: {
     flex: '1 1 auto',
@@ -56,8 +56,8 @@ const styles = stylex.create({
     flex: 'none',
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.15rem',
-    padding: '0.15rem 0.3rem',
+    gap: '0.2rem',
+    padding: '0.4rem 0.7rem',
     borderRadius: tokens.radiusPill,
     color: tokens.muted,
     backgroundColor: 'transparent',
@@ -86,7 +86,7 @@ const styles = stylex.create({
   dock: {
     position: 'absolute',
     left: '0.75rem',
-    right: '1.5rem',
+    right: '0.75rem',
     bottom: '1rem',
     zIndex: 2,
   },
@@ -150,10 +150,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
           <Icon name="back" />
         </Link>
         <h1 {...stylex.props(styles.title)}>{story.title}</h1>
-        <span {...stylex.props(styles.count)}>
-          <Icon name="image" />
-          <span>{story.scenes.length}</span>
-        </span>
+        <span {...stylex.props(styles.count)}>{story.scenes.length}</span>
         <Button
           type="button"
           aria-pressed={onCards}
@@ -161,7 +158,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
           onClick={() => show(onCards ? `/${story.id}` : `/${story.id}/cards`)}
         >
           <span {...stylex.props(styles.albums)}>
-            <Icon name="albums" />
+            <Icon name="albums" size="lg" />
           </span>
           <span>{story.cards.length}</span>
         </Button>

@@ -21,6 +21,10 @@ const styles = stylex.create({
     display: 'block',
     flexShrink: 0,
   },
+  md: {
+    width: '1.25rem',
+    height: '1.25rem',
+  },
   lg: {
     width: '1.5rem',
     height: '1.5rem',
@@ -61,11 +65,16 @@ export function Icon({
   spin = false,
 }: {
   name: IconName
-  size?: 'sm' | 'lg'
+  size?: 'sm' | 'md' | 'lg'
   spin?: boolean
 }): ReactNode {
   const filled = name === 'play' || name === 'pause' || name === 'pointer'
-  const svg = stylex.props(styles.icon, size === 'lg' && styles.lg, spin && styles.spin)
+  const svg = stylex.props(
+    styles.icon,
+    size === 'md' && styles.md,
+    size === 'lg' && styles.lg,
+    spin && styles.spin,
+  )
   return (
     <svg
       viewBox="0 0 24 24"

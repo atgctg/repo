@@ -27,7 +27,7 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem',
-    padding: '0.75rem 0.75rem 0.75rem 1.5rem',
+    padding: '0.75rem',
   },
   bar: {
     display: 'flex',

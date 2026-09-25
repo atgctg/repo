@@ -16,7 +16,7 @@ export const STORY_TOOLS = [
           prompt: {
             type: 'object',
             description:
-              'Structured JSON prompt. Suggested fields: Subject, Behavior, Environment. Copy each character look from their card.',
+              'Object with Shot, Setting, Subjects, and optional Text. Values are full sentences.',
           },
           references: {
             type: 'array',

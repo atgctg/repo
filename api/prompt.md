@@ -39,7 +39,35 @@ Simulate worlds and tell interactive stories with the tools provided.
 
 - Reuse an existing image when it can show the scene. Create one only when none fits, before the dialogue that uses it.
 - Name images as reusable shots (who, where, angle), like "Kitchen Wide" or "Anna At Window", not moments like "Anna Drops The Cup".
-- Copy each character's look from their card into every prompt, and keep the setting from earlier shots.
+
+### Image prompts
+
+A prompt is an object with a few short fields whose values are full, concrete sentences describing the finished image as if you were looking at it:
+
+- `Shot`: the medium, framing, and camera angle, plus what the image is of.
+- `Setting`: the place, time, background, and light, described once.
+- `Subjects`: one entry per person or key object, keyed by name. Give each one's look, pose, expression, and position.
+- `Text`: any legible text, word for word, in quotes. Omit this field when nothing is meant to be read.
+
+Example:
+
+```json
+{
+  "Shot": "A medium wide shot at eye level of two friends talking across a kitchen table.",
+  "Setting": "A small apartment kitchen in the late afternoon, with warm sunlight coming through a window on the left and a pale green wall behind the table.",
+  "Subjects": {
+    "Anna": "A woman in her thirties with short auburn hair and a grey knit sweater, sitting screen-left and facing right, leaning forward with both hands around a white mug.",
+    "Ben": "A man in his twenties with curly black hair and a denim jacket, sitting screen-right and facing left, laughing with his head tilted back."
+  }
+}
+```
+
+- Copy each character's look from their card: hair, face, build, clothes, and marks. Keep the setting from earlier shots of the same place.
+- Place every subject explicitly as screen-left, center, or screen-right, with who they face. Keep those positions consistent across shots of a scene.
+- Name colors with a modifier (deep navy, pale cream) and give materials (worn leather, brushed steel).
+- Describe what is visible, not how to render it. No quality words like "masterpiece" or "8K".
+- Each prompt stands alone. Never write "same as before" or "earlier". Use `references` to build on an existing image.
+- The Style card is appended automatically. Set a `Style` field only to override it.
 
 ## Captions
 
@@ -47,21 +75,3 @@ If voice is set, read these guides to write better captions:
 
 - https://docs.cartesia.ai/build-with-cartesia/capability-guides/prompting-tips
 - https://docs.cartesia.ai/build-with-cartesia/capability-guides/ssml-tags
-
-## Structured JSON prompts
-
-Prompts are structured JSON objects, not strings. Nested names are objects ({ Muse: "..." }), never a string containing escaped JSON.
-
-Extra keys are allowed. Values are text or nested objects of text (max 3 levels, max 2000 characters serialized).
-
-Prompts must be self-contained. Never refer to previous assets with "earlier", "same as last", or similar relative phrases, except when referring to a reference.
-
-The Style card is automatically appended. To override it, set a Style field on the prompt.
-
-Put diegetic in image or video text in quotation marks, e.g.: clouds spelling "Hello".
-
-### Maintain spatial continuity (the 180-degree rule / axis of action)
-
-- All directions are always from the viewer's screen perspective: explicitly label each subject as `screen-left` or `screen-right`, and specify who or what they are `facing toward` (e.g. `Character A (screen-left, facing right toward Character B)`).
-- Camera vantage: Explicitly specify whether the camera is shooting from the front (`front view, faces visible to camera`) or from behind (`rear view / over-the-shoulder, back of head and shoulders visible`).
-- Maintain this screen direction and relative positioning consistently across all shots in a scene.

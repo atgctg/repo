@@ -26,8 +26,12 @@ events:
   - type: image
     name: Bridge Wide
     prompt:
-      Scene: Small freighter bridge, three seats, stars through the front window
+      Shot: A wide shot from the back of a small freighter bridge.
+      Setting: A cramped bridge with cold white panels, three worn seats facing a wide front window full of stars, and amber status lights along the consoles.
   - type: image
     name: Engine Room
     prompt:
-      Scene: Cramped engine room, pipes, amber lights, Tal at a console
+      Shot: A medium wide shot at eye level of a cramped engine room.
+      Setting: A narrow engine room packed with pipes and cables, lit by flickering amber warning lights.
+      Subjects:
+        Tal: A bald man in his forties with a thick beard and grease-stained grey coveralls, standing at a console screen-right and facing left.

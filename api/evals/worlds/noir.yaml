@@ -21,11 +21,18 @@ events:
   - type: image
     name: Office Wide
     prompt:
-      Scene: Cramped detective office at night, rain on the window, desk lamp, Vale behind the desk, Rosa in the doorway
+      Shot: A wide shot at eye level of a cramped detective office.
+      Setting: A small office at night, with rain streaking a window behind the desk, a single desk lamp throwing hard yellow light, and deep shadows in the corners.
+      Subjects:
+        Vale: A tall, gaunt man with grey stubble in a wrinkled trench coat and loosened black tie, sitting behind the desk screen-left and facing right.
+        Rosa Delgado: A woman in her late thirties with a black bob, red lipstick, a dark green dress, and pearl earrings, standing in the doorway screen-right and facing left.
   - type: image
     name: Rosa At Desk
     prompt:
-      Scene: Rosa Delgado seated across the desk, lamp light on her face, rain behind her
+      Shot: A medium close-up at eye level of the client across the desk.
+      Setting: The detective office at night, with the desk lamp lighting her face from below and rain on the window behind her.
+      Subjects:
+        Rosa Delgado: A woman in her late thirties with a black bob, red lipstick, a dark green dress, and pearl earrings, seated center and facing the camera with a tense, steady look.
   - type: dialogue
     background: Rosa At Desk
     speaker: Rosa Delgado

@@ -26,11 +26,18 @@ events:
   - type: image
     name: Camp Wide
     prompt:
-      Scene: Campfire in a pine clearing at night, Kael sharpening a sword, Wren leaning on a tree
+      Shot: A wide shot at eye level of a small camp in a forest clearing.
+      Setting: A clearing in a pine forest at night, lit only by one campfire in the center, with the trees fading into darkness beyond the firelight.
+      Subjects:
+        Kael: A broad man with a shaved head in brown leather armor, sitting screen-left by the fire and facing right, sharpening one of his two short swords.
+        Wren: A woman with short silver hair, a green hooded cloak, and a scar over her left eye, leaning on a pine screen-right and facing left, a longbow on her back.
   - type: image
     name: Wren By Tree
     prompt:
-      Scene: Wren leaning on a pine, arms crossed, firelight on her scar
+      Shot: A medium close-up at eye level of the scout by a tree.
+      Setting: The edge of the pine clearing at night, with warm firelight from screen-left and darkness behind her.
+      Subjects:
+        Wren: A woman with short silver hair and a green hooded cloak, leaning on a pine with her arms crossed, facing screen-left, the firelight catching the scar over her left eye.
   - type: dialogue
     background: Wren By Tree
     speaker: Wren

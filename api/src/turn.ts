@@ -44,7 +44,7 @@ export function followUp(toolNames: string[]): boolean {
   return toolNames.every((name) => name === 'Delete')
 }
 
-const systemPrompt = await Bun.file(`${import.meta.dir}/../prompts/system.md`).text()
+const systemPrompt = await Bun.file(`${import.meta.dir}/../prompt.md`).text()
 
 export function llmMessages(events: StoryEvent[], title: string): ChatMessage[] {
   return [

@@ -16,7 +16,7 @@ Never call `useEffect` directly. Prefer derived state (React Compiler is enabled
 
 No animations and transitions for now.
 
-Only change `AGENTS.md` and `api/prompts/` when explicitly asked.
+Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 
 # Starting points
 
@@ -25,7 +25,7 @@ Only change `AGENTS.md` and `api/prompts/` when explicitly asked.
 - api/src/server.ts
 - api/src/turn.ts
 - api/src/tools.ts
-- api/prompts/system.md
+- api/prompt.md
 - web/app
 
 # Concepts

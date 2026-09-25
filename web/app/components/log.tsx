@@ -189,7 +189,8 @@ function EventRow({
   index: number
 }): ReactNode {
   switch (event.type) {
-    case 'message':
+    case 'input':
+    case 'output':
       return <MessageRow storyId={story.id} event={event} index={index} />
     case 'dialogue':
     case 'image':
@@ -210,12 +211,12 @@ function MessageRow({
   index,
 }: {
   storyId: string
-  event: Extract<StoryEvent, { type: 'message' }>
+  event: Extract<StoryEvent, { type: 'input' | 'output' }>
   index: number
 }): ReactNode {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(event.text)
-  if (event.user) {
+  if (event.type === 'input') {
     return (
       <div data-event={index} {...stylex.props(styles.event, styles.user)}>
         {editing ? (
@@ -277,7 +278,7 @@ function FoldRow({
   index,
 }: {
   story: Story
-  event: Exclude<StoryEvent, { type: 'message' }>
+  event: Exclude<StoryEvent, { type: 'input' | 'output' }>
   index: number
 }): ReactNode {
   const [open, setOpen] = useState(false)

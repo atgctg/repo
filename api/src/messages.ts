@@ -1,4 +1,4 @@
-import { project, type Card, type StoryEvent } from 'shared'
+import { formatInput, project, type Card, type StoryEvent } from 'shared'
 import { stringify } from 'yaml'
 import { formatScene } from './scene-text'
 
@@ -24,7 +24,7 @@ export function eventsToMessages(
   const messages: ChatMessage[] = []
   if (summary) messages.push({ role: 'system', content: summary })
 
-  const cut = events.findIndex((event) => event.user)
+  const cut = events.findIndex((event) => event.type === 'input')
   const prefix = cut < 0 ? events : events.slice(0, cut)
   const template = prefix.length > 0 ? renderTemplate(title, prefix) : ''
   let framed = template.length === 0
@@ -32,12 +32,11 @@ export function eventsToMessages(
   let index = cut < 0 ? events.length : cut
   while (index < events.length) {
     const event = events[index]
-    if (event.user) {
-      const text =
-        event.type === 'message' ? event.text : stableStringify(payload(event, true))
+    if (event.type === 'input') {
+      const text = formatInput(event)
       const content = framed ? text : `${template}\n\n${text}`
       framed = true
-      messages.push({ role: 'user', name: event.user, content })
+      messages.push({ role: 'user', name: 'user', content })
       index += 1
       continue
     }
@@ -45,10 +44,10 @@ export function eventsToMessages(
     const texts: string[] = []
     const toolCalls: ToolCall[] = []
     const results: ChatMessage[] = []
-    while (index < events.length && !events[index].user) {
+    while (index < events.length && events[index].type !== 'input') {
       const current = events[index]
       index += 1
-      if (current.type === 'message') {
+      if (current.type === 'output') {
         texts.push(current.text)
         continue
       }
@@ -105,7 +104,7 @@ function escapeTitle(title: string): string {
   return title.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
 }
 
-function toolName(event: Exclude<StoryEvent, { type: 'message' }>): string {
+function toolName(event: Exclude<StoryEvent, { type: 'input' | 'output' }>): string {
   switch (event.type) {
     case 'image':
     case 'dialogue':

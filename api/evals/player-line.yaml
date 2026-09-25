@@ -583,9 +583,8 @@ events:
     background: Haruma Eyeing Them
     speaker: Haruma
     caption: Eight months together... and you didn't know where Yuki grew up?
-  - type: message
+  - type: input
     text: Oh.. I must have forgotten
-    user: user
 model:
   - type: image
     name: Leo Sweats

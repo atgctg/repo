@@ -10,7 +10,7 @@ const events: StoryEvent[] = [
     speaker: 'Yuki',
     caption: "Pretend you're\nmy boyfriend.",
   },
-  { type: 'message', user: 'user', text: 'I forgot the plan.' },
+  { type: 'input', text: 'I forgot the plan.' },
   {
     type: 'dialogue',
     background: 'Booth wide',
@@ -18,7 +18,7 @@ const events: StoryEvent[] = [
     caption: 'Oh.. I must have forgotten',
   },
   { type: 'image', name: 'Leo Sweats' },
-  { type: 'message', text: 'He keeps the line.' },
+  { type: 'output', text: 'He keeps the line.' },
   { type: 'delete', indices: [0, 1] },
 ]
 

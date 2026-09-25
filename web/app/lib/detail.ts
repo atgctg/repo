@@ -154,7 +154,8 @@ function eventMedia(
 
 export function eventDetail(story: Story, event: StoryEvent): DetailBlock[] {
   switch (event.type) {
-    case 'message':
+    case 'input':
+    case 'output':
       return event.error ? [{ type: 'error', text: event.error }] : []
     case 'dialogue': {
       const blocks: DetailBlock[] = []
@@ -187,7 +188,8 @@ export function eventDetail(story: Story, event: StoryEvent): DetailBlock[] {
 
 export function eventLead(event: StoryEvent): string {
   switch (event.type) {
-    case 'message':
+    case 'input':
+    case 'output':
       return event.text
     case 'dialogue':
       return event.speaker || event.background
@@ -206,7 +208,8 @@ export function eventLead(event: StoryEvent): string {
 
 export function eventIcon(event: StoryEvent): IconName | undefined {
   switch (event.type) {
-    case 'message':
+    case 'input':
+    case 'output':
     case 'dialogue':
       return undefined
     case 'image':

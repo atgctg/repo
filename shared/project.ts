@@ -4,6 +4,7 @@ import type {
   Card,
   CardEvent,
   DialogueScene,
+  InputEvent,
   MessageScene,
   Scene,
   StoryEvent,
@@ -12,7 +13,7 @@ import type {
 export function lastUserText(events: StoryEvent[]): string {
   for (let index = events.length - 1; index >= 0; index--) {
     const event = events[index]
-    if (event?.type === 'message' && event.user && event.text.trim())
+    if (event?.type === 'input' && event.text.trim())
       return event.text.replace(/\s+/g, ' ').trim()
   }
   return ''
@@ -30,7 +31,7 @@ export function historyPreview(events: StoryEvent[]): string {
 }
 
 export function leadCards(events: StoryEvent[]): StoryEvent[] {
-  const cut = events.findIndex((event) => event.user)
+  const cut = events.findIndex((event) => event.type === 'input')
   const head = cut < 0 ? events : events.slice(0, cut)
   const cards = head.filter((event) => event.type === 'card')
   if (
@@ -56,7 +57,8 @@ export function project(events: StoryEvent[]): {
     const event = events[index]
     if (event.error) continue
     switch (event.type) {
-      case 'message': {
+      case 'input':
+      case 'output': {
         const scene: MessageScene = { type: 'message', text: event.text, event: index }
         const background = previousImage(scenes)
         if (background) scene.background = background
@@ -122,6 +124,19 @@ export function project(events: StoryEvent[]): {
   }
 
   return { scenes, assets, cards }
+}
+
+export function formatInput(event: InputEvent): string {
+  const parts: string[] = []
+  if (event.selected?.length) {
+    const ranges = formatRanges(event.selected)
+    if (ranges) parts.push(`<selected>\n${ranges}\n</selected>`)
+  }
+  if (event.pasted) parts.push(`<clipboard>\n${event.pasted}\n</clipboard>`)
+  const transcript = event.voice?.transcript.trim()
+  if (transcript) parts.push(transcript)
+  if (event.text) parts.push(event.text)
+  return parts.join('\n')
 }
 
 export function formatRanges(indices: number[]): string {

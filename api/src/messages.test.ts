@@ -19,7 +19,7 @@ const prefix: StoryEvent[] = [
   },
 ]
 
-const ask: StoryEvent = { type: 'message', user: 'user', text: 'I forgot the plan.' }
+const ask: StoryEvent = { type: 'input', text: 'I forgot the plan.' }
 
 const template = `<template title="Her Fake Boyfriend">
 <cards>
@@ -57,7 +57,7 @@ test('later turns keep the same template bytes', () => {
       speaker: 'Leo',
       caption: 'Right.',
     },
-    { type: 'message', user: 'user', text: 'again' },
+    { type: 'input', text: 'again' },
   ]
   const first = eventsToMessages(opening, undefined, 'Her Fake Boyfriend')
   const full = eventsToMessages(events, undefined, 'Her Fake Boyfriend')
@@ -74,14 +74,14 @@ test('a finished turn is a stable prefix', () => {
       speaker: 'Leo',
       caption: 'Right.',
     },
-    { type: 'message', user: 'user', text: 'again' },
+    { type: 'input', text: 'again' },
   ]
   const full = eventsToMessages(events, undefined, 'Her Fake Boyfriend')
   const cuts = [0]
   for (let index = 0; index < events.length; index++) {
     const next = events[index + 1]
-    const model = !events[index].user
-    const nextModel = next ? !next.user : false
+    const model = events[index].type !== 'input'
+    const nextModel = next ? next.type !== 'input' : false
     if (!next || !model || !nextModel) cuts.push(index + 1)
   }
   for (const count of cuts) {
@@ -101,7 +101,7 @@ test('summary is a frozen prefix', () => {
 
 test('a title escapes quotes and ampersands', () => {
   const framed = eventsToMessages(
-    [...prefix.slice(0, 1), { type: 'message', user: 'user', text: 'go' }],
+    [...prefix.slice(0, 1), { type: 'input', text: 'go' }],
     undefined,
     'A & B "C"',
   )
@@ -110,14 +110,14 @@ test('a title escapes quotes and ampersands', () => {
 })
 
 test('an empty prefix has no template wrapper', () => {
-  expect(
-    eventsToMessages([{ type: 'message', user: 'user', text: 'go' }], undefined, 'Title'),
-  ).toEqual([{ role: 'user', name: 'user', content: 'go' }])
+  expect(eventsToMessages([{ type: 'input', text: 'go' }], undefined, 'Title')).toEqual([
+    { role: 'user', name: 'user', content: 'go' },
+  ])
 })
 
 test('a failed tool returns the error and keeps the prompt', () => {
   const failed: StoryEvent[] = [
-    { type: 'message', user: 'user', text: 'go' },
+    { type: 'input', text: 'go' },
     {
       type: 'image',
       name: 'Night',
@@ -142,24 +142,14 @@ test('a failed tool returns the error and keeps the prompt', () => {
   })
 })
 
-test('human edits are user messages, not model tool calls', () => {
-  const edited: StoryEvent[] = [
-    {
-      type: 'dialogue',
-      user: 'user',
-      replace: true,
-      index: 1,
-      background: 'Cafe',
-      speaker: 'Mimi',
-      caption: 'Edited line',
-    },
-  ]
-  expect(eventsToMessages(edited)).toEqual([
-    {
-      role: 'user',
-      name: 'user',
-      content:
-        '{"background":"Cafe","caption":"Edited line","index":1,"replace":true,"speaker":"Mimi","type":"dialogue"}',
-    },
-  ])
+test('selected scenes are formatted onto the input', () => {
+  expect(eventsToMessages([{ type: 'input', text: 'fix it', selected: [1, 2] }])).toEqual(
+    [
+      {
+        role: 'user',
+        name: 'user',
+        content: '<selected>\n1-2\n</selected>\nfix it',
+      },
+    ],
+  )
 })

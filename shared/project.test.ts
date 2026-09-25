@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test'
-import { formatRanges, leadCards, project } from './project'
+import { formatInput, formatRanges, leadCards, project } from './project'
 import type { StoryEvent } from './types'
 
 test('projects scenes from events and skips failures', () => {
   const events: StoryEvent[] = [
     { type: 'image', name: 'Cafe', prompt: { Subject: 'Cafe' } },
-    { type: 'message', user: 'user', text: 'User message' },
+    { type: 'input', text: 'User message' },
     { type: 'dialogue', background: 'Cafe', speaker: 'Mimi', caption: 'Hello' },
     {
       type: 'image',
@@ -40,13 +40,13 @@ test('cards lead the log unless a user asked for one', () => {
   const events: StoryEvent[] = [
     { type: 'image', name: 'Cafe' },
     { type: 'card', name: 'Mimi', voice: 'Skylar' },
-    { type: 'message', user: 'user', text: 'Make a card for Yoyo' },
+    { type: 'input', text: 'Make a card for Yoyo' },
     { type: 'card', name: 'Yoyo' },
   ]
   const ordered = leadCards(events)
   expect(
     ordered.map((event) =>
-      event.type === 'message'
+      event.type === 'input'
         ? event.text
         : event.type === 'card' || event.type === 'image'
           ? event.name
@@ -70,12 +70,12 @@ test('events point at the scene they still own', () => {
 
 test('messages sit on the previous image', () => {
   const events: StoryEvent[] = [
-    { type: 'message', user: 'user', text: 'Before' },
+    { type: 'input', text: 'Before' },
     { type: 'image', name: 'Cafe' },
     { type: 'dialogue', background: 'Cafe', caption: 'Hi' },
-    { type: 'message', text: 'After' },
-    { type: 'message', user: 'user', text: 'Next', error: 'nope' },
-    { type: 'message', user: 'user', text: 'Again' },
+    { type: 'output', text: 'After' },
+    { type: 'input', text: 'Next', error: 'nope' },
+    { type: 'input', text: 'Again' },
     { type: 'delete', indices: [0] },
   ]
   expect(project(events).scenes).toEqual([
@@ -88,4 +88,16 @@ test('messages sit on the previous image', () => {
 
 test('selection ranges collapse runs', () => {
   expect(formatRanges([8, 9, 10, 12, 15, 16, 17, 25])).toBe('8-10,12,15-17,25')
+})
+
+test('an input formats selected text, clipboard, and the transcript', () => {
+  expect(
+    formatInput({
+      type: 'input',
+      text: 'go',
+      selected: [8, 9, 10, 12],
+      pasted: 'notes',
+      voice: { audio: 'clip.wav', transcript: 'hello' },
+    }),
+  ).toBe('<selected>\n8-10,12\n</selected>\n<clipboard>\nnotes\n</clipboard>\nhello\ngo')
 })

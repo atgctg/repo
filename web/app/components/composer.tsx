@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
-import { messageText } from '~/lib/text'
 import { statusText } from '~/lib/time'
 import { clearSelection, sendTurn, useActivity, useNow, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
@@ -46,19 +45,17 @@ const styles = stylex.create({
     fontSize: tokens.textSm,
     lineHeight: 1,
   },
-  clear: {
-    width: 0,
+  mark: {
+    width: '1rem',
+    height: '1rem',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 'none',
     padding: 0,
-    overflow: 'hidden',
-    opacity: 0,
-    color: tokens.accent,
+    color: 'inherit',
     fontSize: tokens.textSm,
     lineHeight: 1,
-    cursor: 'pointer',
-  },
-  clearOn: {
-    width: '0.75rem',
-    opacity: 1,
   },
   clip: {
     overflow: 'hidden',
@@ -80,11 +77,11 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
     if (live) return
-    const text = messageText(draft, selected)
+    const text = draft.trim()
     if (!text) return
     const previous = draft
     setDraft('')
-    void sendTurn(storyId, text).then((ok) => {
+    void sendTurn(storyId, text, undefined, selected).then((ok) => {
       if (!ok) setDraft(previous)
     })
   }
@@ -121,16 +118,21 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
             onMouseEnter={() => setChip(true)}
             onMouseLeave={() => setChip(false)}
           >
-            <Icon name="pointer" />
+            {chip ? (
+              <button
+                type="button"
+                aria-label="Clear selection"
+                {...stylex.props(styles.mark)}
+                onClick={() => clearSelection(storyId)}
+              >
+                ×
+              </button>
+            ) : (
+              <span {...stylex.props(styles.mark)}>
+                <Icon name="pointer" />
+              </span>
+            )}
             <span>{selected.length}</span>
-            <button
-              type="button"
-              aria-label="Clear selection"
-              {...stylex.props(styles.clear, chip && styles.clearOn)}
-              onClick={() => clearSelection(storyId)}
-            >
-              ×
-            </button>
           </span>
         ) : null}
         {label ? (

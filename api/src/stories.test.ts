@@ -20,7 +20,7 @@ test('kept worlds are seeds', async () => {
   expect(worlds.map((world) => world.id)).toEqual(['her-fake-boyfriend', 'pandoo'])
   for (const world of worlds) {
     const source = await loadWorld(world.id)
-    expect(source?.events.some((event) => event.user)).toBe(false)
+    expect(source?.events.some((event) => event.type === 'input')).toBe(false)
   }
   const hook = await loadWorld('her-fake-boyfriend')
   const last = hook?.events.at(-1)

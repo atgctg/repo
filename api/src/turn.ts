@@ -6,7 +6,8 @@ import {
   type DeleteEvent,
   type DialogueEvent,
   type ImageEvent,
-  type MessageEvent,
+  type InputEvent,
+  type OutputEvent,
   type Story,
   type StoryEvent,
   type TurnMessage,
@@ -44,9 +45,55 @@ export function llmMessages(events: StoryEvent[], title: string): ChatMessage[] 
   ]
 }
 
+function integers(values: number[] | undefined): number[] {
+  return values?.filter((index) => Number.isInteger(index)) ?? []
+}
+
+function inputFields(input: {
+  selected?: number[]
+  pasted?: string
+  voice?: InputEvent['voice']
+}): Partial<Pick<InputEvent, 'selected' | 'pasted' | 'voice'>> {
+  const selected = integers(input.selected)
+  return {
+    ...(selected.length > 0 ? { selected } : {}),
+    ...(input.pasted ? { pasted: input.pasted } : {}),
+    ...(input.voice ? { voice: input.voice } : {}),
+  }
+}
+
+function applyInputFields(
+  target: InputEvent,
+  input: {
+    selected?: number[]
+    pasted?: string
+    voice?: InputEvent['voice']
+  },
+): void {
+  if (input.selected) {
+    const selected = integers(input.selected)
+    if (selected.length > 0) target.selected = selected
+    else delete target.selected
+  }
+  if (input.pasted !== undefined) {
+    if (input.pasted) target.pasted = input.pasted
+    else delete target.pasted
+  }
+  if (input.voice !== undefined) {
+    if (input.voice) target.voice = input.voice
+    else delete target.voice
+  }
+}
+
 export async function reply(
   storyId: string,
-  input: { text: string; at?: number },
+  input: {
+    text: string
+    at?: number
+    selected?: number[]
+    pasted?: string
+    voice?: InputEvent['voice']
+  },
   emit: (message: TurnMessage) => void = () => {},
 ): Promise<Story> {
   const startedAt = Date.now()
@@ -56,14 +103,15 @@ export async function reply(
       length = current.events.length
       const text = input.text.trim()
       const keep = typeof input.at === 'number' ? input.at : current.events.length
+      const fields = inputFields(input)
       if (typeof input.at === 'number') {
         const target = current.events[input.at]
-        if (target?.type !== 'message' || !target.user)
-          throw new Error('Can only rewind a user message')
+        if (target?.type !== 'input') throw new Error('Can only rewind an input')
         target.text = text
+        applyInputFields(target, input)
         current.events.splice(input.at + 1)
       } else {
-        current.events.push({ type: 'message', user: 'user', text })
+        current.events.push({ type: 'input', text, ...fields })
       }
       await persistStory(current)
       length = current.events.length
@@ -201,13 +249,13 @@ async function run(story: Story, options: RunOptions): Promise<void> {
     const calls: ToolCall[] = []
     const results: { id: string; content: string }[] = []
     let chain = Promise.resolve()
-    let draft: MessageEvent | undefined
+    let draft: OutputEvent | undefined
     for await (const part of streamCompletion(messages)) {
       if (part.type === 'text') {
         const next = `${draft?.text ?? ''}${part.text}`
         if (!next.trim()) continue
         if (!draft) {
-          draft = { type: 'message', text: next }
+          draft = { type: 'output', text: next }
           story.events.push(draft)
         } else {
           draft.text = next
@@ -330,7 +378,9 @@ async function sideEffect(
         event.error ??
         `Deleted. ${project(story.events.slice(0, at + 1)).scenes.length} scenes remain. If the user asked you to replace or continue, write the new scenes now.`
       )
-    case 'message':
+    case 'input':
+      return event.text
+    case 'output':
       return event.text
     default: {
       const _exhaustive: never = event

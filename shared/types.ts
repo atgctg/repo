@@ -1,7 +1,6 @@
 export type Attributes = Record<string, unknown>
 
 interface StoryEventBase {
-  user?: string
   error?: string
 }
 
@@ -30,8 +29,21 @@ export type VideoAsset = AssetBase & {
 
 export type Asset = (ImageAsset | VideoAsset) & { url?: string }
 
-export interface MessageEvent extends StoryEventBase {
-  type: 'message'
+export interface InputVoice {
+  audio: string
+  transcript: string
+}
+
+export interface InputEvent extends StoryEventBase {
+  type: 'input'
+  text: string
+  selected?: number[]
+  pasted?: string
+  voice?: InputVoice
+}
+
+export interface OutputEvent extends StoryEventBase {
+  type: 'output'
   text: string
 }
 
@@ -67,7 +79,8 @@ export interface DeleteEvent extends StoryEventBase {
 }
 
 export type StoryEvent =
-  | MessageEvent
+  | InputEvent
+  | OutputEvent
   | ImageEvent
   | DialogueEvent
   | VideoEvent

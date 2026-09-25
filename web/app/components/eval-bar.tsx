@@ -108,7 +108,7 @@ function useSession(): Session {
 
 function lastUserIndex(events: StoryEvent[]): number {
   for (let index = events.length - 1; index >= 0; index--) {
-    if (events[index]?.user) return index
+    if (events[index]?.type === 'input') return index
   }
   return -1
 }

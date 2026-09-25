@@ -440,7 +440,12 @@ function applyTurn(id: string, message: TurnMessage): void {
   }
 }
 
-export async function sendTurn(id: string, text: string, at?: number): Promise<boolean> {
+export async function sendTurn(
+  id: string,
+  text: string,
+  at?: number,
+  selected?: number[],
+): Promise<boolean> {
   if (snapshot.activity[id]?.turnStartedAt) return false
   const entry = snapshot.entries[id]
   if (!entry) return false
@@ -457,13 +462,20 @@ export async function sendTurn(id: string, text: string, at?: number): Promise<b
     typeof at === 'number'
       ? previous
           .map((item, index) =>
-            index === at && item.type === 'message' ? { ...item, text } : item,
+            index === at && item.type === 'input' ? { ...item, text } : item,
           )
           .slice(0, at + 1)
-      : [...current.events, { type: 'message' as const, user: 'user', text }]
+      : [
+          ...current.events,
+          {
+            type: 'input' as const,
+            text,
+            ...(selected && selected.length > 0 ? { selected } : {}),
+          },
+        ]
   save({ ...current, events, updatedAt: new Date().toISOString() })
   try {
-    await streamTurn(id, text, at, (message) => applyTurn(id, message))
+    await streamTurn(id, text, at, selected, (message) => applyTurn(id, message))
     const activity = snapshot.activity[id]
     if (activity?.turnStartedAt && !activity.error) patchActivity(id, () => ({}))
     return true

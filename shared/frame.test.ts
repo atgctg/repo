@@ -4,7 +4,7 @@ import type { TurnMessage } from './turn'
 
 const messages: TurnMessage[] = [
   { type: 'start', turn: 4, keep: 2 },
-  { type: 'event', at: 2, event: { type: 'message', user: 'user', text: 'Hello' } },
+  { type: 'event', at: 2, event: { type: 'input', text: 'Hello' } },
   { type: 'status', phase: 'image', name: 'Cafe' },
   { type: 'done', ms: 12 },
 ]

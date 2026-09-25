@@ -87,12 +87,17 @@ export async function streamTurn(
   id: string,
   text: string,
   at: number | undefined,
+  selected: number[] | undefined,
   onMessage: (message: TurnMessage) => void,
 ): Promise<void> {
   const res = await fetch(`/api/stories/${encodeURIComponent(id)}/turn`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(at === undefined ? { text } : { text, at }),
+    body: JSON.stringify({
+      text,
+      ...(at === undefined ? {} : { at }),
+      ...(selected ? { selected } : {}),
+    }),
   })
   if (!res.ok) throw new Error(await errorText(res))
   if (!res.body) throw new Error('Turn failed')

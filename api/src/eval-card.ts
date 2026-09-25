@@ -1,4 +1,4 @@
-import { formatRanges, project, type StoryEvent } from 'shared'
+import { formatInput, formatRanges, project, type StoryEvent } from 'shared'
 
 export function oneLine(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
@@ -11,7 +11,7 @@ export function turnView(events: StoryEvent[]): {
 } {
   let cut = -1
   for (let index = events.length - 1; index >= 0; index--) {
-    if (events[index]?.user) {
+    if (events[index]?.type === 'input') {
       cut = index
       break
     }
@@ -35,7 +35,8 @@ function lines(events: StoryEvent[], start: number, end: number): string[] {
 }
 
 function promptText(event: StoryEvent): string {
-  if (event.type === 'message') return event.text.trim()
+  if (event.type === 'input') return formatInput(event).trim()
+  if (event.type === 'output') return event.text.trim()
   return lineAt([event], 0)
 }
 
@@ -43,7 +44,9 @@ function lineAt(events: StoryEvent[], index: number): string {
   const event = events[index]
   if (!event) return ''
   switch (event.type) {
-    case 'message':
+    case 'input':
+      return formatInput(event).trim()
+    case 'output':
       return event.text.trim()
     case 'dialogue': {
       const caption = (event.caption ?? '').replace(/\s+/g, ' ').trim()

@@ -583,9 +583,8 @@ events:
     background: Haruma Eyeing Them
     speaker: Haruma
     caption: Eight months together... and you didn't know where Yuki grew up?
-  - type: message
+  - type: input
     text: Oh.. I must have forgotten
-    user: user
   - type: image
     name: Leo Sweats
     prompt:
@@ -702,10 +701,9 @@ events:
   - type: dialogue
     background: Summer Texts You
     caption: '*Your phone buzzes in your pocket under the table.*'
-  - type: message
+  - type: input
     text: Well, that was last year! We've not been together for that long.. *check
       phone*
-    user: user
   - type: image
     name: Leo Checks Phone
     prompt:
@@ -796,14 +794,13 @@ events:
     caption: |-
       Eight months! Definitely eight months! Right, honey?!
       *Grips your knee under the table, knuckles white*
-  - type: message
+  - type: input
     text: >-
       Yes.. 8 wonderful months! haha
 
       [also who's summer?! | maybe do like a split timeline showing summer POV
       and introducing her, wait did she text me or yuki? im leo here btw if u
       didnt notice]
-    user: user
 model:
   - type: image
     name: Summer's Apartment

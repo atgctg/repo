@@ -41,7 +41,10 @@ function summarize(events: StoryEvent[]): string[] {
   const lines: string[] = []
   for (const event of events) {
     switch (event.type) {
-      case 'message':
+      case 'input':
+        lines.push(`chat: ${event.text.replace(/\s+/g, ' ').slice(0, 180)}`)
+        break
+      case 'output':
         lines.push(`chat: ${event.text.replace(/\s+/g, ' ').slice(0, 180)}`)
         break
       case 'image':

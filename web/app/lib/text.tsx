@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { formatRanges } from 'shared'
 
 export function stripSpeechTags(text: string): string {
   return text
@@ -30,13 +29,6 @@ export function captionSize(lines: string[]): 'lg' | 'md' | 'sm' {
   if (len <= 50) return 'lg'
   if (len <= 100) return 'md'
   return 'sm'
-}
-
-export function messageText(input: string, selected: number[]): string {
-  const body = input.replace(/^<selected>\n[\s\S]*?\n<\/selected>\n?/, '').trim()
-  if (!body) return ''
-  if (selected.length === 0) return body
-  return `<selected>\n${formatRanges(selected)}\n</selected>\n${body}`
 }
 
 export function RichText({ text }: { text: string }): ReactNode {

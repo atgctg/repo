@@ -43,6 +43,15 @@ async function readJson(req: Request): Promise<unknown> {
   return JSON.parse(text) as unknown
 }
 
+function readVoice(value: unknown): { audio: string; transcript: string } | undefined {
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    return undefined
+  const voice = value as { audio?: unknown; transcript?: unknown }
+  if (typeof voice.audio !== 'string' || typeof voice.transcript !== 'string')
+    return undefined
+  return { audio: voice.audio, transcript: voice.transcript }
+}
+
 const server = Bun.serve({
   port: Number(process.env.PORT ?? 3000),
   development: {
@@ -136,9 +145,21 @@ const server = Bun.serve({
       POST: async (req) => {
         const { id } = req.params
         if (!storyExists(id)) return new Response('Not found', { status: 404 })
-        let body: { text?: unknown; at?: unknown }
+        let body: {
+          text?: unknown
+          at?: unknown
+          selected?: unknown
+          pasted?: unknown
+          voice?: unknown
+        }
         try {
-          body = (await readJson(req)) as { text?: unknown; at?: unknown }
+          body = (await readJson(req)) as {
+            text?: unknown
+            at?: unknown
+            selected?: unknown
+            pasted?: unknown
+            voice?: unknown
+          }
         } catch {
           return Response.json({ error: 'invalid json' }, { status: 400 })
         }
@@ -153,8 +174,16 @@ const server = Bun.serve({
         }
         const text = body.text
         const at = typeof body.at === 'number' ? body.at : undefined
+        const selected = Array.isArray(body.selected)
+          ? body.selected.filter(
+              (index): index is number =>
+                typeof index === 'number' && Number.isInteger(index),
+            )
+          : undefined
+        const pasted = typeof body.pasted === 'string' ? body.pasted : undefined
+        const voice = readVoice(body.voice)
         return turnResponse(async (send) => {
-          await reply(id, { text, at }, send)
+          await reply(id, { text, at, selected, pasted, voice }, send)
         })
       },
     },

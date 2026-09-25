@@ -583,9 +583,8 @@ events:
     background: Haruma Eyeing Them
     speaker: Haruma
     caption: Eight months together... and you didn't know where Yuki grew up?
-  - type: message
+  - type: input
     text: Oh.. I must have forgotten
-    user: user
   - type: image
     name: Leo Sweats
     prompt:
@@ -702,10 +701,9 @@ events:
   - type: dialogue
     background: Summer Texts You
     caption: '*Your phone buzzes in your pocket under the table.*'
-  - type: message
+  - type: input
     text: Well, that was last year! We've not been together for that long.. *check
       phone*
-    user: user
   - type: image
     name: Leo Checks Phone
     prompt:
@@ -796,14 +794,13 @@ events:
     caption: |-
       Eight months! Definitely eight months! Right, honey?!
       *Grips your knee under the table, knuckles white*
-  - type: message
+  - type: input
     text: >-
       Yes.. 8 wonderful months! haha
 
       [also who's summer?! | maybe do like a split timeline showing summer POV
       and introducing her, wait did she text me or yuki? im leo here btw if u
       didnt notice]
-    user: user
   - type: image
     name: Summer's Apartment
     prompt:
@@ -886,10 +883,9 @@ events:
     caption: |-
       *Snorts*
       He's so cooked.
-  - type: message
+  - type: input
     text: '[how would she know what situtation im in? delete and make it more
       realistic]'
-    user: user
   - type: delete
     indices:
       - 61
@@ -897,9 +893,8 @@ events:
       - 63
       - 64
       - 65
-  - type: message
+  - type: input
     text: '[cont. in one turn]'
-    user: user
   - type: image
     name: Summer's Apartment
     prompt:
@@ -962,10 +957,9 @@ events:
     caption: |-
       *Yawns*
       Where is that idiot, anyway.
-  - type: message
+  - type: input
     text: '[wait are we in tokyo? i thought we re in la, and summer is in la? how
       does leo find himself in .. tokyo? travel or what?]'
-    user: user
   - type: image
     name: Tenno Sushi Exterior Sign
     prompt:
@@ -1076,13 +1070,11 @@ events:
 
       Summer... isn't that your roommate, Yuki? You two share a place downtown,
       right?
-  - type: message
+  - type: input
     text: |-
-      <selected>
-      65
-      </selected>
       [ok so then nobodys 2000 miles away?]
-    user: user
+    selected:
+      - 65
   - type: dialogue
     background: Takeshi Sits Across
     speaker: Takeshi
@@ -1136,13 +1128,11 @@ events:
       Who is Summer, and why is she "on the way" here?
     index: 72
     replace: true
-  - type: message
+  - type: input
     text: |-
-      <selected>
-      65
-      </selected>
       [how would takeshi know summer kim?.....]
-    user: user
+    selected:
+      - 65
 model:
   - type: dialogue
     background: Takeshi Sits Across

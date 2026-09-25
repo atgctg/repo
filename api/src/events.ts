@@ -12,14 +12,22 @@ export function parseEvents(value: unknown): StoryEvent[] {
 
 function parseEvent(value: unknown): StoryEvent | undefined {
   if (!isRecord(value)) return undefined
-  const shared = {
-    ...(typeof value.user === 'string' ? { user: value.user } : {}),
-    ...(typeof value.error === 'string' ? { error: value.error } : {}),
-  }
+  const shared = typeof value.error === 'string' ? { error: value.error } : {}
   switch (value.type) {
-    case 'message':
+    case 'input':
       return typeof value.text === 'string'
-        ? { type: 'message', text: value.text, ...shared }
+        ? {
+            type: 'input',
+            text: value.text,
+            ...selected(value),
+            ...pasted(value),
+            ...voice(value),
+            ...shared,
+          }
+        : undefined
+    case 'output':
+      return typeof value.text === 'string'
+        ? { type: 'output', text: value.text, ...shared }
         : undefined
     case 'image':
       return typeof value.name === 'string'
@@ -110,6 +118,28 @@ function frames(value: Record<string, unknown>): {
     ...(typeof value.lastFrame === 'string' ? { lastFrame: value.lastFrame } : {}),
     ...(typeof value.duration === 'number' ? { duration: value.duration } : {}),
   }
+}
+
+function selected(value: Record<string, unknown>): { selected?: number[] } {
+  if (!Array.isArray(value.selected)) return {}
+  const indices = value.selected.filter(
+    (index): index is number => typeof index === 'number' && Number.isInteger(index),
+  )
+  return indices.length > 0 ? { selected: indices } : {}
+}
+
+function pasted(value: Record<string, unknown>): { pasted?: string } {
+  return typeof value.pasted === 'string' && value.pasted ? { pasted: value.pasted } : {}
+}
+
+function voice(value: Record<string, unknown>): {
+  voice?: { audio: string; transcript: string }
+} {
+  if (!isRecord(value.voice)) return {}
+  const audio = value.voice.audio
+  const transcript = value.voice.transcript
+  if (typeof audio !== 'string' || typeof transcript !== 'string') return {}
+  return { voice: { audio, transcript } }
 }
 
 function insert(value: Record<string, unknown>): { index?: number; replace?: boolean } {

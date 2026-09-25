@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { historyPreview, leadCards, storyId } from 'shared'
+import { coverUrl, historyPreview, leadCards, storyId } from 'shared'
 import type {
   Speech,
   Story,
@@ -22,7 +22,7 @@ import {
   streamTurn,
 } from './api'
 import { queryClient, storiesKey, storyKey, worldKey, worldsKey } from './query'
-import { coverUrl, filesFrom, speechFrom, toStory } from './view'
+import { filesFrom, speechFrom, toStory } from './view'
 
 export type AssetFile = {
   name: string

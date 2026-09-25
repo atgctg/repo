@@ -48,14 +48,6 @@ export function sceneAsset(story: Story, scene: Scene): Asset | undefined {
   return findAsset(story.assets, sceneName(scene))
 }
 
-export function coverUrl(story: Story): string | undefined {
-  for (const scene of story.scenes) {
-    const asset = sceneAsset(story, scene)
-    if (asset?.type === 'image' && asset.url) return asset.url
-  }
-  return undefined
-}
-
 export function portraitUrl(story: Story, name: string): string | undefined {
   const key = name.trim().toLowerCase()
   if (!key) return undefined

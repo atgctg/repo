@@ -1,11 +1,5 @@
 import { asc, eq } from 'drizzle-orm'
-import {
-  project,
-  type Scene,
-  type StoryEvent,
-  type World,
-  type WorldSource,
-} from 'shared'
+import { coverUrl, project, type StoryEvent, type World, type WorldSource } from 'shared'
 import { app } from './context'
 import { listAssetKeys, worldKey, worldPrefix } from './assets'
 import { database } from './db'
@@ -52,31 +46,13 @@ function worldCover(
   keys: Set<string>,
 ): string | undefined {
   const { scenes, assets } = project(events)
-  for (const scene of scenes) {
-    const name = sceneImageName(scene)
-    if (!name) continue
-    const asset = assets.find(
-      (item) => item.type === 'image' && item.name.toLowerCase() === name.toLowerCase(),
-    )
-    if (!asset) continue
-    const file = assetFileName(asset.name, 'image')
-    if (keys.has(worldKey(worldId, file))) return worldAssetUrl(worldId, file)
-  }
-  return undefined
-}
-
-function sceneImageName(scene: Scene): string | undefined {
-  switch (scene.type) {
-    case 'image':
-      return scene.name
-    case 'dialogue':
-    case 'message':
-      return scene.background
-    case 'video':
-      return undefined
-    default: {
-      const _exhaustive: never = scene
-      return _exhaustive
-    }
-  }
+  return coverUrl({
+    scenes,
+    assets: assets.map((asset) => {
+      const file = assetFileName(asset.name, asset.type)
+      return keys.has(worldKey(worldId, file))
+        ? { ...asset, url: worldAssetUrl(worldId, file) }
+        : asset
+    }),
+  })
 }

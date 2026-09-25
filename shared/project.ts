@@ -126,6 +126,35 @@ export function project(events: StoryEvent[]): {
   return { scenes, assets, cards }
 }
 
+export function sceneImage(scene: Scene): string | undefined {
+  switch (scene.type) {
+    case 'image':
+      return scene.name
+    case 'dialogue':
+    case 'message':
+      return scene.background
+    case 'video':
+      return undefined
+    default: {
+      const _exhaustive: never = scene
+      return _exhaustive
+    }
+  }
+}
+
+export function coverUrl(story: {
+  scenes: Scene[]
+  assets: Asset[]
+}): string | undefined {
+  for (const scene of story.scenes) {
+    const name = sceneImage(scene)?.toLowerCase()
+    if (!name) continue
+    const asset = story.assets.find((item) => item.name.toLowerCase() === name)
+    if (asset?.type === 'image' && asset.url) return asset.url
+  }
+  return undefined
+}
+
 export function formatInput(event: InputEvent): string {
   const parts: string[] = []
   if (event.selected?.length) {

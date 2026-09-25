@@ -1,4 +1,4 @@
-import type { StoryEvent } from './types'
+import type { StoryEvent } from 'shared'
 
 export type ToolCall = {
   id: string

@@ -1,7 +1,5 @@
 id: pandoo
 title: Pandoo
-createdAt: 2026-09-16T13:32:38.536Z
-updatedAt: 2026-09-22T14:24:59.288Z
 events:
   - type: card
     name: Style

@@ -1,4 +1,18 @@
 import {
+  leadCards,
+  normalizeRecord,
+  type CardEvent,
+  type DeleteEvent,
+  type DialogueEvent,
+  type ImageEvent,
+  type MessageEvent,
+  type Story,
+  type StoryEvent,
+  type TurnPhase,
+  type TurnStreamEvent,
+  type VideoEvent,
+} from 'shared'
+import {
   errorMessage,
   generateStoryImage,
   generateStoryVideo,
@@ -6,21 +20,9 @@ import {
   resolveVoiceId,
 } from './media'
 import { eventsToMessages, type ChatMessage, type ToolCall } from './messages'
-import { normalizeRecord } from './records'
 import { finishTools, noteToolDelta, type OpenTool, type ToolDelta } from './stream'
-import { leadCards } from './project'
 import { changeStory, persistStory, readSceneLines, refresh } from './stories'
 import { STORY_TOOLS } from './tools'
-import type {
-  CardEvent,
-  DeleteEvent,
-  DialogueEvent,
-  ImageEvent,
-  MessageEvent,
-  Story,
-  StoryEvent,
-  VideoEvent,
-} from './types'
 
 const MODEL = 'accounts/fireworks/models/deepseek-v4p1-flash'
 const MAX_LOOPS = 6
@@ -36,27 +38,33 @@ const systemPrompt = await Bun.file(`${import.meta.dir}/../prompts/system.md`).t
 export async function reply(
   storyId: string,
   input: { text: string; at?: number },
+  emit: (event: TurnStreamEvent) => void = () => {},
 ): Promise<Story> {
-  return changeStory(storyId, async (story) => {
+  const startedAt = Date.now()
+  const story = await changeStory(storyId, async (current) => {
     const text = input.text.trim()
     if (typeof input.at === 'number') {
-      const target = story.events[input.at]
+      const target = current.events[input.at]
       if (target?.type !== 'message' || !target.user)
         throw new Error('Can only rewind a user message')
       target.text = text
-      story.events.splice(input.at + 1)
+      current.events.splice(input.at + 1)
     } else {
-      story.events.push({ type: 'message', user: 'user', text })
+      current.events.push({ type: 'message', user: 'user', text })
     }
-    await run(story)
-    return story
+    await run(current, { dry: false, startedAt, emit })
+    return current
   })
+  emit({ event: 'story', data: story })
+  emit({ event: 'done', data: { startedAt, elapsedMs: Date.now() - startedAt } })
+  return story
 }
 
 export async function replayEvents(events: StoryEvent[]): Promise<StoryEvent[]> {
   const story: Story = {
     id: 'eval',
     title: 'Eval',
+    world: 'eval',
     createdAt: '',
     updatedAt: '',
     events: leadCards(structuredClone(events)),
@@ -66,17 +74,33 @@ export async function replayEvents(events: StoryEvent[]): Promise<StoryEvent[]> 
   }
   await refresh(story)
   const start = story.events.length
-  await run(story, { dry: true })
+  await run(story, { dry: true, startedAt: Date.now(), emit: () => {} })
   return story.events.slice(start)
 }
 
-function disk(story: Story) {
+type RunOptions = {
+  dry: boolean
+  startedAt: number
+  emit: (event: TurnStreamEvent) => void
+}
+
+type Save = {
+  soon: () => void
+  now: (project: boolean) => Promise<void>
+}
+
+type Live = RunOptions & {
+  publish: () => Promise<void>
+}
+
+function disk(story: Story, emit: RunOptions['emit']): Save {
   let writing = Promise.resolve()
   let timer: ReturnType<typeof setTimeout> | undefined
   const enqueue = (project: boolean) => {
     writing = writing.then(async () => {
       if (project) await refresh(story)
       await persistStory(story)
+      emit({ event: 'story', data: story })
     })
     return writing
   }
@@ -98,7 +122,7 @@ function disk(story: Story) {
   }
 }
 
-function memorySave(story: Story) {
+function memorySave(story: Story): Save {
   return {
     soon() {},
     now(project: boolean) {
@@ -107,20 +131,22 @@ function memorySave(story: Story) {
   }
 }
 
-async function run(story: Story, options?: { dry?: boolean }): Promise<void> {
-  const dry = options?.dry === true
-  const save = dry ? memorySave(story) : disk(story)
+async function run(story: Story, options: RunOptions): Promise<void> {
+  const { dry, startedAt, emit } = options
+  const save = dry ? memorySave(story) : disk(story, emit)
+  const live: Live = { ...options, publish: () => save.now(true) }
+  emit({ event: 'status', data: { phase: 'model', startedAt } })
   await save.now(true)
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
     ...eventsToMessages(story.events),
   ]
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
+    if (loop > 0) emit({ event: 'status', data: { phase: 'model', startedAt } })
     const calls: ToolCall[] = []
     const results: { id: string; content: string }[] = []
     let chain = Promise.resolve()
     let draft: MessageEvent | undefined
-    const publish = () => save.now(true)
     for await (const part of streamCompletion(messages)) {
       if (part.type === 'text') {
         if (!draft) {
@@ -138,8 +164,7 @@ async function run(story: Story, options?: { dry?: boolean }): Promise<void> {
           story,
           part.call.function.name,
           parseArgs(part.call.function.arguments),
-          publish,
-          dry,
+          live,
         )
         results.push({ id: part.call.id, content: result.content })
       })
@@ -163,19 +188,19 @@ async function run(story: Story, options?: { dry?: boolean }): Promise<void> {
       messages.push({ role: 'tool', tool_call_id: result.id, content: result.content })
     }
   }
+  await save.now(true)
 }
 
 async function execute(
   story: Story,
   name: string,
   args: Record<string, unknown>,
-  publish: () => Promise<void>,
-  dry = false,
+  live: Live,
 ): Promise<{ content: string }> {
   if (name === 'Read') return { content: readSceneLines(story, numbers(args)) }
   const event = toolEvent(name, args)
   if (!event) return { content: `Unknown tool ${name}` }
-  return apply(story, event, publish, dry)
+  return apply(story, event, live)
 }
 
 function toolEvent(name: string, args: Record<string, unknown>): StoryEvent | undefined {
@@ -195,27 +220,46 @@ function toolEvent(name: string, args: Record<string, unknown>): StoryEvent | un
   }
 }
 
+function phase(
+  live: Live,
+  kind: Exclude<TurnPhase, 'model'>,
+  name: string,
+  phaseStartedAt: number,
+  ms?: number,
+): void {
+  if (live.dry) return
+  live.emit({
+    event: 'status',
+    data: {
+      phase: kind,
+      startedAt: live.startedAt,
+      name,
+      phaseStartedAt,
+      ...(ms !== undefined ? { ms } : {}),
+    },
+  })
+}
+
 async function apply(
   story: Story,
   event: StoryEvent,
-  publish: () => Promise<void>,
-  dry: boolean,
+  live: Live,
 ): Promise<{ content: string }> {
   switch (event.type) {
     case 'image':
-      return applyImage(story, event, publish, dry)
+      return applyImage(story, event, live)
     case 'dialogue':
-      return applyDialogue(story, event, publish, dry)
+      return applyDialogue(story, event, live)
     case 'video':
-      return applyVideo(story, event, publish, dry)
+      return applyVideo(story, event, live)
     case 'card':
       story.events.push(event)
-      await publish()
+      await live.publish()
       return { content: event.error ?? 'ok' }
     case 'delete':
       if (!resolves(story, event)) event.error = 'no scenes at those indices'
       story.events.push(event)
-      await publish()
+      await live.publish()
       return {
         content:
           event.error ??
@@ -233,12 +277,13 @@ async function apply(
 async function applyImage(
   story: Story,
   event: ImageEvent,
-  publish: () => Promise<void>,
-  dry: boolean,
+  live: Live,
 ): Promise<{ content: string }> {
   story.events.push(event)
-  await publish()
-  if (!dry && !event.error && event.prompt) {
+  await live.publish()
+  if (!live.dry && !event.error && event.prompt) {
+    const phaseStartedAt = Date.now()
+    phase(live, 'image', event.name, phaseStartedAt)
     try {
       await generateStoryImage(story, event.name, event.prompt, event.references ?? [])
     } catch (error) {
@@ -249,7 +294,8 @@ async function applyImage(
         error: event.error,
       })
     }
-    await publish()
+    phase(live, 'image', event.name, phaseStartedAt, Date.now() - phaseStartedAt)
+    await live.publish()
   }
   return { content: event.error ?? 'ok' }
 }
@@ -257,22 +303,24 @@ async function applyImage(
 async function applyDialogue(
   story: Story,
   event: DialogueEvent,
-  publish: () => Promise<void>,
-  dry: boolean,
+  live: Live,
 ): Promise<{ content: string }> {
   story.events.push(event)
-  await publish()
+  await live.publish()
   const voice = event.speaker
     ? story.cards.find((card) => card.name.toLowerCase() === event.speaker?.toLowerCase())
         ?.voice
     : undefined
-  if (!dry && event.speaker && event.caption && voice && resolveVoiceId(voice)) {
+  if (!live.dry && event.speaker && event.caption && voice && resolveVoiceId(voice)) {
+    const phaseStartedAt = Date.now()
+    phase(live, 'voice', event.speaker, phaseStartedAt)
     try {
       await generateStoryVoice(story.id, voice, event.caption)
     } catch (error) {
       console.error('voice skip', { storyId: story.id, error: errorMessage(error) })
     }
-    await publish()
+    phase(live, 'voice', event.speaker, phaseStartedAt, Date.now() - phaseStartedAt)
+    await live.publish()
   }
   return { content: 'ok' }
 }
@@ -280,13 +328,13 @@ async function applyDialogue(
 async function applyVideo(
   story: Story,
   event: VideoEvent,
-  publish: () => Promise<void>,
-  dry: boolean,
+  live: Live,
 ): Promise<{ content: string }> {
   story.events.push(event)
-  if (!dry && !event.error && (event.prompt || event.firstFrame)) {
+  if (!live.dry && !event.error && (event.prompt || event.firstFrame)) {
     const storyId = story.id
     const name = event.name
+    phase(live, 'video', name, Date.now())
     void generateStoryVideo(story, name, event.prompt ?? {}, {
       firstFrame: event.firstFrame,
       lastFrame: event.lastFrame,
@@ -305,7 +353,7 @@ async function applyVideo(
       })
     })
   }
-  await publish()
+  await live.publish()
   return { content: event.error ?? 'ok' }
 }
 

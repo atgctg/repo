@@ -1,4 +1,4 @@
-import { isPlainObject } from '@/records'
+import { isPlainObject } from 'shared'
 import { escapeHtml } from './html'
 
 function hideAttrLabel(label: string): boolean {

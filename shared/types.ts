@@ -104,6 +104,7 @@ export type Scene = ImageScene | DialogueScene | VideoScene
 
 export type Story = {
   id: string
+  world: string
   title: string
   createdAt: string
   updatedAt: string
@@ -118,3 +119,40 @@ export type World = {
   title: string
   cover?: string
 }
+
+export type WorldSource = World & {
+  events: StoryEvent[]
+}
+
+export type StorySummary = {
+  id: string
+  world: string
+  title: string
+  cover?: string
+  updatedAt: string
+}
+
+export type TurnPhase = 'model' | 'image' | 'video' | 'voice'
+
+export type TurnStatus = {
+  phase: TurnPhase
+  startedAt: number
+  name?: string
+  phaseStartedAt?: number
+  ms?: number
+}
+
+export type TurnDone = {
+  startedAt: number
+  elapsedMs: number
+}
+
+export type TurnError = {
+  error: string
+}
+
+export type TurnStreamEvent =
+  | { event: 'story'; data: Story }
+  | { event: 'status'; data: TurnStatus }
+  | { event: 'done'; data: TurnDone }
+  | { event: 'error'; data: TurnError }

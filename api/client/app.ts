@@ -1,14 +1,15 @@
-import { formatRanges } from '@/project'
-import type {
-  Asset,
-  Card,
-  DialogueScene,
-  ImageScene,
-  Scene,
-  Story,
-  VideoScene,
-  World,
-} from '@/types'
+import {
+  formatRanges,
+  type Asset,
+  type Card,
+  type DialogueScene,
+  type ImageScene,
+  type Scene,
+  type Story,
+  type StorySummary,
+  type VideoScene,
+  type World,
+} from 'shared'
 import { renderAttrs } from './attrs'
 import { avatarHtml, portraitIndex, portraitUrl } from './avatar'
 import { stripSpeechTags } from './caption'
@@ -287,7 +288,22 @@ function renderCard(card: Card, assets: Story['assets'], storyId: string): strin
   `
 }
 
-function renderIndex(worlds: Array<string | World>): void {
+function indexCard(
+  id: string,
+  title: string,
+  cover: string | undefined,
+  fork: boolean,
+): string {
+  const attr = fork ? ` data-world="${escapeHtml(id)}"` : ''
+  return `
+        <a href="/${encodeURIComponent(id)}"${attr} class="${cardClass(Boolean(cover))} scene-card">
+          ${imgTag(cover)}
+          <div class="card-title">${escapeHtml(title)}</div>
+        </a>
+      `
+}
+
+function renderIndex(worlds: World[], stories: StorySummary[]): void {
   document.title = 'Studio'
   document.body.classList.remove('in-story', 'show-drawer')
   const chat = document.querySelector('.chat')
@@ -301,27 +317,22 @@ function renderIndex(worlds: Array<string | World>): void {
   header.hidden = true
   header.innerHTML = ''
 
-  if (!worlds.length) {
+  if (!worlds.length && !stories.length) {
     main.className = ''
     main.innerHTML = '<div class="list"><span class="muted">no worlds</span></div>'
     return
   }
 
+  const cards = [
+    ...worlds.map((world) =>
+      indexCard(world.id, world.title || world.id, world.cover, true),
+    ),
+    ...stories.map((story) =>
+      indexCard(story.id, story.title || story.id, story.cover, false),
+    ),
+  ]
   main.className = ''
-  main.innerHTML = `<div class="grid scenes">${worlds
-    .map((item) => {
-      const id = typeof item === 'string' ? item : item.id
-      const title = typeof item === 'string' ? item : item.title || item.id
-      const cover = typeof item === 'string' ? undefined : item.cover
-
-      return `
-        <a href="/${encodeURIComponent(id)}" class="${cardClass(Boolean(cover))} scene-card">
-          ${imgTag(cover)}
-          <div class="card-title">${escapeHtml(title)}</div>
-        </a>
-      `
-    })
-    .join('\n')}</div>`
+  main.innerHTML = `<div class="grid scenes">${cards.join('\n')}</div>`
 }
 
 const selected = new Set<number>()
@@ -555,11 +566,14 @@ async function refresh(): Promise<void> {
   const view = storyRoute(parts)
 
   if (parts.length === 0) {
-    const worlds = (await fetch('/api/stories', { cache: 'no-store' }).then((res) =>
-      res.json(),
-    )) as Array<string | World>
+    const [worlds, stories] = (await Promise.all([
+      fetch('/api/worlds', { cache: 'no-store' }).then((res) => res.json()),
+      fetch('/api/stories', { cache: 'no-store' }).then((res) => res.json()),
+    ])) as [World[], StorySummary[]]
     if (location.pathname !== route) return
-    renderOnce(JSON.stringify({ pathname: route, worlds }), () => renderIndex(worlds))
+    renderOnce(JSON.stringify({ pathname: route, worlds, stories }), () =>
+      renderIndex(worlds, stories),
+    )
     return
   }
 
@@ -646,6 +660,31 @@ async function generateFromButton(button: HTMLButtonElement): Promise<void> {
   }
 }
 
+async function readSse(
+  body: ReadableStream<Uint8Array>,
+  onEvent: (event: string, data: string) => void,
+): Promise<void> {
+  const reader = body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    buf += decoder.decode(value, { stream: !done })
+    const parts = buf.split('\n\n')
+    buf = done ? '' : (parts.pop() ?? '')
+    for (const part of parts) {
+      let event = 'message'
+      const data: string[] = []
+      for (const line of part.split('\n')) {
+        if (line.startsWith('event:')) event = line.slice(6).trim()
+        else if (line.startsWith('data:')) data.push(line.slice(5).trim())
+      }
+      if (data.length > 0) onEvent(event, data.join('\n'))
+    }
+    if (done) break
+  }
+}
+
 function postTurn(storyId: string, text: string, at?: number): Promise<void> {
   return fetch(`/api/stories/${encodeURIComponent(storyId)}/turn`, {
     method: 'POST',
@@ -656,6 +695,21 @@ function postTurn(storyId: string, text: string, at?: number): Promise<void> {
       const body = (await res.json().catch(() => ({}))) as { error?: string }
       throw new Error(body.error ?? `Turn failed (${res.status})`)
     }
+    if (!res.body) throw new Error('Turn returned no stream')
+    let failed = ''
+    await readSse(res.body, (event, data) => {
+      if (event === 'error') {
+        const parsed = JSON.parse(data) as { error?: string }
+        failed = parsed.error ?? 'Turn failed'
+        return
+      }
+      if (event === 'story' || event === 'done') {
+        cacheBuster = Date.now()
+        lastPayload = ''
+        void refresh()
+      }
+    })
+    if (failed) throw new Error(failed)
     cacheBuster = Date.now()
     lastPayload = ''
     await refresh()
@@ -794,6 +848,28 @@ document.addEventListener('click', (event) => {
   const link = target.closest('a')
   if (!link || !isSpaLink(link, event)) return
   event.preventDefault()
+  const world = link.dataset.world
+  if (world) {
+    if (link.dataset.busy === '1') return
+    link.dataset.busy = '1'
+    void fetch(`/api/worlds/${encodeURIComponent(world)}/fork`, { method: 'POST' })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Could not open story')
+        return (await res.json()) as Story
+      })
+      .then((story) => {
+        history.pushState(null, '', `/${encodeURIComponent(story.id)}`)
+        lastPayload = ''
+        return refresh()
+      })
+      .catch((error: unknown) => {
+        link.title = error instanceof Error ? error.message : String(error)
+      })
+      .finally(() => {
+        delete link.dataset.busy
+      })
+    return
+  }
   navigate(link.pathname)
 })
 

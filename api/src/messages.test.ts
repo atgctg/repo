@@ -1,9 +1,13 @@
 import { expect, test } from 'bun:test'
+import { leadCards } from 'shared'
+import { parse } from 'yaml'
+import { parseEvents } from './events'
 import { eventsToMessages, type ChatMessage } from './messages'
-import { loadStory } from './stories'
-import type { StoryEvent } from './types'
 
-const events = (await loadStory('muse')).events
+const fixture = parse(await Bun.file(`${import.meta.dir}/fixtures/muse.yaml`).text()) as {
+  events: unknown
+}
+const events = leadCards(parseEvents(fixture.events))
 
 const museMessages: ChatMessage[] = [
   {

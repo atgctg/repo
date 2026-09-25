@@ -1,8 +1,8 @@
+import { project, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
+import { recordEval } from './db'
 import { parseChecks, scoreEvents, type Check, type CheckResult } from './eval-score'
-import { project } from './project'
 import { replayEvents } from './turn'
-import type { StoryEvent } from './types'
 
 const DIR = `${import.meta.dir}/../evals`
 
@@ -91,6 +91,7 @@ async function runCase(name: string): Promise<boolean> {
       { indent: 2 },
     ),
   )
+  recordEval(`${name}.yaml`, output)
   return ok
 }
 

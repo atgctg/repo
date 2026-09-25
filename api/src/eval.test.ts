@@ -1,8 +1,7 @@
 import { expect, test } from 'bun:test'
+import { project, type StoryEvent } from 'shared'
 import { scoreEvents, type Check } from './eval-score'
 import { listCases, loadCase } from './eval'
-import { project } from './project'
-import type { StoryEvent } from './types'
 
 test('a kept player line passes and a rewrite fails', () => {
   const checks: Check[] = [

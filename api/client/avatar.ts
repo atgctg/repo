@@ -1,4 +1,4 @@
-import type { Story } from '@/types'
+import type { Story } from 'shared'
 import { escapeHtml } from './html'
 
 export function portraitIndex(story: Story): Map<string, string> {

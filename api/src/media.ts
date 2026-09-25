@@ -3,10 +3,11 @@ import {
   assetDiskPath,
   assetFileName,
   assetUrl,
+  resolveAssetPath,
   speechFileName,
   storyAssetPath,
 } from './files'
-import type { Speech, Story } from './types'
+import type { Speech, Story } from 'shared'
 
 const PRUNA_MODEL = 'p-image' as const
 const PRUNA_EDIT_MODEL = 'p-image-edit' as const
@@ -347,8 +348,13 @@ async function uploadFrame(story: Story, frameName: string): Promise<string | un
     (asset) => asset.name.toLowerCase() === frameName.toLowerCase(),
   )
   const diskName = ref?.name ?? frameName
-  const file = Bun.file(assetDiskPath(storyId, diskName, 'image'))
-  if (!(await file.exists())) return undefined
+  const diskPath = await resolveAssetPath(
+    storyId,
+    story.world,
+    assetFileName(diskName, 'image'),
+  )
+  if (!diskPath) return undefined
+  const file = Bun.file(diskPath)
   const bytes = await file.arrayBuffer()
   return uploadPrunaFile(bytes, assetFileName(diskName, 'image'))
 }

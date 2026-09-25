@@ -7,8 +7,8 @@
     "noEmit": true,
     "types": ["bun-types"],
     "paths": {
-      "@/*": ["./src/*"]
+      "shared": ["./shared/index.ts"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["shared/**/*.ts", "api/**/*.ts"]
 }

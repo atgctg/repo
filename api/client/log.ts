@@ -1,6 +1,13 @@
-import { formatRanges } from '@/project'
-import { isPlainObject } from '@/records'
-import type { Asset, Attributes, Card, Scene, Story, StoryEvent } from '@/types'
+import {
+  formatRanges,
+  isPlainObject,
+  type Asset,
+  type Attributes,
+  type Card,
+  type Scene,
+  type Story,
+  type StoryEvent,
+} from 'shared'
 import { renderAttrs } from './attrs'
 import { avatarHtml, portraitUrl } from './avatar'
 import { stripSpeechTags } from './caption'

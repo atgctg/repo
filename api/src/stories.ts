@@ -18,7 +18,7 @@ import { stories as storyTable } from './schema'
 import { listAssetKeys, pickAssetKey, storyAssetKeys } from './assets'
 import { app } from './context'
 import { assetFileName, assetUrl, speechFileName } from './files'
-import { errorMessage, generateStoryImage, generateStoryVideo } from './media'
+import { generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
 import { loadWorld, matchWorld, worldRows } from './worlds'
 
@@ -294,23 +294,14 @@ export async function generateImage(
   ) {
     throw new Error(`No prompt for image "${params.name}"`)
   }
-  try {
-    const url = await generateStoryImage(
-      story,
-      asset.name,
-      asset.prompt,
-      asset.references ?? [],
-    )
-    asset.url = url
-    return { story, asset, url }
-  } catch (error) {
-    console.error('img gen error', {
-      storyId,
-      name: params.name,
-      error: errorMessage(error),
-    })
-    throw error
-  }
+  const url = await generateStoryImage(
+    story,
+    asset.name,
+    asset.prompt,
+    asset.references ?? [],
+  )
+  asset.url = url
+  return { story, asset, url }
 }
 
 export async function generateVideo(
@@ -323,22 +314,13 @@ export async function generateVideo(
   const prompt = asset.prompt ?? {}
   if (Object.keys(prompt).length === 0 && !asset.firstFrame)
     throw new Error(`No prompt for video "${params.name}"`)
-  try {
-    const url = await generateStoryVideo(story, asset.name, prompt, {
-      firstFrame: asset.firstFrame,
-      lastFrame: asset.lastFrame,
-      duration: params.duration ?? asset.duration,
-    })
-    asset.url = url
-    return { story, asset, url }
-  } catch (error) {
-    console.error('video gen error', {
-      storyId,
-      name: params.name,
-      error: errorMessage(error),
-    })
-    throw error
-  }
+  const url = await generateStoryVideo(story, asset.name, prompt, {
+    firstFrame: asset.firstFrame,
+    lastFrame: asset.lastFrame,
+    duration: params.duration ?? asset.duration,
+  })
+  asset.url = url
+  return { story, asset, url }
 }
 
 export function readSceneLines(

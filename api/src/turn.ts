@@ -526,14 +526,7 @@ async function imageEffect(
         url: assetUrl(story.id, event.name, 'image'),
       })
     } catch (error) {
-      if (!isAbort(error)) {
-        event.error = errorMessage(error)
-        console.error('img gen error', {
-          storyId: story.id,
-          name: event.name,
-          error: event.error,
-        })
-      }
+      if (!isAbort(error)) event.error = errorMessage(error)
     }
     live.clock.images.push((Date.now() - started) / 1000)
     phase(live, 'image', event.name, Date.now() - started)
@@ -573,10 +566,7 @@ async function dialogueEffect(
         kind: 'voice',
         url: storyAssetUrl(story.id, speech.key),
       })
-    } catch (error) {
-      if (!isAbort(error))
-        console.error('voice skip', { storyId: story.id, error: errorMessage(error) })
-    }
+    } catch {}
     phase(live, 'voice', event.speaker, Date.now() - started)
   }
   await live.publish()
@@ -595,7 +585,6 @@ async function videoEffect(story: Story, event: VideoEvent, live: Live): Promise
         duration: event.duration,
       }).catch((error) => {
         const message = errorMessage(error)
-        console.error('video gen error', { storyId, name, error: message })
         event.error = message
         void changeStory(storyId, (current) => {
           for (let index = current.events.length - 1; index >= 0; index--) {

@@ -251,7 +251,7 @@ const tileStyles = stylex.create({
     padding: 0,
     containerType: 'inline-size',
     transitionProperty: 'border-radius',
-    transitionDuration: '160ms',
+    transitionDuration: '60ms',
     transitionTimingFunction: 'ease-out',
   },
   sceneOn: {
@@ -292,7 +292,7 @@ const tileStyles = stylex.create({
     flexDirection: 'column',
     borderRadius: tokens.radiusScene,
     transitionProperty: 'inset',
-    transitionDuration: '160ms',
+    transitionDuration: '60ms',
     transitionTimingFunction: 'ease-out',
   },
   faceOn: {
@@ -306,7 +306,7 @@ const tileStyles = stylex.create({
     transformOrigin: 'center',
     transform: 'scale(1)',
     transitionProperty: 'transform',
-    transitionDuration: '160ms',
+    transitionDuration: '60ms',
     transitionTimingFunction: 'ease-out',
   },
   captionOn: {

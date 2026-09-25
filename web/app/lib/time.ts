@@ -1,14 +1,18 @@
 import type { TurnTiming } from 'shared'
 
-export function formatTiming(timing: TurnTiming): string {
+export function timingRows(timing: TurnTiming): [string, string][] {
   const seconds = (value: number) => `${value.toFixed(2)}s`
-  const parts = [
-    `ttft ${seconds(timing.ttft)}`,
-    `total ${seconds(timing.total)}`,
-    `${timing.tps.toFixed(2)} t/s`,
+  return [
+    ['ttft', seconds(timing.ttft)],
+    ['total', seconds(timing.total)],
+    ['t/s', timing.tps.toFixed(2)],
+    ...timing.images.map(
+      (value, index): [string, string] => [
+        timing.images.length > 1 ? `img ${index + 1}` : 'img',
+        seconds(value),
+      ],
+    ),
   ]
-  if (timing.images.length > 0) parts.push(`img ${timing.images.map(seconds).join(' ')}`)
-  return parts.join(' · ')
 }
 
 export function ago(then: number, now: number): string {

@@ -8,7 +8,7 @@ import { Blocks } from './blocks'
 import { Avatar } from './media'
 import { Icon } from './icons'
 import { eventDetail, eventIcon, eventLead } from '~/lib/detail'
-import { formatTiming } from '~/lib/time'
+import { timingRows } from '~/lib/time'
 import { sendTurn } from '~/lib/store'
 import { selectScene } from '~/lib/store'
 import { portraitUrl, sceneIndexForEvent } from '~/lib/view'
@@ -145,14 +145,23 @@ const styles = stylex.create({
     color: tokens.textMid,
   },
   stats: {
-    margin: '0.35rem 0 0',
+    margin: '0.35rem 0 0 1.25rem',
+    borderCollapse: 'collapse',
     color: tokens.muted,
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
     fontSize: '0.68rem',
-    lineHeight: 1.3,
+    lineHeight: 1.4,
     whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+  },
+  statLabel: {
+    padding: '0 1rem 0 0',
+    fontWeight: 400,
+    textAlign: 'left',
+  },
+  statValue: {
+    padding: 0,
+    textAlign: 'right',
+    fontVariantNumeric: 'tabular-nums',
   },
   edit: {
     width: '100%',
@@ -185,7 +194,18 @@ export function Log({ story }: { story: Story }): ReactNode {
             />
           ))}
           {story.timing ? (
-            <p {...stylex.props(styles.stats)}>{formatTiming(story.timing)}</p>
+            <table aria-label="Turn stats" {...stylex.props(styles.stats)}>
+              <tbody>
+                {timingRows(story.timing).map(([label, value]) => (
+                  <tr key={label}>
+                    <th scope="row" {...stylex.props(styles.statLabel)}>
+                      {label}
+                    </th>
+                    <td {...stylex.props(styles.statValue)}>{value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : null}
         </ScrollArea.Content>
       </ScrollArea.Viewport>

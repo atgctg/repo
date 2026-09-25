@@ -66,7 +66,8 @@ export function memoryAssets(): AssetStore {
     async get(key) {
       const item = objects.get(key)
       if (!item) return null
-      const bytes = item.bytes
+      const bytes = new Uint8Array(item.bytes.byteLength)
+      bytes.set(item.bytes)
       return {
         body: new Blob([bytes]).stream(),
         async arrayBuffer() {

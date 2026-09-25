@@ -10,5 +10,5 @@
       "shared": ["./shared/index.ts"]
     }
   },
-  "include": ["shared/**/*.ts", "api/**/*.ts"]
+  "include": ["shared/**/*.ts", "api/**/*.ts", "api/**/*.d.ts"]
 }

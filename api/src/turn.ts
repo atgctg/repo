@@ -140,8 +140,8 @@ function raceAbort<T>(work: Promise<T>, signal: AbortSignal | undefined): Promis
     void settled.then((result) => {
       signal.removeEventListener('abort', onAbort)
       if (signal.aborted) return
-      if (result.ok) resolve(result.value)
-      else reject(result.error)
+      if (result.ok === false) reject(result.error)
+      else resolve(result.value)
     })
   })
 }

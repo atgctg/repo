@@ -1,6 +1,7 @@
 import {
   leadCards,
   normalizeRecord,
+  project,
   type CardEvent,
   type DeleteEvent,
   type DialogueEvent,
@@ -8,10 +9,11 @@ import {
   type MessageEvent,
   type Story,
   type StoryEvent,
+  type TurnMessage,
   type TurnPhase,
-  type TurnStreamEvent,
   type VideoEvent,
 } from 'shared'
+import { assetUrl, storyAssetUrl } from './files'
 import {
   errorMessage,
   generateStoryImage,
@@ -21,7 +23,7 @@ import {
 } from './media'
 import { eventsToMessages, type ChatMessage, type ToolCall } from './messages'
 import { finishTools, noteToolDelta, type OpenTool, type ToolDelta } from './stream'
-import { changeStory, persistStory, readSceneLines, refresh } from './stories'
+import { changeStory, loadStory, persistStory, readSceneLines, refresh } from './stories'
 import { STORY_TOOLS } from './tools'
 
 const MODEL = 'accounts/fireworks/models/deepseek-v4p1-flash'
@@ -45,26 +47,46 @@ export function llmMessages(events: StoryEvent[], title: string): ChatMessage[] 
 export async function reply(
   storyId: string,
   input: { text: string; at?: number },
-  emit: (event: TurnStreamEvent) => void = () => {},
+  emit: (message: TurnMessage) => void = () => {},
 ): Promise<Story> {
   const startedAt = Date.now()
-  const story = await changeStory(storyId, async (current) => {
-    const text = input.text.trim()
-    if (typeof input.at === 'number') {
-      const target = current.events[input.at]
-      if (target?.type !== 'message' || !target.user)
-        throw new Error('Can only rewind a user message')
-      target.text = text
-      current.events.splice(input.at + 1)
-    } else {
-      current.events.push({ type: 'message', user: 'user', text })
+  let length = 0
+  try {
+    const story = await changeStory(storyId, async (current) => {
+      length = current.events.length
+      const text = input.text.trim()
+      const keep = typeof input.at === 'number' ? input.at : current.events.length
+      if (typeof input.at === 'number') {
+        const target = current.events[input.at]
+        if (target?.type !== 'message' || !target.user)
+          throw new Error('Can only rewind a user message')
+        target.text = text
+        current.events.splice(input.at + 1)
+      } else {
+        current.events.push({ type: 'message', user: 'user', text })
+      }
+      await persistStory(current)
+      length = current.events.length
+      emit({ type: 'start', turn: startedAt, keep })
+      const user = current.events[keep]
+      if (user) emit({ type: 'event', at: keep, event: user })
+      await run(current, { dry: false, startedAt, emit })
+      length = current.events.length
+      return current
+    })
+    emit({ type: 'done', ms: Date.now() - startedAt })
+    return story
+  } catch (error) {
+    const failed = errorMessage(error)
+    try {
+      const story = await loadStory(storyId)
+      emit({ type: 'error', error: failed, length: story.events.length })
+      return story
+    } catch {
+      emit({ type: 'error', error: failed, length })
+      throw error
     }
-    await run(current, { dry: false, startedAt, emit })
-    return current
-  })
-  emit({ event: 'story', data: story })
-  emit({ event: 'done', data: { startedAt, elapsedMs: Date.now() - startedAt } })
-  return story
+  }
 }
 
 export type LlmExchange = {
@@ -99,7 +121,7 @@ export async function replayEvents(
 type RunOptions = {
   dry: boolean
   startedAt: number
-  emit: (event: TurnStreamEvent) => void
+  emit: (message: TurnMessage) => void
   trace?: LlmExchange[]
 }
 
@@ -110,16 +132,18 @@ type Save = {
 
 type Live = RunOptions & {
   publish: () => Promise<void>
+  note: (at: number, asset: Extract<TurnMessage, { type: 'asset' }>) => void
 }
 
-function disk(story: Story, emit: RunOptions['emit']): Save {
+type NotedAsset = { at: number; asset: Extract<TurnMessage, { type: 'asset' }> }
+
+function disk(story: Story): Save {
   let writing = Promise.resolve()
   let timer: ReturnType<typeof setTimeout> | undefined
   const enqueue = (project: boolean) => {
     writing = writing.then(async () => {
       if (project) await refresh(story)
       await persistStory(story)
-      emit({ event: 'story', data: story })
     })
     return writing
   }
@@ -151,14 +175,28 @@ function memorySave(story: Story): Save {
 }
 
 async function run(story: Story, options: RunOptions): Promise<void> {
-  const { dry, startedAt, emit } = options
-  const save = dry ? memorySave(story) : disk(story, emit)
-  const live: Live = { ...options, publish: () => save.now(true) }
-  emit({ event: 'status', data: { phase: 'model', startedAt } })
+  const { dry, emit } = options
+  const save = dry ? memorySave(story) : disk(story)
+  const noted: NotedAsset[] = []
+  const emitFrom = (at: number) => {
+    for (let index = at; index < story.events.length; index++) {
+      const event = story.events[index]
+      if (event) emit({ type: 'event', at: index, event })
+    }
+    for (const item of noted) if (item.at >= at) emit(item.asset)
+  }
+  const live: Live = {
+    ...options,
+    publish: () => save.now(true),
+    note(at, asset) {
+      noted.push({ at, asset })
+    },
+  }
+  emit({ type: 'status', phase: 'model' })
   await save.now(true)
   const messages = llmMessages(story.events, story.title)
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
-    if (loop > 0) emit({ event: 'status', data: { phase: 'model', startedAt } })
+    if (loop > 0) emit({ type: 'status', phase: 'model' })
     const sent = options.trace ? structuredClone(messages) : undefined
     const calls: ToolCall[] = []
     const results: { id: string; content: string }[] = []
@@ -166,34 +204,56 @@ async function run(story: Story, options: RunOptions): Promise<void> {
     let draft: MessageEvent | undefined
     for await (const part of streamCompletion(messages)) {
       if (part.type === 'text') {
+        const next = `${draft?.text ?? ''}${part.text}`
+        if (!next.trim()) continue
         if (!draft) {
-          draft = { type: 'message', text: part.text }
+          draft = { type: 'message', text: next }
           story.events.push(draft)
         } else {
-          draft.text += part.text
+          draft.text = next
         }
+        emitFrom(story.events.indexOf(draft))
         save.soon()
         continue
       }
-      calls.push(part.call)
+      const call = part.call
+      const name = call.function.name
+      const args = parseArgs(call.function.arguments)
+      calls.push(call)
+      if (name === 'Read') {
+        chain = chain.then(async () => {
+          await save.now(true)
+          results.push({ id: call.id, content: readSceneLines(story, numbers(args)) })
+        })
+        continue
+      }
+      const event = toolEvent(name, args)
+      if (!event) {
+        chain = chain.then(async () => {
+          results.push({ id: call.id, content: `Unknown tool ${name}` })
+        })
+        continue
+      }
+      if (
+        event.type === 'delete' &&
+        !resolvesAt(story.events, event, story.events.length)
+      )
+        event.error = 'no scenes at those indices'
+      story.events.push(event)
+      const at = story.events.length - 1
+      emitFrom(at)
+      save.soon()
       chain = chain.then(async () => {
-        const result = await execute(
-          story,
-          part.call.function.name,
-          parseArgs(part.call.function.arguments),
-          live,
-        )
-        results.push({ id: part.call.id, content: result.content })
+        const content = await sideEffect(story, event, live, at)
+        results.push({ id: call.id, content })
+        emitFrom(at)
       })
     }
     await chain
     const spoken = draft?.text.trim() ?? ''
-    if (draft) {
-      if (spoken) draft.text = spoken
-      else {
-        const at = story.events.indexOf(draft)
-        if (at >= 0) story.events.splice(at, 1)
-      }
+    if (draft && spoken && draft.text !== spoken) {
+      draft.text = spoken
+      emitFrom(story.events.indexOf(draft))
     }
     if (options.trace && sent) {
       options.trace.push({
@@ -214,18 +274,6 @@ async function run(story: Story, options: RunOptions): Promise<void> {
       messages.push({ role: 'tool', tool_call_id: result.id, content: result.content })
   }
   await save.now(true)
-}
-
-async function execute(
-  story: Story,
-  name: string,
-  args: Record<string, unknown>,
-  live: Live,
-): Promise<{ content: string }> {
-  if (name === 'Read') return { content: readSceneLines(story, numbers(args)) }
-  const event = toolEvent(name, args)
-  if (!event) return { content: `Unknown tool ${name}` }
-  return apply(story, event, live)
 }
 
 function toolEvent(name: string, args: Record<string, unknown>): StoryEvent | undefined {
@@ -249,49 +297,41 @@ function phase(
   live: Live,
   kind: Exclude<TurnPhase, 'model'>,
   name: string,
-  phaseStartedAt: number,
   ms?: number,
 ): void {
   if (live.dry) return
   live.emit({
-    event: 'status',
-    data: {
-      phase: kind,
-      startedAt: live.startedAt,
-      name,
-      phaseStartedAt,
-      ...(ms !== undefined ? { ms } : {}),
-    },
+    type: 'status',
+    phase: kind,
+    name,
+    ...(ms !== undefined ? { ms } : {}),
   })
 }
 
-async function apply(
+async function sideEffect(
   story: Story,
   event: StoryEvent,
   live: Live,
-): Promise<{ content: string }> {
+  at: number,
+): Promise<string> {
   switch (event.type) {
     case 'image':
-      return applyImage(story, event, live)
+      return imageEffect(story, event, live, at)
     case 'dialogue':
-      return applyDialogue(story, event, live)
+      return dialogueEffect(story, event, live, at)
     case 'video':
-      return applyVideo(story, event, live)
+      return videoEffect(story, event, live)
     case 'card':
-      story.events.push(event)
       await live.publish()
-      return { content: event.error ?? '' }
+      return event.error ?? ''
     case 'delete':
-      if (!resolves(story, event)) event.error = 'no scenes at those indices'
-      story.events.push(event)
       await live.publish()
-      return {
-        content:
-          event.error ??
-          `Deleted. ${story.scenes.length} scenes remain. If the user asked you to replace or continue, write the new scenes now.`,
-      }
+      return (
+        event.error ??
+        `Deleted. ${project(story.events.slice(0, at + 1)).scenes.length} scenes remain. If the user asked you to replace or continue, write the new scenes now.`
+      )
     case 'message':
-      return { content: event.text }
+      return event.text
     default: {
       const _exhaustive: never = event
       return _exhaustive
@@ -299,18 +339,23 @@ async function apply(
   }
 }
 
-async function applyImage(
+async function imageEffect(
   story: Story,
   event: ImageEvent,
   live: Live,
-): Promise<{ content: string }> {
-  story.events.push(event)
-  await live.publish()
+  at: number,
+): Promise<string> {
   if (!live.dry && !event.error && event.prompt) {
-    const phaseStartedAt = Date.now()
-    phase(live, 'image', event.name, phaseStartedAt)
+    const started = Date.now()
+    phase(live, 'image', event.name)
     try {
       await generateStoryImage(story, event.name, event.prompt, event.references ?? [])
+      live.note(at, {
+        type: 'asset',
+        name: event.name,
+        kind: 'image',
+        url: assetUrl(story.id, event.name, 'image'),
+      })
     } catch (error) {
       event.error = errorMessage(error)
       console.error('img gen error', {
@@ -319,47 +364,47 @@ async function applyImage(
         error: event.error,
       })
     }
-    phase(live, 'image', event.name, phaseStartedAt, Date.now() - phaseStartedAt)
-    await live.publish()
+    phase(live, 'image', event.name, Date.now() - started)
   }
-  return { content: event.error ?? '' }
+  await live.publish()
+  return event.error ?? ''
 }
 
-async function applyDialogue(
+async function dialogueEffect(
   story: Story,
   event: DialogueEvent,
   live: Live,
-): Promise<{ content: string }> {
-  story.events.push(event)
-  await live.publish()
+  at: number,
+): Promise<string> {
   const voice = event.speaker
     ? story.cards.find((card) => card.name.toLowerCase() === event.speaker?.toLowerCase())
         ?.voice
     : undefined
   if (!live.dry && event.speaker && event.caption && voice && resolveVoiceId(voice)) {
-    const phaseStartedAt = Date.now()
-    phase(live, 'voice', event.speaker, phaseStartedAt)
+    const started = Date.now()
+    phase(live, 'voice', event.speaker)
     try {
-      await generateStoryVoice(story.id, voice, event.caption)
+      const speech = await generateStoryVoice(story.id, voice, event.caption)
+      live.note(at, {
+        type: 'asset',
+        name: event.speaker,
+        kind: 'voice',
+        url: storyAssetUrl(story.id, speech.key),
+      })
     } catch (error) {
       console.error('voice skip', { storyId: story.id, error: errorMessage(error) })
     }
-    phase(live, 'voice', event.speaker, phaseStartedAt, Date.now() - phaseStartedAt)
-    await live.publish()
+    phase(live, 'voice', event.speaker, Date.now() - started)
   }
-  return { content: '' }
+  await live.publish()
+  return ''
 }
 
-async function applyVideo(
-  story: Story,
-  event: VideoEvent,
-  live: Live,
-): Promise<{ content: string }> {
-  story.events.push(event)
+async function videoEffect(story: Story, event: VideoEvent, live: Live): Promise<string> {
   if (!live.dry && !event.error && (event.prompt || event.firstFrame)) {
     const storyId = story.id
     const name = event.name
-    phase(live, 'video', name, Date.now())
+    phase(live, 'video', name)
     void generateStoryVideo(story, name, event.prompt ?? {}, {
       firstFrame: event.firstFrame,
       lastFrame: event.lastFrame,
@@ -379,7 +424,7 @@ async function applyVideo(
     })
   }
   await live.publish()
-  return { content: event.error ?? '' }
+  return event.error ?? ''
 }
 
 function imageEvent(args: Record<string, unknown>): ImageEvent {
@@ -461,11 +506,11 @@ function deleteEvent(args: Record<string, unknown>): DeleteEvent {
   return { type: 'delete', indices }
 }
 
-function resolves(story: Story, event: DeleteEvent): boolean {
-  const length = story.scenes.length
+function resolvesAt(events: StoryEvent[], event: DeleteEvent, at: number): boolean {
+  const length = project(events.slice(0, at)).scenes.length
   return event.indices.some((index) => {
-    const at = index < 0 ? length + index : index
-    return at >= 0 && at < length
+    const resolved = index < 0 ? length + index : index
+    return resolved >= 0 && resolved < length
   })
 }
 

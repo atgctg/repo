@@ -142,26 +142,3 @@ export type StorySummary = {
 }
 
 export type TurnPhase = 'model' | 'image' | 'video' | 'voice'
-
-export type TurnStatus = {
-  phase: TurnPhase
-  startedAt: number
-  name?: string
-  phaseStartedAt?: number
-  ms?: number
-}
-
-export type TurnDone = {
-  startedAt: number
-  elapsedMs: number
-}
-
-export type TurnError = {
-  error: string
-}
-
-export type TurnStreamEvent =
-  | { event: 'story'; data: Story }
-  | { event: 'status'; data: TurnStatus }
-  | { event: 'done'; data: TurnDone }
-  | { event: 'error'; data: TurnError }

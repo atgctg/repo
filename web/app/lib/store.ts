@@ -5,8 +5,8 @@ import type {
   Story,
   StoryEvent,
   StorySummary,
+  TurnMessage,
   TurnPhase,
-  TurnStreamEvent,
   World,
   WorldSource,
 } from 'shared'
@@ -344,37 +344,97 @@ function patchActivity(id: string, recipe: (current: Activity) => Activity): voi
   })
 }
 
-function applyStream(id: string, event: TurnStreamEvent): void {
-  switch (event.event) {
-    case 'story':
-      ingest(event.data)
+function withEvents(entry: Entry, events: StoryEvent[]): Entry {
+  return {
+    ...entry,
+    events,
+    speech: entry.speech.filter((mark) => mark.event < events.length),
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+function applyTurn(id: string, message: TurnMessage): void {
+  const entry = snapshot.entries[id]
+  if (!entry && message.type !== 'status' && message.type !== 'done') return
+  switch (message.type) {
+    case 'start': {
+      if (!entry) return
+      save(withEvents(entry, entry.events.slice(0, message.keep)))
       return
-    case 'status': {
-      const status = event.data
+    }
+    case 'event': {
+      if (!entry) return
+      const events = entry.events.slice(0, message.at)
+      events.push(message.event)
+      const speech = entry.speech.filter((mark) => {
+        if (mark.event < message.at) return true
+        return mark.event === message.at && message.event.type === 'dialogue'
+      })
+      save({
+        ...entry,
+        events,
+        speech,
+        updatedAt: new Date().toISOString(),
+      })
+      return
+    }
+    case 'status':
       patchActivity(id, (current) => ({
         ...current,
-        turnStartedAt: status.startedAt,
-        phase: status.phase,
+        phase: message.phase,
         phaseStartedAt:
-          status.phase === 'model'
+          message.phase === 'model'
             ? undefined
-            : (status.phaseStartedAt ??
-              (status.ms === undefined ? Date.now() : current.phaseStartedAt)),
-        phaseMs: status.ms,
+            : message.ms !== undefined
+              ? current.phaseStartedAt
+              : current.phase === message.phase && current.phaseStartedAt
+                ? current.phaseStartedAt
+                : Date.now(),
+        phaseMs: message.ms,
         imageName:
-          status.ms !== undefined ? undefined : (status.name ?? current.imageName),
+          message.ms !== undefined ? undefined : (message.name ?? current.imageName),
         error: undefined,
       }))
+      return
+    case 'asset': {
+      if (!entry) return
+      if (message.kind === 'voice') {
+        const key = decodeURIComponent(message.url.split('?')[0]?.split('/').pop() ?? '')
+        if (!key) return
+        let at = -1
+        for (let index = 0; index < entry.events.length; index++) {
+          const event = entry.events[index]
+          if (event?.type !== 'dialogue' || event.speaker !== message.name) continue
+          if (entry.speech.some((mark) => mark.event === index)) continue
+          at = index
+          break
+        }
+        if (at < 0) return
+        save({
+          ...entry,
+          speech: [...entry.speech, { event: at, speech: { key } }],
+        })
+        return
+      }
+      const files = entry.files.filter(
+        (file) => file.name.toLowerCase() !== message.name.toLowerCase(),
+      )
+      files.push({ name: message.name, url: message.url })
+      save({ ...entry, files })
+      commit({ ...snapshot, version: snapshot.version + 1 })
       return
     }
     case 'done':
       patchActivity(id, () => ({}))
       return
-    case 'error':
-      patchActivity(id, () => ({ error: event.data.error }))
+    case 'error': {
+      if (!entry) return
+      save(withEvents(entry, entry.events.slice(0, message.length)))
+      patchActivity(id, () => ({ error: message.error }))
       return
+    }
     default: {
-      const _exhaustive: never = event
+      const _exhaustive: never = message
       return _exhaustive
     }
   }
@@ -387,7 +447,10 @@ export async function sendTurn(id: string, text: string, at?: number): Promise<b
   const previous = entry.events
   patchActivity(id, () => ({ turnStartedAt: Date.now(), phase: 'model' }))
   const ready = await waitForFork(id)
-  if (!ready) return false
+  if (!ready) {
+    patchActivity(id, () => ({}))
+    return false
+  }
   const current = snapshot.entries[id]
   if (!current) return false
   const events =
@@ -399,20 +462,12 @@ export async function sendTurn(id: string, text: string, at?: number): Promise<b
           .slice(0, at + 1)
       : [...current.events, { type: 'message' as const, user: 'user', text }]
   save({ ...current, events, updatedAt: new Date().toISOString() })
-  let sawStory = false
   try {
-    await streamTurn(id, text, at, (streamEvent) => {
-      if (streamEvent.event === 'story') sawStory = true
-      applyStream(id, streamEvent)
-    })
+    await streamTurn(id, text, at, (message) => applyTurn(id, message))
     const activity = snapshot.activity[id]
     if (activity?.turnStartedAt && !activity.error) patchActivity(id, () => ({}))
     return true
   } catch (error) {
-    if (!sawStory) {
-      const local = snapshot.entries[id]
-      if (local) save({ ...local, events: previous })
-    }
     patchActivity(id, () => ({ error: messageOf(error) }))
     return false
   }

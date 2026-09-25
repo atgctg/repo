@@ -1,5 +1,5 @@
 import { errorMessage } from './media'
-import { sseResponse } from './sse'
+import { turnResponse } from 'shared'
 import {
   generateImage,
   generateVideo,
@@ -153,10 +153,8 @@ const server = Bun.serve({
         }
         const text = body.text
         const at = typeof body.at === 'number' ? body.at : undefined
-        return sseResponse(async (send) => {
-          await reply(id, { text, at }, (event) => {
-            send(event.event, event.data)
-          })
+        return turnResponse(async (send) => {
+          await reply(id, { text, at }, send)
         })
       },
     },

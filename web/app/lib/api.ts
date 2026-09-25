@@ -1,17 +1,5 @@
-import type {
-  Story,
-  StoryEvent,
-  StorySummary,
-  TurnDone,
-  TurnError,
-  TurnPhase,
-  TurnStatus,
-  TurnStreamEvent,
-  World,
-  WorldSource,
-} from 'shared'
-
-const PHASES: readonly TurnPhase[] = ['model', 'image', 'video', 'voice']
+import { readTurn, type TurnMessage } from 'shared'
+import type { Story, StoryEvent, StorySummary, World, WorldSource } from 'shared'
 
 async function errorText(res: Response): Promise<string> {
   const body = (await res.json().catch(() => null)) as { error?: unknown } | null
@@ -51,56 +39,6 @@ function isSummary(value: unknown): value is StorySummary {
     typeof value.updatedAt === 'string' &&
     typeof value.preview === 'string'
   )
-}
-
-function isPhase(value: unknown): value is TurnPhase {
-  return typeof value === 'string' && PHASES.some((phase) => phase === value)
-}
-
-function isStatus(value: unknown): value is TurnStatus {
-  if (!isRecord(value) || !isPhase(value.phase) || typeof value.startedAt !== 'number')
-    return false
-  return true
-}
-
-function isDone(value: unknown): value is TurnDone {
-  return (
-    isRecord(value) &&
-    typeof value.startedAt === 'number' &&
-    typeof value.elapsedMs === 'number'
-  )
-}
-
-function isError(value: unknown): value is TurnError {
-  return isRecord(value) && typeof value.error === 'string'
-}
-
-function parseStreamEvent(chunk: string): TurnStreamEvent | undefined {
-  let name = ''
-  const dataLines: string[] = []
-  for (const line of chunk.split('\n')) {
-    if (line.startsWith('event:')) name = line.slice(6).trim()
-    else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
-  }
-  if (!name || dataLines.length === 0) return undefined
-  let data: unknown
-  try {
-    data = JSON.parse(dataLines.join('\n')) as unknown
-  } catch {
-    return undefined
-  }
-  switch (name) {
-    case 'story':
-      return isStory(data) ? { event: 'story', data } : undefined
-    case 'status':
-      return isStatus(data) ? { event: 'status', data } : undefined
-    case 'done':
-      return isDone(data) ? { event: 'done', data } : undefined
-    case 'error':
-      return isError(data) ? { event: 'error', data } : undefined
-    default:
-      return undefined
-  }
 }
 
 export async function fetchWorlds(): Promise<World[]> {
@@ -149,7 +87,7 @@ export async function streamTurn(
   id: string,
   text: string,
   at: number | undefined,
-  onEvent: (event: TurnStreamEvent) => void,
+  onMessage: (message: TurnMessage) => void,
 ): Promise<void> {
   const res = await fetch(`/api/stories/${encodeURIComponent(id)}/turn`, {
     method: 'POST',
@@ -158,22 +96,7 @@ export async function streamTurn(
   })
   if (!res.ok) throw new Error(await errorText(res))
   if (!res.body) throw new Error('Turn failed')
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  const take = (chunk: string) => {
-    const event = parseStreamEvent(chunk)
-    if (event) onEvent(event)
-  }
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const parts = buffer.split('\n\n')
-    buffer = parts.pop() ?? ''
-    for (const part of parts) take(part)
-  }
-  if (buffer.trim()) take(buffer)
+  await readTurn(res.body, onMessage)
 }
 
 export async function postGenerate(

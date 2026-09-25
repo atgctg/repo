@@ -32,25 +32,28 @@ const styles = stylex.create({
     minWidth: 0,
     margin: 0,
     padding: '0.75rem 0.5rem 0.25rem 0.75rem',
+    fontSize: '1rem',
+    lineHeight: 1,
   },
   title: {
-    flex: '1 1 auto',
+    flex: '0 1 auto',
     minWidth: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-    fontSize: tokens.textMd,
+    fontSize: '1rem',
     fontWeight: 500,
-    lineHeight: 1.5,
+    lineHeight: 1,
   },
   count: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.15rem',
     flex: 'none',
     color: tokens.muted,
-    fontSize: tokens.textSm,
+    fontSize: '1rem',
     lineHeight: 1,
+  },
+  grow: {
+    flex: '1 1 auto',
+    minWidth: '0.35rem',
   },
   tool: {
     flex: 'none',
@@ -64,7 +67,7 @@ const styles = stylex.create({
     borderRadius: tokens.radiusPill,
     color: tokens.muted,
     backgroundColor: 'transparent',
-    fontSize: tokens.textSm,
+    fontSize: '1rem',
     lineHeight: 1,
     ':hover': {
       backgroundColor: tokens.chip,
@@ -151,6 +154,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
         </Link>
         <h1 {...stylex.props(styles.title)}>{story.title}</h1>
         <span {...stylex.props(styles.count)}>{story.scenes.length}</span>
+        <span {...stylex.props(styles.grow)} />
         <Button
           type="button"
           aria-label="Cards"
@@ -158,7 +162,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
           {...stylex.props(styles.tool, onCards && styles.toolOn)}
           onClick={() => show(onCards ? `/${story.id}` : `/${story.id}/cards`)}
         >
-          <Icon name="albums" size="lg" />
+          <Icon name="albums" />
           <span>{story.cards.length}</span>
         </Button>
         <Button
@@ -168,7 +172,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
           {...stylex.props(styles.tool, onRaw && styles.toolOn)}
           onClick={() => show(onRaw ? `/${story.id}` : `/${story.id}/raw`)}
         >
-          <Icon name="raw" size="lg" />
+          <Icon name="raw" />
         </Button>
       </header>
       <div {...stylex.props(styles.chat)}>

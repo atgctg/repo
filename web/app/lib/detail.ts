@@ -217,7 +217,7 @@ export function eventIcon(event: StoryEvent): IconName | undefined {
     case 'video':
       return 'play'
     case 'card':
-      return 'albums'
+      return 'card'
     case 'delete':
       return 'trash'
     default: {

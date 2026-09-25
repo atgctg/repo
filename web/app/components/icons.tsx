@@ -1,15 +1,16 @@
 import type { ReactNode, SVGProps } from 'react'
 import {
   ArrowLeft,
-  Braces,
-  GalleryHorizontalEnd,
   Image,
   Mic,
-  MousePointer2,
   Pause,
   Play,
+  PlayingCard,
+  PlayingCardsFan,
   RefreshCw,
   Square,
+  SquareDashedMousePointer,
+  SquareDashedText,
   Trash,
   User,
   X,
@@ -28,6 +29,7 @@ export type IconName =
   | 'trash'
   | 'person'
   | 'mic'
+  | 'card'
   | 'pointer'
   | 'raw'
   | 'stop'
@@ -70,19 +72,20 @@ const ICONS: Record<IconName, LucideIcon> = {
   play: Play,
   pause: Pause,
   refresh: RefreshCw,
-  albums: GalleryHorizontalEnd,
+  albums: PlayingCardsFan,
+  card: PlayingCard,
   image: Image,
   trash: Trash,
   person: User,
   mic: Mic,
-  pointer: MousePointer2,
-  raw: Braces,
+  pointer: SquareDashedMousePointer,
+  raw: SquareDashedText,
   stop: Square,
 }
 
 const PX = { sm: 16, md: 20, lg: 24 } as const
 
-const FILLED = new Set<IconName>(['play', 'pause', 'pointer', 'stop'])
+const FILLED = new Set<IconName>(['play', 'pause', 'stop'])
 
 export function Icon({
   name,

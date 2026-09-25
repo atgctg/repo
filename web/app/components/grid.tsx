@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useRef, useState, type CSSProperties, type ReactNode, type UIEvent } from 'react'
 import { Button } from '@base-ui/react/button'
+import { Slider } from '@base-ui/react/slider'
 import * as stylex from '@stylexjs/stylex'
 import type { Card, Scene, Story } from 'shared'
 import { Blocks } from './blocks'
@@ -12,6 +13,7 @@ import {
   sceneImage,
   sceneTitle,
 } from './media'
+import { useMountEffect } from '~/hooks/use-mount-effect'
 import { canGenerate, findAsset, sceneAsset, speechSrc } from '~/lib/view'
 import { selectScene, useActivity, useGenerateAsset, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
@@ -61,28 +63,139 @@ const styles = stylex.create({
     gap: '0.75rem',
     marginBottom: '1.5rem',
   },
+  frame: {
+    position: 'relative',
+    height: '100%',
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  scroller: {
+    height: '100%',
+    minHeight: 0,
+    overflow: 'auto',
+    padding: '3.25rem 0.15rem 0.25rem',
+  },
+  bar: {
+    position: 'absolute',
+    top: '0.75rem',
+    left: '50%',
+    zIndex: 6,
+    width: 'min(16rem, calc(100% - 2rem))',
+    padding: '0.35rem 0.55rem',
+    borderRadius: tokens.radiusPill,
+    backgroundColor: tokens.chip,
+    transform: 'translateX(-50%)',
+  },
+  barHidden: {
+    transform: 'translateX(-50%) translateY(calc(-100% - 1.25rem))',
+    pointerEvents: 'none',
+  },
+  control: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+  },
+  track: {
+    position: 'relative',
+    width: '100%',
+    height: '1.125rem',
+    borderRadius: tokens.radiusPill,
+    backgroundColor: tokens.chip,
+  },
+  indicator: {
+    height: '100%',
+    borderRadius: tokens.radiusPill,
+    backgroundColor: tokens.text,
+  },
+  thumb: {
+    width: '2px',
+    height: '0.7rem',
+    padding: 0,
+    borderRadius: '1px',
+    backgroundColor: tokens.chip,
+  },
 })
 
-export function SceneGrid({ story }: { story: Story }): ReactNode {
+const SIZE_KEY = 'storyboard.size'
+const DEFAULT_SIZE = 19
+
+function readSize(): number {
+  const raw = localStorage.getItem(SIZE_KEY)
+  if (raw === null || raw === '') return DEFAULT_SIZE
+  const next = Number(raw)
+  if (!Number.isFinite(next)) return DEFAULT_SIZE
+  return Math.min(100, Math.max(0, next))
+}
+
+function boardMin(size: number): string {
+  return `${11 + (size / 100) * 29}rem`
+}
+
+export function Storyboard({ story }: { story: Story }): ReactNode {
   const uiState = useStoryUi(story.id)
-  if (story.scenes.length === 0)
-    return (
-      <div {...stylex.props(styles.stage)}>
-        <p {...stylex.props(ui.muted)}>No scenes</p>
-      </div>
-    )
+  const [size, setSize] = useState(DEFAULT_SIZE)
+  const [hidden, setHidden] = useState(false)
+  const scrollTop = useRef(0)
+  useMountEffect(() => {
+    setSize(readSize())
+  })
+  function onScroll(event: UIEvent<HTMLDivElement>): void {
+    const top = event.currentTarget.scrollTop
+    const delta = top - scrollTop.current
+    if (top < 8) setHidden(false)
+    else if (delta > 6) setHidden(true)
+    else if (delta < -6) setHidden(false)
+    scrollTop.current = top
+  }
+  function onSize(next: number): void {
+    setSize(next)
+    localStorage.setItem(SIZE_KEY, String(next))
+  }
   return (
-    <div {...stylex.props(styles.stage)}>
-      <div className="tile-grid">
-        {story.scenes.map((scene, index) => (
-          <SceneTile
-            key={`${scene.event}-${index}`}
-            story={story}
-            scene={scene}
-            index={index}
-            selected={uiState.selected.includes(index)}
-          />
-        ))}
+    <div aria-label="Storyboard" {...stylex.props(styles.frame)}>
+      <div {...stylex.props(styles.scroller)} onScroll={onScroll}>
+        {story.scenes.length === 0 ? (
+          <p {...stylex.props(ui.muted)}>No scenes</p>
+        ) : (
+          <div
+            className="storyboard"
+            style={
+              {
+                '--board': boardMin(size),
+              } as CSSProperties & Record<'--board', string>
+            }
+          >
+            {story.scenes.map((scene, index) => (
+              <SceneTile
+                key={`${scene.event}-${index}`}
+                story={story}
+                scene={scene}
+                index={index}
+                selected={uiState.selected.includes(index)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      <div {...stylex.props(styles.bar, hidden && styles.barHidden)}>
+        <Slider.Root
+          value={size}
+          min={0}
+          max={100}
+          step={1}
+          thumbAlignment="edge"
+          onValueChange={onSize}
+        >
+          <Slider.Control {...stylex.props(styles.control)}>
+            <Slider.Track {...stylex.props(styles.track)}>
+              <Slider.Indicator {...stylex.props(styles.indicator)} />
+              <Slider.Thumb
+                aria-label="Storyboard size"
+                {...stylex.props(styles.thumb)}
+              />
+            </Slider.Track>
+          </Slider.Control>
+        </Slider.Root>
       </div>
     </div>
   )

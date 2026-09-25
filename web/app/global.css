@@ -90,6 +90,13 @@
   align-content: start;
 }
 
+.storyboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--board, 16.5rem)), 1fr));
+  gap: 0.25rem;
+  align-content: start;
+}
+
 .tile-grid.loose {
   gap: 1rem;
   padding: 0 1rem 1rem;

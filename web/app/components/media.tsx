@@ -119,14 +119,6 @@ export function Caption({
         placement === 'stage' ? styles.center : styles.start,
       )}
     >
-      {speaker ? (
-        <div
-          {...stylex.props(styles.speaker, placement === 'stage' && styles.speakerStage)}
-        >
-          <Avatar name={speaker} url={portraitUrl(story, speaker)} />
-          <span>{speaker}</span>
-        </div>
-      ) : null}
       {lines.length > 0 ? (
         <div
           {...stylex.props(
@@ -141,6 +133,14 @@ export function Caption({
               <RichText text={line} />
             </p>
           ))}
+        </div>
+      ) : null}
+      {speaker ? (
+        <div
+          {...stylex.props(styles.speaker, placement === 'stage' && styles.speakerStage)}
+        >
+          <Avatar name={speaker} url={portraitUrl(story, speaker)} />
+          <span>{speaker}</span>
         </div>
       ) : null}
     </div>
@@ -264,6 +264,12 @@ const tileStyles = stylex.create({
     pointerEvents: 'auto',
     zIndex: 4,
   },
+  footer: {
+    marginTop: 'auto',
+    width: '100%',
+    pointerEvents: 'auto',
+    zIndex: 4,
+  },
 })
 
 export function Tile({
@@ -335,7 +341,7 @@ export function Tile({
           </div>
         ) : null}
         {children}
-        {footer ? <div {...stylex.props(tileStyles.live)}>{footer}</div> : null}
+        {footer ? <div {...stylex.props(tileStyles.footer)}>{footer}</div> : null}
       </div>
       {action ? <div {...stylex.props(tileStyles.live)}>{action}</div> : null}
       {selected ? <span {...stylex.props(ui.ring)} /> : null}

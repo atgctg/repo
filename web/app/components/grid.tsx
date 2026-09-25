@@ -26,6 +26,17 @@ const styles = stylex.create({
     gap: '0.5rem',
     width: '100%',
   },
+  caption: {
+    marginLeft: '-0.85rem',
+    marginBottom: '-0.7rem',
+  },
+  play: {
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    zIndex: 3,
+    transform: 'translate(-50%, -50%)',
+  },
   attrs: {
     flex: 1,
     minHeight: 0,
@@ -96,6 +107,21 @@ function SceneTile({
   const audio =
     scene.type === 'dialogue' ? speechSrc(story, scene.speech?.key) : undefined
   const showPlay = scene.type === 'video' ? Boolean(asset?.url) : Boolean(audio)
+  const generate =
+    canGenerate(asset) && asset ? (
+      <GenerateButton
+        storyId={story.id}
+        name={asset.name}
+        type={asset.type}
+        label="Generate"
+        floating
+      />
+    ) : null
+  const play = showPlay ? (
+    <div {...stylex.props(styles.play)}>
+      <PlayButton owner={`${story.id}:${index}`} audio={audio} />
+    </div>
+  ) : null
   return (
     <Tile
       scene
@@ -105,23 +131,19 @@ function SceneTile({
       selected={selected}
       onClick={(event) => selectScene(story.id, index, event.shiftKey)}
       action={
-        canGenerate(asset) && asset ? (
-          <GenerateButton
-            storyId={story.id}
-            name={asset.name}
-            type={asset.type}
-            label="Generate"
-            floating
-          />
+        generate || play ? (
+          <>
+            {generate}
+            {play}
+          </>
         ) : null
       }
       footer={
-        <div {...stylex.props(styles.footer)}>
-          {scene.type === 'dialogue' ? (
+        scene.type === 'dialogue' ? (
+          <div {...stylex.props(styles.footer, styles.caption)}>
             <Caption scene={scene} story={story} placement="card" />
-          ) : null}
-          {showPlay ? <PlayButton owner={`${story.id}:${index}`} audio={audio} /> : null}
-        </div>
+          </div>
+        ) : null
       }
     />
   )

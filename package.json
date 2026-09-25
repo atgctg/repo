@@ -9,7 +9,7 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "bun --hot api/src/server.ts",
+    "dev": "bun scripts/dev.ts",
     "lint": "oxlint -c .oxlintrc.json",
     "lint:fix": "oxlint -c .oxlintrc.json --fix",
     "fmt": "oxfmt -c .oxfmtrc.json",

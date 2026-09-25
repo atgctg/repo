@@ -1,4 +1,3 @@
-import studio from '../client/index.html'
 import { errorMessage } from './media'
 import { sseResponse } from './sse'
 import {
@@ -204,9 +203,7 @@ const server = Bun.serve({
         return assetResponse(file, Bun.file(diskPath))
       },
     },
-    '/favicon.ico': Bun.file(`${import.meta.dir}/../client/favicon.ico`),
-    '/': studio,
-    '/*': studio,
+    '/favicon.ico': Bun.file(`${import.meta.dir}/../favicon.ico`),
   },
 })
 

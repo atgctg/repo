@@ -27,7 +27,6 @@ export const tokens = stylex.defineVars({
   radiusScene: '0.25rem',
   radiusPill: '999px',
   radiusPillow: '1.75rem',
-  shadow: '0 0 1rem rgba(0, 0, 0, 0.4)',
   textXs: '0.75rem',
   textSm: '0.875rem',
   textMd: '1rem',

@@ -79,10 +79,17 @@ export const ui = stylex.create({
     fieldSizing: 'content',
     maxHeight: '9rem',
     overflow: 'auto',
+    appearance: 'none',
     backgroundColor: 'transparent',
     color: 'inherit',
+    caretColor: 'inherit',
     font: 'inherit',
     lineHeight: 'inherit',
+    outline: 'none',
+    '::selection': {
+      backgroundColor: '#3b82f6',
+      color: '#ffffff',
+    },
   },
   muted: {
     color: tokens.muted,
@@ -183,11 +190,9 @@ export const ui = stylex.create({
     fontWeight: 600,
     letterSpacing: '-0.01em',
     textAlign: 'center',
-    textShadow: tokens.shadow,
   },
   cardTitlePlain: {
     textAlign: 'left',
-    textShadow: 'none',
     marginBottom: '0.75rem',
   },
   ring: {

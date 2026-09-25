@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { HomeSections } from '~/components/grid'
 import { Sidebar } from '~/components/sidebar'
-import { ensureIndex, forkWorld, useLayout, useStoryList, useWorlds } from '~/lib/store'
+import { ensureIndex, forkWorld, useWorlds } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
+
 const styles = stylex.create({
   studio: {
     display: 'grid',
@@ -31,38 +32,24 @@ export function HydrateFallback(): ReactNode {
 }
 
 export default function Home(): ReactNode {
-  const layout = useLayout()
   const worlds = useWorlds()
-  const stories = useStoryList()
   const navigate = useNavigate()
-  const sections = (
-    <HomeSections
-      stories={
-        layout === 'fullscreen'
-          ? stories.map((story) => ({
-              id: story.id,
-              title: story.title,
-              image: story.cover,
-            }))
-          : []
-      }
-      worlds={worlds.map((world) => ({
-        id: world.id,
-        title: world.title,
-        image: world.cover,
-      }))}
-      onOpenStory={(id) => void navigate(`/${id}`)}
-      onOpenWorld={(id) => {
-        const storyId = forkWorld(id)
-        if (storyId) void navigate(`/${storyId}`)
-      }}
-    />
-  )
-  if (layout === 'fullscreen') return sections
   return (
     <div {...stylex.props(styles.studio)}>
       <Sidebar onFork={(id) => void navigate(`/${id}`)} />
-      {sections}
+      <HomeSections
+        stories={[]}
+        worlds={worlds.map((world) => ({
+          id: world.id,
+          title: world.title,
+          image: world.cover,
+        }))}
+        onOpenStory={(id) => void navigate(`/${id}`)}
+        onOpenWorld={(id) => {
+          const storyId = forkWorld(id)
+          if (storyId) void navigate(`/${storyId}`)
+        }}
+      />
     </div>
   )
 }

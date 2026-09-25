@@ -12,10 +12,6 @@ const styles = stylex.create({
   wrap: {
     position: 'relative',
   },
-  overlay: {
-    width: 'min(36rem, calc(100% - 2rem))',
-    margin: '0 auto',
-  },
   status: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -56,13 +52,7 @@ const styles = stylex.create({
   },
 })
 
-export function Composer({
-  storyId,
-  variant,
-}: {
-  storyId: string
-  variant: 'dock' | 'overlay'
-}): ReactNode {
+export function Composer({ storyId }: { storyId: string }): ReactNode {
   const [draft, setDraft] = useState('')
   const activity = useActivity(storyId)
   const now = useNow()
@@ -98,10 +88,7 @@ export function Composer({
   }
 
   return (
-    <form
-      {...stylex.props(styles.wrap, variant === 'overlay' && styles.overlay)}
-      onSubmit={onSubmit}
-    >
+    <form {...stylex.props(styles.wrap)} onSubmit={onSubmit}>
       <div {...stylex.props(ui.pillow)}>
         <textarea
           data-composer=""

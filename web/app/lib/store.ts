@@ -22,8 +22,6 @@ import {
 } from './api'
 import { coverUrl, filesFrom, speechFrom, toStory } from './view'
 
-export type LayoutMode = 'fullscreen' | 'studio'
-
 export type AssetFile = {
   name: string
   url?: string
@@ -69,7 +67,6 @@ export type EvalRun = {
 }
 
 type Snapshot = {
-  layout: LayoutMode
   worlds: World[]
   sources: Record<string, WorldSource>
   summaries: StorySummary[]
@@ -81,11 +78,9 @@ type Snapshot = {
   version: number
 }
 
-const LAYOUT_KEY = 'studio.layout'
 const emptyUi: StoryUi = { selected: [], sceneIndex: 0, cards: false }
 
 const serverSnapshot: Snapshot = {
-  layout: 'fullscreen',
   worlds: [],
   sources: {},
   summaries: [],
@@ -97,12 +92,7 @@ const serverSnapshot: Snapshot = {
   version: 0,
 }
 
-function readLayout(): LayoutMode {
-  if (typeof sessionStorage === 'undefined') return 'fullscreen'
-  return sessionStorage.getItem(LAYOUT_KEY) === 'studio' ? 'studio' : 'fullscreen'
-}
-
-let snapshot: Snapshot = { ...serverSnapshot, layout: readLayout() }
+let snapshot: Snapshot = { ...serverSnapshot }
 const listeners = new Set<() => void>()
 let clock: ReturnType<typeof setInterval> | undefined
 const forks = new Map<string, Promise<void>>()
@@ -182,10 +172,6 @@ export function hasEntry(id: string): boolean {
   return Boolean(snapshot.entries[id])
 }
 
-export function useLayout(): LayoutMode {
-  return useSnap().layout
-}
-
 export function useWorlds(): World[] {
   return useSnap().worlds
 }
@@ -215,12 +201,6 @@ export function useStoryUi(id: string): StoryUi {
 
 export function useActivity(id: string): Activity {
   return useSnap().activity[id] ?? {}
-}
-
-export function toggleLayout(): void {
-  const layout = snapshot.layout === 'fullscreen' ? 'studio' : 'fullscreen'
-  if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(LAYOUT_KEY, layout)
-  commit({ ...snapshot, layout })
 }
 
 export function setWorlds(worlds: World[]): void {
@@ -506,16 +486,6 @@ export function selectScene(id: string, index: number, range: boolean): void {
       [id]: { ...ui, selected, anchor, openScene: index, sceneIndex: index },
     },
   })
-}
-
-export function stepScene(id: string, delta: number): void {
-  const entry = snapshot.entries[id]
-  if (!entry) return
-  const count = toStory(entry, snapshot).scenes.length
-  if (count === 0) return
-  const current = uiOf(id).sceneIndex
-  const next = Math.max(0, Math.min(count - 1, current + delta))
-  selectScene(id, next, false)
 }
 
 export function closeDrawer(id: string): void {

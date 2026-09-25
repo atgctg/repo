@@ -56,6 +56,21 @@
 
   textarea {
     resize: none;
+    appearance: none;
+    background-color: transparent;
+    color: inherit;
+    caret-color: inherit;
+  }
+
+  textarea::selection,
+  input::selection {
+    background-color: #3b82f6;
+    color: #ffffff;
+  }
+
+  textarea:focus,
+  textarea:focus-visible {
+    outline: none;
   }
 
   :focus {

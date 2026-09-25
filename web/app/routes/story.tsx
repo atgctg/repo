@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
 import { data, useParams } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
-import { Fullscreen } from '~/components/fullscreen'
 import { Studio } from '~/components/studio'
 import { useMountEffect } from '~/hooks/use-mount-effect'
-import { ensureIndex, ensureStory, hasEntry, useLayout, useStory } from '~/lib/store'
+import { ensureIndex, ensureStory, hasEntry, useStory } from '~/lib/store'
 import { ui } from '~/styles/ui'
 import type { Route } from './+types/story'
 
@@ -38,14 +37,13 @@ function Title({ title }: { title: string }): null {
 export default function StoryRoute(): ReactNode {
   const { id } = useParams()
   const story = useStory(id ?? '')
-  const layout = useLayout()
   if (!story) {
     return <p {...stylex.props(ui.muted, styles.note)}>Not found</p>
   }
   return (
     <>
       <Title key={`${story.id}:${story.title}`} title={story.title} />
-      {layout === 'studio' ? <Studio story={story} /> : <Fullscreen story={story} />}
+      <Studio story={story} />
     </>
   )
 }

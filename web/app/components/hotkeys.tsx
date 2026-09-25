@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useParams } from 'react-router'
 import { useMountEffect } from '~/hooks/use-mount-effect'
-import { closeDrawer, getSnapshot, stepScene, toggleLayout } from '~/lib/store'
+import { closeDrawer } from '~/lib/store'
 
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
@@ -16,15 +16,10 @@ export function Hotkeys(): null {
   idRef.current = params.id
   useMountEffect(() => {
     function onKeyDown(event: KeyboardEvent): void {
-      const meta = event.metaKey || event.ctrlKey
-      if (meta && event.key === '/') {
-        event.preventDefault()
-        toggleLayout()
-        return
-      }
       if (
         event.key === '/' &&
-        !meta &&
+        !event.metaKey &&
+        !event.ctrlKey &&
         !event.altKey &&
         !event.shiftKey &&
         !isTyping(event.target)
@@ -37,14 +32,7 @@ export function Hotkeys(): null {
         if (isTyping(event.target)) return
         const id = idRef.current
         if (id) closeDrawer(id)
-        return
       }
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-      if (isTyping(event.target) || getSnapshot().layout !== 'fullscreen') return
-      const id = idRef.current
-      if (!id) return
-      event.preventDefault()
-      stepScene(id, event.key === 'ArrowLeft' ? -1 : 1)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)

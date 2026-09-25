@@ -8,6 +8,11 @@ Before touching Hyperdrive, R2, placement, or wrangler config, read the current 
 
 The database schema lives in `api/src/schema.ts` (Drizzle). Change it only through `drizzle-kit` migrations.
 
+Database access:
+- App code reads and writes only through Drizzle in `api/src`.
+- Bulk or one-off data changes are committed scripts in `api/scripts/` (Drizzle, batched, in one transaction), never hand-run SQL.
+- Ad hoc inspection (MCP, `pscale shell`) is read-only.
+
 Do not write comments.
 
 Greenfield project, no backwards compatibility needed.

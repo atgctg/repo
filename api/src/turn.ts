@@ -1,8 +1,6 @@
 import {
   leadCards,
-  normalizeRecord,
   project,
-  type CardEvent,
   type DeleteEvent,
   type DialogueEvent,
   type ImageEvent,
@@ -25,9 +23,8 @@ import {
   generateStoryVoice,
   resolveVoiceId,
 } from './media'
-import { cardLinks } from './events'
 import { eventsToMessages, type ChatMessage, type ToolCall } from './messages'
-import { finishTools, noteToolDelta, type OpenTool, type ToolDelta } from './stream'
+import { streamCompletion } from './stream'
 import {
   changeStory,
   loadStory,
@@ -36,9 +33,8 @@ import {
   reproject,
   saveTiming,
 } from './stories'
-import { STORY_TOOLS } from './tools'
+import { parseArgs, readRange, toolEvent } from './tools'
 
-const MODEL = 'accounts/fireworks/models/deepseek-v4p1-flash'
 const MAX_LOOPS = 6
 
 export function followUp(toolNames: string[]): boolean {
@@ -370,7 +366,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
         if (name === 'Read') {
           chain = chain.then(async () => {
             await save.now()
-            results.push({ id: call.id, content: readSceneLines(story, numbers(args)) })
+            results.push({ id: call.id, content: readSceneLines(story, readRange(args)) })
           })
           continue
         }
@@ -429,23 +425,6 @@ async function run(story: Story, options: RunOptions): Promise<void> {
       messages.push({ role: 'tool', tool_call_id: result.id, content: result.content })
   }
   await save.now()
-}
-
-function toolEvent(name: string, args: Record<string, unknown>): StoryEvent | undefined {
-  switch (name) {
-    case 'Image':
-      return imageEvent(args)
-    case 'Dialogue':
-      return dialogueEvent(args)
-    case 'Video':
-      return videoEvent(args)
-    case 'Card':
-      return cardEvent(args)
-    case 'Delete':
-      return deleteEvent(args)
-    default:
-      return undefined
-  }
 }
 
 function phase(
@@ -592,161 +571,12 @@ async function videoEffect(story: Story, event: VideoEvent, live: Live): Promise
   return event.error ?? ''
 }
 
-function imageEvent(args: Record<string, unknown>): ImageEvent {
-  const name = string(args.name)
-  const prompt = args.prompt === undefined ? undefined : normalizeRecord(args.prompt)
-  const references = names(args.references)
-  const event: ImageEvent = {
-    type: 'image',
-    name: name || 'Image',
-    ...(prompt && Object.keys(prompt).length > 0 ? { prompt } : {}),
-    ...(references.length > 0 ? { references } : {}),
-    ...placement(args),
-  }
-  if (!name) event.error = 'name is required'
-  else if (!event.prompt) event.error = `No prompt for image "${name}"`
-  return event
-}
-
-function dialogueEvent(args: Record<string, unknown>): DialogueEvent {
-  const speaker = string(args.speaker)
-  const caption = string(args.caption)
-  return {
-    type: 'dialogue',
-    background: string(args.background),
-    ...(speaker ? { speaker } : {}),
-    ...(caption ? { caption } : {}),
-    ...placement(args),
-  }
-}
-
-function videoEvent(args: Record<string, unknown>): VideoEvent {
-  const name = string(args.name)
-  const prompt = args.prompt === undefined ? undefined : normalizeRecord(args.prompt)
-  const firstFrame = string(args.firstFrame)
-  const lastFrame = string(args.lastFrame)
-  const duration = number(args.duration)
-  const event: VideoEvent = {
-    type: 'video',
-    name: name || 'Video',
-    ...(prompt && Object.keys(prompt).length > 0 ? { prompt } : {}),
-    ...(firstFrame ? { firstFrame } : {}),
-    ...(lastFrame ? { lastFrame } : {}),
-    ...(duration ? { duration } : {}),
-    ...placement(args),
-  }
-  if (!name) event.error = 'name is required'
-  else if (!event.prompt && !event.firstFrame)
-    event.error = `No prompt for video "${name}"`
-  return event
-}
-
-function cardEvent(args: Record<string, unknown>): CardEvent {
-  const name = string(args.name)
-  const attributes =
-    args.attributes === undefined ? undefined : normalizeRecord(args.attributes)
-  const event: CardEvent = {
-    type: 'card',
-    name: name || 'Card',
-    ...cardLinks(args),
-    ...(attributes ? { attributes } : {}),
-  }
-  if (!name) event.error = 'name is required'
-  return event
-}
-
-function deleteEvent(args: Record<string, unknown>): DeleteEvent {
-  const indices = Array.isArray(args.indices)
-    ? args.indices.filter((index): index is number => typeof index === 'number')
-    : typeof args.indices === 'number'
-      ? [args.indices]
-      : typeof args.index === 'number'
-        ? [args.index]
-        : []
-  return { type: 'delete', indices }
-}
-
 function resolvesAt(events: StoryEvent[], event: DeleteEvent, at: number): boolean {
   const length = project(events.slice(0, at)).scenes.length
   return event.indices.some((index) => {
     const resolved = index < 0 ? length + index : index
     return resolved >= 0 && resolved < length
   })
-}
-
-type StreamPart = { type: 'text'; text: string } | { type: 'tool'; call: ToolCall }
-
-async function* streamCompletion(
-  messages: ChatMessage[],
-  signal: AbortSignal | undefined,
-  onUsage: (tokens: number) => void,
-): AsyncGenerator<StreamPart> {
-  const apiKey = app().env.FIREWORKS_API_KEY?.trim()
-  if (!apiKey) throw new Error('FIREWORKS_API_KEY is required')
-  const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      tools: STORY_TOOLS,
-      tool_choice: 'auto',
-      stream: true,
-      stream_options: { include_usage: true },
-    }),
-    signal,
-  })
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(`Fireworks error: ${body.slice(0, 500)}`)
-  }
-  if (!response.body) throw new Error('Fireworks returned no stream')
-
-  const calls: OpenTool[] = []
-  for await (const data of sseData(response.body)) {
-    if (data === '[DONE]') break
-    let parsed: {
-      choices?: Array<{
-        delta?: { content?: string | null; tool_calls?: ToolDelta[] | null }
-      }>
-    }
-    try {
-      parsed = JSON.parse(data) as typeof parsed
-    } catch {
-      continue
-    }
-    const tokens = completionTokens(parsed)
-    if (tokens !== undefined) onUsage(tokens)
-    const delta = parsed.choices?.[0]?.delta
-    if (!delta) continue
-    if (typeof delta.content === 'string' && delta.content)
-      yield { type: 'text', text: delta.content }
-    for (const tool of delta.tool_calls ?? []) {
-      for (const call of noteToolDelta(calls, tool)) yield { type: 'tool', call }
-    }
-  }
-  for (const call of finishTools(calls)) yield { type: 'tool', call }
-}
-
-async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
-  const reader = body.getReader()
-  const decoder = new TextDecoder()
-  let buf = ''
-  while (true) {
-    const { done, value } = await reader.read()
-    buf += decoder.decode(value, { stream: !done })
-    const parts = buf.split('\n\n')
-    buf = done ? '' : (parts.pop() ?? '')
-    for (const part of parts) {
-      const data = part
-        .split('\n')
-        .filter((line) => line.startsWith('data:'))
-        .map((line) => line.slice(5).trim())
-        .join('')
-      if (data) yield data
-    }
-    if (done) break
-  }
 }
 
 function plainCall(call: ToolCall): {
@@ -759,70 +589,4 @@ function plainCall(call: ToolCall): {
     name: call.function.name,
     arguments: parseArgs(call.function.arguments),
   }
-}
-
-function completionTokens(value: unknown): number | undefined {
-  if (value === null || typeof value !== 'object') return undefined
-  const usage = (value as { usage?: unknown }).usage
-  if (usage === null || typeof usage !== 'object') return undefined
-  const record = usage as Record<string, unknown>
-  const tokens = record.completion_tokens ?? record.output_tokens
-  return typeof tokens === 'number' && Number.isFinite(tokens) ? tokens : undefined
-}
-
-function parseArgs(raw: unknown): Record<string, unknown> {
-  if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw) as unknown
-      return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
-        ? (parsed as Record<string, unknown>)
-        : {}
-    } catch {
-      return {}
-    }
-  }
-  return raw !== null && typeof raw === 'object' && !Array.isArray(raw)
-    ? (raw as Record<string, unknown>)
-    : {}
-}
-
-function placement(args: Record<string, unknown>): { index?: number; replace?: boolean } {
-  const index = number(args.index)
-  return {
-    ...(index !== undefined ? { index } : {}),
-    ...(args.replace === true ? { replace: true } : {}),
-  }
-}
-
-function numbers(args: Record<string, unknown>): {
-  offset?: number
-  limit?: number
-  last?: number
-} {
-  return {
-    offset: number(args.offset),
-    limit: number(args.limit),
-    last: number(args.last),
-  }
-}
-
-function string(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : ''
-}
-
-function number(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isInteger(value) ? value : undefined
-}
-
-function names(value: unknown): string[] {
-  const list =
-    typeof value === 'string'
-      ? [value]
-      : Array.isArray(value)
-        ? value.map((item) => String(item))
-        : []
-  return list
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 5)
 }

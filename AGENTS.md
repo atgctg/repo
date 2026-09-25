@@ -10,7 +10,11 @@ Greenfield project, no backwards compatibility needed.
 
 1k+ lines are fine if they make sense (e.g. styles.css).
 
-After code changes, run `bun run fix` and resolve any remaining oxlint errors before finishing the turn.
+After code changes, run `bun run fix` and resolve any errors.
+
+Never call `useEffect` directly. Prefer derived state (React Compiler is enabled), event handlers, query libraries, `key` remounts, or `useMountEffect()` for one-time external sync. See `no-use-effect` skill for more.
+
+No animations and transitions for now.
 
 # Starting points
 

@@ -70,7 +70,10 @@ export async function runEvalCase(
   if (!evalCase) throw new StoryError('Eval not found', 404)
   const world = await loadWorld(evalCase.world)
   if (!world) throw new StoryError('World not found', 404)
-  const id = await saveEvalStory(name, [...world.events, ...parseEvents(evalCase.events)])
+  const id = await saveEvalStory(name, world.id, [
+    ...world.events,
+    ...parseEvents(evalCase.events),
+  ])
   await reply(
     id,
     { text: evalCase.input.text, selected: evalCase.input.selected },

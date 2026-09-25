@@ -204,7 +204,7 @@ async function runCase(name: string): Promise<void> {
     `${DIR}/${name}.out.yaml`,
     stringify({ case: name, events: output }, { indent: 2 }),
   )
-  await saveEvalStory(name, [...events, ...output])
+  await saveEvalStory(name, (await loadCase(name)).world, [...events, ...output])
   console.log(`${name} done`)
 }
 

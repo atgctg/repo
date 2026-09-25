@@ -20,7 +20,7 @@ import { app } from './context'
 import { assetFileName, assetUrl, speechFileName } from './files'
 import { generateStoryImage, generateStoryVideo } from './media'
 import { formatScene } from './scene-text'
-import { loadWorld, matchWorld, worldRows } from './worlds'
+import { loadWorld } from './worlds'
 
 const storyWrites = new Map<string, Promise<void>>()
 
@@ -99,11 +99,11 @@ export async function forkWorld(worldId: string, requestedId?: string): Promise<
 
 export async function saveEvalStory(
   caseName: string,
+  world: string,
   events: StoryEvent[],
 ): Promise<string> {
   const id = await uniqueStoryId(caseName)
   const now = new Date()
-  const world = matchWorld(await worldRows(), events) ?? 'eval'
   await database().insert(storyTable).values({
     id,
     world,
@@ -137,34 +137,19 @@ export async function listStories(): Promise<StorySummary[]> {
     database().select().from(storyTable).orderBy(desc(storyTable.updatedAt)),
     listAssetKeys(app().assets, ['stories/', 'worlds/']),
   ])
-  let known: Awaited<ReturnType<typeof worldRows>> | undefined
-  const stories: StorySummary[] = []
-  for (const row of rows) {
+  return rows.map((row) => {
     const story = hydrateWith(row, keys)
-    let world = story.world
-    if (row.caseName && world === 'eval') {
-      known ??= await worldRows()
-      const matched = matchWorld(known, story.events)
-      if (matched) {
-        world = matched
-        await database()
-          .update(storyTable)
-          .set({ world: matched })
-          .where(eq(storyTable.id, story.id))
-      }
-    }
     const cover = getStoryCover(story)
-    stories.push({
+    return {
       id: story.id,
-      world,
+      world: story.world,
       title: story.title,
       updatedAt: story.updatedAt,
       preview: historyPreview(story.events),
       ...(cover ? { cover } : {}),
       ...(row.caseName ? { case: row.caseName } : {}),
-    })
-  }
-  return stories
+    }
+  })
 }
 
 export async function loadStory(id: string): Promise<Story> {

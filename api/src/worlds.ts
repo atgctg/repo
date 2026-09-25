@@ -13,8 +13,6 @@ import { parseEvents } from './events'
 import { assetFileName, safeStoryId, worldAssetUrl } from './files'
 import { worlds } from './schema'
 
-type WorldRow = typeof worlds.$inferSelect
-
 export async function listWorlds(): Promise<World[]> {
   const [rows, keys] = await Promise.all([
     database()
@@ -29,42 +27,6 @@ export async function listWorlds(): Promise<World[]> {
     const cover = worldCover(id, parseEvents(row.events), keys)
     return { id, title: row.title, ...(cover ? { cover } : {}) }
   })
-}
-
-export function worldRows(): Promise<WorldRow[]> {
-  return database().select().from(worlds)
-}
-
-export function matchWorld(rows: WorldRow[], events: StoryEvent[]): string | undefined {
-  let bestId: string | undefined
-  let best = 0
-  const cards = new Set(
-    events.flatMap((event) => (event.type === 'card' ? [event.name] : [])),
-  )
-  for (const row of rows) {
-    const worldEvents = parseEvents(row.events)
-    const prefix = sharedPrefix(worldEvents, events)
-    const overlap = worldEvents.filter(
-      (event) => event.type === 'card' && cards.has(event.name),
-    ).length
-    const score = prefix > 0 ? prefix : overlap
-    if (score > best) {
-      best = score
-      bestId = row.id
-    }
-  }
-  return bestId
-}
-
-function sharedPrefix(worldEvents: StoryEvent[], events: StoryEvent[]): number {
-  const limit = Math.min(worldEvents.length, events.length)
-  let count = 0
-  while (
-    count < limit &&
-    JSON.stringify(worldEvents[count]) === JSON.stringify(events[count])
-  )
-    count += 1
-  return count
 }
 
 export async function loadWorld(id: string): Promise<WorldSource | undefined> {

@@ -28,12 +28,13 @@ const styles = stylex.create({
     gridRow: '1',
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
+    gap: '0.35rem',
     minWidth: 0,
     margin: 0,
     padding: '0.75rem 1.5rem 0.25rem 0.75rem',
   },
   title: {
+    flex: '1 1 auto',
     minWidth: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -45,14 +46,29 @@ const styles = stylex.create({
   count: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.25rem',
+    gap: '0.15rem',
     flex: 'none',
     color: tokens.muted,
     fontSize: tokens.textSm,
-    lineHeight: 1.5,
+    lineHeight: 1,
   },
-  cards: {
-    marginLeft: 'auto',
+  tool: {
+    flex: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.15rem',
+    padding: '0.15rem 0.3rem',
+    borderRadius: tokens.radiusPill,
+    color: tokens.muted,
+    backgroundColor: 'transparent',
+    fontSize: tokens.textSm,
+    lineHeight: 1,
+    ':hover': {
+      backgroundColor: tokens.chip,
+    },
+  },
+  toolOn: {
+    color: tokens.accent,
   },
   albums: {
     transform: 'rotate(90deg)',
@@ -141,7 +157,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
         <Button
           type="button"
           aria-pressed={onCards}
-          {...stylex.props(ui.ghost, styles.cards, onCards && ui.ghostOn)}
+          {...stylex.props(styles.tool, onCards && styles.toolOn)}
           onClick={() => show(onCards ? `/${story.id}` : `/${story.id}/cards`)}
         >
           <span {...stylex.props(styles.albums)}>
@@ -152,7 +168,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
         <Button
           type="button"
           aria-pressed={onRaw}
-          {...stylex.props(ui.ghost, onRaw && ui.ghostOn)}
+          {...stylex.props(styles.tool, onRaw && styles.toolOn)}
           onClick={() => show(onRaw ? `/${story.id}` : `/${story.id}/raw`)}
         >
           Raw

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import { leadCards, storyId } from 'shared'
+import { lastUserText, leadCards, storyId } from 'shared'
 import type {
   Speech,
   Story,
@@ -11,7 +11,6 @@ import type {
   WorldSource,
 } from 'shared'
 import {
-  fetchEvals,
   fetchStories,
   fetchStory,
   fetchWorld,
@@ -60,12 +59,6 @@ export type Activity = {
   error?: string
 }
 
-export type EvalRun = {
-  id: string
-  name: string
-  createdAt: number
-}
-
 type Snapshot = {
   worlds: World[]
   sources: Record<string, WorldSource>
@@ -74,7 +67,6 @@ type Snapshot = {
   ui: Record<string, StoryUi>
   activity: Record<string, Activity>
   now: number
-  evals: EvalRun[]
   version: number
 }
 
@@ -88,7 +80,6 @@ const serverSnapshot: Snapshot = {
   ui: {},
   activity: {},
   now: 0,
-  evals: [],
   version: 0,
 }
 
@@ -128,20 +119,22 @@ function uiOf(id: string): StoryUi {
   return snapshot.ui[id] ?? emptyUi
 }
 
-function summaryFor(entry: Entry, cover?: string): StorySummary {
+function summaryFor(entry: Entry, cover?: string, caseName?: string): StorySummary {
   return {
     id: entry.id,
     world: entry.world,
     title: entry.title,
     updatedAt: entry.updatedAt,
+    preview: lastUserText(entry.events),
     ...(cover ? { cover } : {}),
+    ...(caseName ? { case: caseName } : {}),
   }
 }
 
 function save(entry: Entry, cover?: string): void {
   const prev = snapshot.summaries.find((item) => item.id === entry.id)
   const summaries = [
-    summaryFor(entry, cover ?? prev?.cover),
+    summaryFor(entry, cover ?? prev?.cover, prev?.case),
     ...snapshot.summaries.filter((item) => item.id !== entry.id),
   ]
   commit({
@@ -178,10 +171,6 @@ export function useWorlds(): World[] {
 
 export function useStoryList(): StorySummary[] {
   return useSnap().summaries
-}
-
-export function useEvals(): EvalRun[] {
-  return useSnap().evals
 }
 
 export function useNow(): number {
@@ -275,21 +264,11 @@ export function ensureIndex(): Promise<void> {
       setWorlds(worlds)
       setSummaries(stories)
       await Promise.all(worlds.map((world) => ensureWorld(world.id)))
-      if (import.meta.env.DEV) setEvals(await fetchEvals())
     })
     .finally(() => {
       indexLoad = undefined
     })
   return indexLoad
-}
-
-export async function loadEvals(): Promise<void> {
-  if (!import.meta.env.DEV) return
-  setEvals(await fetchEvals())
-}
-
-function setEvals(evals: EvalRun[]): void {
-  commit({ ...snapshot, evals })
 }
 
 function messageOf(error: unknown): string {

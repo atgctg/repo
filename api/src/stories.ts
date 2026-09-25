@@ -1,5 +1,6 @@
 import { stringify } from 'yaml'
 import {
+  lastUserText,
   leadCards,
   project,
   storyId,
@@ -81,6 +82,22 @@ export async function forkWorld(worldId: string, requestedId?: string): Promise<
   return hydrate(created)
 }
 
+export async function saveEvalStory(
+  caseName: string,
+  events: StoryEvent[],
+  passed: boolean,
+): Promise<string> {
+  const id = uniqueStoryId(caseName)
+  const now = Date.now()
+  database()
+    .query(
+      `INSERT INTO stories (id, world, title, events, created_at, updated_at, case_name, passed)
+       VALUES (?, 'eval', ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(id, caseName, JSON.stringify(events), now, now, caseName, passed ? 1 : 0)
+  return id
+}
+
 function uniqueStoryId(worldId: string): string {
   for (let attempt = 0; attempt < 8; attempt++) {
     const id = storyId(worldId)
@@ -100,7 +117,7 @@ export function storyWorld(id: string): string | undefined {
 export async function listStories(): Promise<StorySummary[]> {
   const rows = database()
     .query<StoryRow, []>(
-      'SELECT id, world, title, events, created_at, updated_at FROM stories ORDER BY updated_at DESC',
+      'SELECT id, world, title, events, created_at, updated_at, case_name, passed FROM stories ORDER BY updated_at DESC',
     )
     .all()
   const stories: StorySummary[] = []
@@ -112,7 +129,9 @@ export async function listStories(): Promise<StorySummary[]> {
       world: story.world,
       title: story.title,
       updatedAt: story.updatedAt,
+      preview: lastUserText(story.events),
       ...(cover ? { cover } : {}),
+      ...(row.case_name ? { case: row.case_name } : {}),
     })
   }
   return stories
@@ -128,7 +147,7 @@ function rowById(id: string): StoryRow | undefined {
   return (
     database()
       .query<StoryRow, [string]>(
-        'SELECT id, world, title, events, created_at, updated_at FROM stories WHERE id = ?',
+        'SELECT id, world, title, events, created_at, updated_at, case_name, passed FROM stories WHERE id = ?',
       )
       .get(id) ?? undefined
   )

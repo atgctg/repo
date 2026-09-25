@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Button } from '@base-ui/react/button'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import type { Story } from 'shared'
 import { Composer } from './composer'
@@ -90,6 +90,7 @@ const styles = stylex.create({
 })
 
 export function Studio({ story }: { story: Story }): ReactNode {
+  const navigate = useNavigate()
   const uiState = useStoryUi(story.id)
   const scene =
     uiState.openScene === undefined ? undefined : story.scenes[uiState.openScene]
@@ -114,6 +115,14 @@ export function Studio({ story }: { story: Story }): ReactNode {
             <Icon name="albums" />
           </span>
           <span>{story.cards.length}</span>
+        </Button>
+        <Button
+          type="button"
+          aria-pressed={false}
+          {...stylex.props(ui.ghost)}
+          onClick={() => void navigate(`/${story.id}/raw`)}
+        >
+          Raw
         </Button>
       </header>
       <div {...stylex.props(styles.chat)}>

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
-import { data, Link } from 'react-router'
+import { Link } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
-import { useMountEffect } from '~/hooks/use-mount-effect'
-import { fetchEval, type EvalView } from '~/lib/api'
+import { fetchEvalStats, type EvalStat } from '~/lib/api'
+import { ago } from '~/lib/time'
 import { tokens } from '~/styles/tokens.stylex'
 import type { Route } from './+types/eval'
 
@@ -12,7 +12,7 @@ const styles = stylex.create({
     padding: '1.5rem 1.25rem 3rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.75rem',
+    gap: '1.5rem',
     backgroundColor: tokens.bg,
     color: tokens.text,
   },
@@ -20,38 +20,33 @@ const styles = stylex.create({
     color: tokens.muted,
     fontSize: tokens.textSm,
   },
-  block: {
+  case: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.4rem',
-    minWidth: 0,
+    gap: '0.35rem',
   },
-  label: {
-    color: tokens.muted,
-    fontSize: tokens.textXs,
+  stat: {
+    fontSize: tokens.textMd,
     fontWeight: 600,
   },
-  text: {
-    whiteSpace: 'pre-wrap',
-    fontSize: tokens.textSm,
-    lineHeight: 1.45,
+  count: {
+    color: tokens.muted,
+    fontWeight: 500,
   },
-  raw: {
-    margin: 0,
-    whiteSpace: 'pre-wrap',
-    overflowWrap: 'anywhere',
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-    fontSize: '0.75rem',
-    lineHeight: 1.45,
+  runs: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.15rem',
+    paddingLeft: '0.15rem',
+  },
+  run: {
+    color: tokens.text,
+    fontSize: tokens.textSm,
   },
 })
 
-export async function clientLoader({
-  params,
-}: Route.ClientLoaderArgs): Promise<EvalView> {
-  const view = await fetchEval(params.id ?? '')
-  if (!view) throw data(null, { status: 404 })
-  return view
+export async function clientLoader(): Promise<EvalStat[]> {
+  return fetchEvalStats()
 }
 
 clientLoader.hydrate = true as const
@@ -60,44 +55,37 @@ export function HydrateFallback(): ReactNode {
   return <p {...stylex.props(styles.back)}>Loading</p>
 }
 
-function Title({ title }: { title: string }): null {
-  useMountEffect(() => {
-    document.title = title
-  })
-  return null
-}
-
-function Raw({ value }: { value: unknown }): ReactNode {
-  return <pre {...stylex.props(styles.raw)}>{JSON.stringify(value, null, 2)}</pre>
-}
-
 export default function EvalRoute({ loaderData }: Route.ComponentProps): ReactNode {
+  const now = Date.now()
   return (
     <main {...stylex.props(styles.page)}>
-      <Title title={loaderData.name} />
       <Link to="/" {...stylex.props(styles.back)}>
-        {loaderData.name}
+        Back
       </Link>
-      <section {...stylex.props(styles.block)}>
-        <h2 {...stylex.props(styles.label)}>Input</h2>
-        <Raw value={loaderData.input} />
-      </section>
-      <section {...stylex.props(styles.block)}>
-        <h2 {...stylex.props(styles.label)}>Expected</h2>
-        <p {...stylex.props(styles.text)}>{loaderData.expected}</p>
-      </section>
-      <section {...stylex.props(styles.block)}>
-        <h2 {...stylex.props(styles.label)}>Output</h2>
-        <Raw value={loaderData.output} />
-      </section>
-      <section {...stylex.props(styles.block)}>
-        <h2 {...stylex.props(styles.label)}>LLM</h2>
-        <Raw value={loaderData.trace} />
-      </section>
+      {loaderData.length === 0 ? (
+        <p {...stylex.props(styles.back)}>No eval runs</p>
+      ) : null}
+      {loaderData.map((item) => (
+        <section key={item.name} {...stylex.props(styles.case)}>
+          <h2 {...stylex.props(styles.stat)}>
+            {item.name}{' '}
+            <span {...stylex.props(styles.count)}>
+              {item.passed}/{item.total}
+            </span>
+          </h2>
+          <div {...stylex.props(styles.runs)}>
+            {item.runs.map((run) => (
+              <Link key={run.id} to={`/${run.id}`} {...stylex.props(styles.run)}>
+                {ago(run.createdAt, now)}
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
     </main>
   )
 }
 
 export function ErrorBoundary(): ReactNode {
-  return <p {...stylex.props(styles.back)}>Not found</p>
+  return <p {...stylex.props(styles.back)}>Could not load evals</p>
 }

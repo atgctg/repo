@@ -10,7 +10,6 @@ import type {
   World,
   WorldSource,
 } from 'shared'
-import type { EvalRun } from './store'
 
 const PHASES: readonly TurnPhase[] = ['model', 'image', 'video', 'voice']
 
@@ -49,7 +48,8 @@ function isSummary(value: unknown): value is StorySummary {
     typeof value.id === 'string' &&
     typeof value.world === 'string' &&
     typeof value.title === 'string' &&
-    typeof value.updatedAt === 'string'
+    typeof value.updatedAt === 'string' &&
+    typeof value.preview === 'string'
   )
 }
 
@@ -194,54 +194,52 @@ export async function postGenerate(
   return undefined
 }
 
-export type EvalView = {
-  id: string
-  name: string
-  createdAt: number
-  input: unknown
-  expected: string
-  output: unknown
-  trace: unknown
+export type RawMessage = {
+  role: string
+  content?: string
+  name?: string
+  tool_calls?: unknown
+  tool_call_id?: string
 }
 
-export async function fetchEval(id: string): Promise<EvalView | undefined> {
-  const res = await fetch(`/api/evals/${encodeURIComponent(id)}`, { cache: 'no-store' })
+function isRawMessage(value: unknown): value is RawMessage {
+  return isRecord(value) && typeof value.role === 'string'
+}
+
+export async function fetchMessages(id: string): Promise<RawMessage[] | undefined> {
+  const res = await fetch(`/api/stories/${encodeURIComponent(id)}/messages`, {
+    cache: 'no-store',
+  })
   if (res.status === 404) return undefined
   if (!res.ok) throw new Error(await errorText(res))
   const body = (await res.json()) as unknown
-  if (!isRecord(body)) return undefined
-  if (typeof body.id !== 'string' || typeof body.name !== 'string') return undefined
-  if (typeof body.expected !== 'string' || typeof body.createdAt !== 'number')
-    return undefined
-  return {
-    id: body.id,
-    name: body.name,
-    createdAt: body.createdAt,
-    input: body.input,
-    expected: body.expected,
-    output: body.output,
-    trace: body.trace,
-  }
+  return Array.isArray(body) ? body.filter(isRawMessage) : []
 }
 
-export async function fetchEvals(): Promise<EvalRun[]> {
-  try {
-    const res = await fetch('/api/evals', { cache: 'no-store' })
-    if (!res.ok) return []
-    const type = res.headers.get('content-type') ?? ''
-    if (!type.includes('json')) return []
-    const body = (await res.json()) as unknown
-    if (!Array.isArray(body)) return []
-    return body.flatMap((item) => {
-      if (!isRecord(item)) return []
-      const created = item.createdAt ?? item.created_at
-      if (typeof item.id !== 'string' || typeof item.name !== 'string') return []
-      if (typeof created !== 'number') return []
-      return [{ id: item.id, name: item.name, createdAt: created }]
-    })
-  } catch {
-    return []
-  }
+export type EvalStat = {
+  name: string
+  passed: number
+  total: number
+  runs: { id: string; createdAt: number }[]
+}
+
+export async function fetchEvalStats(): Promise<EvalStat[]> {
+  const res = await fetch('/api/evals', { cache: 'no-store' })
+  if (!res.ok) throw new Error(await errorText(res))
+  const body = (await res.json()) as unknown
+  if (!Array.isArray(body)) return []
+  return body.flatMap((item) => {
+    if (!isRecord(item) || typeof item.name !== 'string') return []
+    if (typeof item.passed !== 'number' || typeof item.total !== 'number') return []
+    const runs = Array.isArray(item.runs)
+      ? item.runs.flatMap((run) => {
+          if (!isRecord(run) || typeof run.id !== 'string') return []
+          if (typeof run.createdAt !== 'number') return []
+          return [{ id: run.id, createdAt: run.createdAt }]
+        })
+      : []
+    return [{ name: item.name, passed: item.passed, total: item.total, runs }]
+  })
 }
 
 export type { StoryEvent }

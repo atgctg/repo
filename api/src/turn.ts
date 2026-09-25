@@ -35,6 +35,10 @@ export function followUp(toolNames: string[]): boolean {
 
 const systemPrompt = await Bun.file(`${import.meta.dir}/../prompts/system.md`).text()
 
+export function llmMessages(events: StoryEvent[]): ChatMessage[] {
+  return [{ role: 'system', content: systemPrompt }, ...eventsToMessages(events)]
+}
+
 export async function reply(
   storyId: string,
   input: { text: string; at?: number },
@@ -149,10 +153,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
   const live: Live = { ...options, publish: () => save.now(true) }
   emit({ event: 'status', data: { phase: 'model', startedAt } })
   await save.now(true)
-  const messages: ChatMessage[] = [
-    { role: 'system', content: systemPrompt },
-    ...eventsToMessages(story.events),
-  ]
+  const messages = llmMessages(story.events)
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
     if (loop > 0) emit({ event: 'status', data: { phase: 'model', startedAt } })
     const sent = options.trace ? structuredClone(messages) : undefined

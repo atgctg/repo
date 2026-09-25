@@ -249,6 +249,13 @@ const tileStyles = stylex.create({
   scene: {
     borderRadius: tokens.radiusScene,
     padding: 0,
+    containerType: 'inline-size',
+    transitionProperty: 'border-radius',
+    transitionDuration: '160ms',
+    transitionTimingFunction: 'ease-out',
+  },
+  sceneOn: {
+    borderRadius: `calc(${tokens.radiusScene} + ${tokens.ringWidth} + ${tokens.ringGap})`,
   },
   sceneBody: {
     padding: '1rem 1.25rem',
@@ -284,13 +291,26 @@ const tileStyles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     borderRadius: tokens.radiusScene,
-    transitionProperty: 'inset, border-radius',
+    transitionProperty: 'inset',
     transitionDuration: '160ms',
     transitionTimingFunction: 'ease-out',
   },
   faceOn: {
     inset: `calc(${tokens.ringWidth} + ${tokens.ringGap})`,
-    borderRadius: `max(0px, calc(${tokens.radiusScene} - ${tokens.ringWidth} - ${tokens.ringGap}))`,
+  },
+  captionLayer: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 4,
+    pointerEvents: 'none',
+    transformOrigin: 'center',
+    transform: 'scale(1)',
+    transitionProperty: 'transform',
+    transitionDuration: '160ms',
+    transitionTimingFunction: 'ease-out',
+  },
+  captionOn: {
+    transform: `scale(calc((100cqw - 2 * (${tokens.ringWidth} + ${tokens.ringGap})) / 100cqw))`,
   },
   ring: {
     position: 'absolute',
@@ -334,6 +354,7 @@ export function Tile({
   const frame = stylex.props(
     ui.card,
     scene && tileStyles.scene,
+    scene && selected && tileStyles.sceneOn,
     !image && ui.cardEmpty,
     media && !blurred && ui.cardMedia,
     onClick && ui.cardButton,
@@ -372,7 +393,9 @@ export function Tile({
           </div>
         ) : null}
         {children}
-        {footer ? <div {...stylex.props(tileStyles.footer)}>{footer}</div> : null}
+        {footer && !scene ? (
+          <div {...stylex.props(tileStyles.footer)}>{footer}</div>
+        ) : null}
       </div>
       {action ? <div {...stylex.props(tileStyles.live)}>{action}</div> : null}
     </>
@@ -399,6 +422,11 @@ export function Tile({
       ) : (
         body
       )}
+      {scene && footer ? (
+        <div {...stylex.props(tileStyles.captionLayer, selected && tileStyles.captionOn)}>
+          <div {...stylex.props(tileStyles.footer)}>{footer}</div>
+        </div>
+      ) : null}
       {scene && selected ? (
         <span {...withClass(stylex.props(tileStyles.ring), 'squircle')} />
       ) : null}

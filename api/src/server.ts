@@ -10,9 +10,9 @@ import {
   StoryError,
   forkWorld,
 } from './stories'
-import { reply } from './turn'
+import { llmMessages, reply } from './turn'
 import { resolveAssetPath, safeAssetFile, safeStoryId, worldAssetPath } from './files'
-import { listEvals, readEval } from './eval'
+import { listEvalStats } from './eval'
 import { loadWorld, listWorlds, worldExists } from './worlds'
 
 function jsonError(error: unknown, status = 500): Response {
@@ -83,17 +83,21 @@ const server = Bun.serve({
       },
     },
     '/api/evals': {
-      GET: () => Response.json(listEvals()),
-    },
-    '/api/evals/:id': {
-      GET: async (req) => {
-        const view = await readEval(req.params.id)
-        if (!view) return new Response('Not found', { status: 404 })
-        return Response.json(view)
-      },
+      GET: async () => Response.json(await listEvalStats()),
     },
     '/api/stories': {
       GET: async () => Response.json(await listStories()),
+    },
+    '/api/stories/:id/messages': {
+      GET: async (req) => {
+        if (!storyExists(req.params.id)) return new Response('Not found', { status: 404 })
+        try {
+          const story = await loadStory(req.params.id)
+          return Response.json(llmMessages(story.events))
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
     },
     '/api/stories/:id': {
       GET: async (req) => {

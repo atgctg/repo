@@ -130,6 +130,8 @@ export type StorySummary = {
   title: string
   cover?: string
   updatedAt: string
+  preview: string
+  case?: string
 }
 
 export type TurnPhase = 'model' | 'image' | 'video' | 'voice'

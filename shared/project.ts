@@ -1,6 +1,15 @@
 import { mergeAttributes } from './records'
 import type { Asset, Card, CardEvent, DialogueScene, Scene, StoryEvent } from './types'
 
+export function lastUserText(events: StoryEvent[]): string {
+  for (let index = events.length - 1; index >= 0; index--) {
+    const event = events[index]
+    if (event?.type === 'message' && event.user && event.text.trim())
+      return event.text.replace(/\s+/g, ' ').trim()
+  }
+  return ''
+}
+
 export function leadCards(events: StoryEvent[]): StoryEvent[] {
   const cut = events.findIndex((event) => event.user)
   const head = cut < 0 ? events : events.slice(0, cut)

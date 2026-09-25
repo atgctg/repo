@@ -1,8 +1,9 @@
 import { project, type StoryEvent } from 'shared'
 import { parse, stringify } from 'yaml'
-import { evalRow, listEvalRows, recordEval } from './db'
+import { database } from './db'
 import { parseChecks, scoreEvents, type Check, type CheckResult } from './eval-score'
-import { replayEvents, type LlmExchange } from './turn'
+import { replayEvents } from './turn'
+import { saveEvalStory } from './stories'
 
 const DIR = `${import.meta.dir}/../evals`
 
@@ -92,43 +93,47 @@ async function runCase(name: string): Promise<boolean> {
       { indent: 2 },
     ),
   )
-  recordEval(`${name}.yaml`, output, replay.trace)
+  await saveEvalStory(name, [...evalCase.events, ...output], ok)
   return ok
 }
 
-export function listEvals(): { id: string; name: string; createdAt: number }[] {
-  return listEvalRows().map((row) => ({
-    id: row.id,
-    name: row.name.replace(/\.yaml$/, ''),
-    createdAt: row.created_at,
-  }))
+const RUNS = 3
+
+export type EvalStat = {
+  name: string
+  passed: number
+  total: number
+  runs: { id: string; createdAt: number }[]
 }
 
-export async function readEval(id: string): Promise<
-  | {
-      id: string
-      name: string
-      createdAt: number
-      input: StoryEvent[]
-      expected: string
-      output: StoryEvent[]
-      trace: LlmExchange[]
+export async function listEvalStats(): Promise<EvalStat[]> {
+  const names = await listCases()
+  const rows = database()
+    .query<
+      { id: string; case_name: string; passed: number | null; created_at: number },
+      []
+    >(
+      `SELECT id, case_name, passed, created_at FROM stories
+       WHERE case_name IS NOT NULL ORDER BY created_at DESC`,
+    )
+    .all()
+  const groups = new Map<string, EvalStat>()
+  for (const name of names) groups.set(name, { name, passed: 0, total: 0, runs: [] })
+  for (const row of rows) {
+    const group = groups.get(row.case_name) ?? {
+      name: row.case_name,
+      passed: 0,
+      total: 0,
+      runs: [],
     }
-  | undefined
-> {
-  const row = evalRow(id)
-  if (!row) return undefined
-  const name = row.name.replace(/\.yaml$/, '')
-  const evalCase = await loadCase(name)
-  return {
-    id: row.id,
-    name,
-    createdAt: row.created_at,
-    input: evalCase.events,
-    expected: evalCase.expect,
-    output: JSON.parse(row.output) as StoryEvent[],
-    trace: JSON.parse(row.trace) as LlmExchange[],
+    if (row.passed) group.passed += 1
+    group.total += 1
+    group.runs.push({ id: row.id, createdAt: row.created_at })
+    groups.set(row.case_name, group)
   }
+  return [...groups.values()].sort(
+    (a, b) => b.total - a.total || a.name.localeCompare(b.name),
+  )
 }
 
 function slimChecks(checks: CheckResult[]) {
@@ -145,11 +150,15 @@ async function main(): Promise<void> {
   const picked = arg === '--all' ? names : [arg]
   let failed = 0
   for (const name of picked) {
-    const ok = await runCase(name)
-    if (!ok) failed += 1
+    let passed = 0
+    for (let run = 1; run <= RUNS; run++) {
+      const ok = await runCase(name)
+      if (ok) passed += 1
+      else failed += 1
+      console.log(`  run ${run}/${RUNS} ${ok ? 'pass' : 'fail'}`)
+    }
+    console.log(`${name} ${passed}/${RUNS}`)
   }
-  if (picked.length > 1)
-    console.log(`\n${picked.length - failed}/${picked.length} passed`)
   if (failed > 0) process.exitCode = 1
 }
 

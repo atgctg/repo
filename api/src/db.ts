@@ -9,6 +9,8 @@ export type StoryRow = {
   events: string
   created_at: number
   updated_at: number
+  case_name: string | null
+  passed: number | null
 }
 
 let handle: Database | undefined
@@ -36,58 +38,14 @@ function openDatabase(path: string): Database {
   title TEXT NOT NULL,
   events TEXT NOT NULL,
   created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
+  updated_at INTEGER NOT NULL,
+  case_name TEXT,
+  passed INTEGER
 )`)
-  db.exec(`CREATE TABLE IF NOT EXISTS evals (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  output TEXT NOT NULL,
-  trace TEXT NOT NULL DEFAULT '[]',
-  created_at INTEGER NOT NULL
-)`)
-  const columns = db.query<{ name: string }, []>('PRAGMA table_info(evals)').all()
-  if (!columns.some((column) => column.name === 'trace')) {
-    db.exec("ALTER TABLE evals ADD COLUMN trace TEXT NOT NULL DEFAULT '[]'")
-  }
+  const columns = db.query<{ name: string }, []>('PRAGMA table_info(stories)').all()
+  if (!columns.some((column) => column.name === 'case_name'))
+    db.exec('ALTER TABLE stories ADD COLUMN case_name TEXT')
+  if (!columns.some((column) => column.name === 'passed'))
+    db.exec('ALTER TABLE stories ADD COLUMN passed INTEGER')
   return db
-}
-
-export type EvalRow = {
-  id: string
-  name: string
-  output: string
-  trace: string
-  created_at: number
-}
-
-export function recordEval(name: string, output: unknown, trace: unknown): void {
-  database()
-    .query(
-      'INSERT INTO evals (id, name, output, trace, created_at) VALUES (?, ?, ?, ?, ?)',
-    )
-    .run(
-      crypto.randomUUID(),
-      name,
-      JSON.stringify(output),
-      JSON.stringify(trace),
-      Date.now(),
-    )
-}
-
-export function listEvalRows(): EvalRow[] {
-  return database()
-    .query<EvalRow, []>(
-      'SELECT id, name, output, trace, created_at FROM evals ORDER BY created_at DESC',
-    )
-    .all()
-}
-
-export function evalRow(id: string): EvalRow | undefined {
-  return (
-    database()
-      .query<EvalRow, [string]>(
-        'SELECT id, name, output, trace, created_at FROM evals WHERE id = ?',
-      )
-      .get(id) ?? undefined
-  )
 }

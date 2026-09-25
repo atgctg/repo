@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { useMountEffect } from '~/hooks/use-mount-effect'
 import { closeDrawer } from '~/lib/store'
 
@@ -12,10 +12,26 @@ function isTyping(target: EventTarget | null): boolean {
 
 export function Hotkeys(): null {
   const params = useParams()
+  const navigate = useNavigate()
   const idRef = useRef(params.id)
   idRef.current = params.id
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
   useMountEffect(() => {
     function onKeyDown(event: KeyboardEvent): void {
+      if (
+        event.metaKey &&
+        event.code === 'Backquote' &&
+        !event.altKey &&
+        !event.shiftKey
+      ) {
+        const id = idRef.current
+        if (!id) return
+        event.preventDefault()
+        const raw = window.location.pathname.endsWith('/raw')
+        void navigateRef.current(raw ? `/${id}` : `/${id}/raw`)
+        return
+      }
       if (
         event.key === '/' &&
         !event.metaKey &&

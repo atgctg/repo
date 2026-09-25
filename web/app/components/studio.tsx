@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react'
 import { Button } from '@base-ui/react/button'
-import { Link, useNavigate } from 'react-router'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import type { Story } from 'shared'
 import { Composer } from './composer'
 import { SceneDrawer } from './drawer'
-import { CardGrid, SceneGrid } from './grid'
 import { Icon } from './icons'
 import { Log } from './log'
-import { toggleCards, useStoryUi } from '~/lib/store'
+import { closeDrawer, useStoryUi } from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 
@@ -91,9 +90,18 @@ const styles = stylex.create({
 
 export function Studio({ story }: { story: Story }): ReactNode {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const onCards = pathname.endsWith('/cards')
+  const onRaw = pathname.endsWith('/raw')
   const uiState = useStoryUi(story.id)
   const scene =
-    uiState.openScene === undefined ? undefined : story.scenes[uiState.openScene]
+    onCards || onRaw || uiState.openScene === undefined
+      ? undefined
+      : story.scenes[uiState.openScene]
+  function show(path: string): void {
+    closeDrawer(story.id)
+    void navigate(path)
+  }
   return (
     <div {...stylex.props(styles.shell, scene && styles.drawer)}>
       <header {...stylex.props(styles.header)}>
@@ -107,9 +115,9 @@ export function Studio({ story }: { story: Story }): ReactNode {
         </span>
         <Button
           type="button"
-          aria-pressed={uiState.cards}
-          {...stylex.props(ui.ghost, styles.cards, uiState.cards && ui.ghostOn)}
-          onClick={() => toggleCards(story.id)}
+          aria-pressed={onCards}
+          {...stylex.props(ui.ghost, styles.cards, onCards && ui.ghostOn)}
+          onClick={() => show(onCards ? `/${story.id}` : `/${story.id}/cards`)}
         >
           <span {...stylex.props(styles.albums)}>
             <Icon name="albums" />
@@ -118,9 +126,9 @@ export function Studio({ story }: { story: Story }): ReactNode {
         </Button>
         <Button
           type="button"
-          aria-pressed={false}
-          {...stylex.props(ui.ghost)}
-          onClick={() => void navigate(`/${story.id}/raw`)}
+          aria-pressed={onRaw}
+          {...stylex.props(ui.ghost, onRaw && ui.ghostOn)}
+          onClick={() => show(onRaw ? `/${story.id}` : `/${story.id}/raw`)}
         >
           Raw
         </Button>
@@ -132,7 +140,7 @@ export function Studio({ story }: { story: Story }): ReactNode {
         </div>
       </div>
       <div {...stylex.props(styles.main)}>
-        {uiState.cards ? <CardGrid story={story} /> : <SceneGrid story={story} />}
+        <Outlet />
       </div>
       {scene ? (
         <div {...stylex.props(styles.sceneDrawer)}>

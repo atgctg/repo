@@ -58,8 +58,8 @@ const styles = stylex.create({
     backgroundColor: tokens.chip,
   },
   avatar: {
-    width: '2.25rem',
-    height: '2.25rem',
+    width: '1.75rem',
+    height: '1.75rem',
     borderRadius: tokens.radiusPill,
     overflow: 'hidden',
     flex: 'none',

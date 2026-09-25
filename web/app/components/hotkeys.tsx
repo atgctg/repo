@@ -29,6 +29,7 @@ export function Hotkeys(): null {
         if (!id) return
         event.preventDefault()
         const raw = window.location.pathname.endsWith('/raw')
+        if (!raw) closeDrawer(id)
         void navigateRef.current(raw ? `/${id}` : `/${id}/raw`)
         return
       }

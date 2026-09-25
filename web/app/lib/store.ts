@@ -47,7 +47,6 @@ export type StoryUi = {
   anchor?: number
   openScene?: number
   sceneIndex: number
-  cards: boolean
 }
 
 export type Activity = {
@@ -70,7 +69,7 @@ type Snapshot = {
   version: number
 }
 
-const emptyUi: StoryUi = { selected: [], sceneIndex: 0, cards: false }
+const emptyUi: StoryUi = { selected: [], sceneIndex: 0 }
 
 const serverSnapshot: Snapshot = {
   worlds: [],
@@ -484,17 +483,6 @@ export function closeDrawer(id: string): void {
   commit({
     ...snapshot,
     ui: { ...snapshot.ui, [id]: { ...ui, openScene: undefined } },
-  })
-}
-
-export function toggleCards(id: string): void {
-  const ui = uiOf(id)
-  commit({
-    ...snapshot,
-    ui: {
-      ...snapshot.ui,
-      [id]: { ...ui, cards: !ui.cards, openScene: undefined },
-    },
   })
 }
 

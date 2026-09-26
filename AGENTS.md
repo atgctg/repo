@@ -1,7 +1,8 @@
 # Verse (by Omni Interactive Inc.)
 
-- Interactive visual storytelling app.
-- Currently focusing on playtesting & evaluations to increase the quality of the generations, improving storytelling, and figuring out the right architecture.
+Interactive visual storytelling app.
+
+Currently focusing on playtesting & evaluations to increase the quality of the generations, improving storytelling, and figuring out the right architecture.
 
 ## UI (eventually)
 
@@ -12,16 +13,25 @@
 
 # Instructions
 
-- Be concise.
-- Do not write comments.
-- Use Bun as the package manager and script runner. In scripts use `Bun.$` APIs instead of Node.js.
-- Look up the latest docs & best practices when integrating an API.
-- Greenfield project, no backwards compatibility needed.
-- After code changes, run `bun run fix` and resolve any errors.
-- Never call `useEffect` directly. Prefer derived state (React Compiler is enabled), event handlers, query libraries, `key` remounts, or `useMountEffect()` for one-time external sync. See `no-use-effect` skill for more.
-- No animations and transitions for now.
-- Only change `AGENTS.md` and prompt files with human permission.
-- A question with '??' means you should just answer quickly without doing any work.
+Be concise.
+
+Do not write comments.
+
+Use Bun as the package manager and script runner. In scripts use `Bun.$` APIs instead of Node.js.
+
+Look up the latest docs & best practices when integrating an API.
+
+Greenfield project, no backwards compatibility needed.
+
+After code changes, run `bun run fix` and resolve any errors.
+
+Never call `useEffect` directly. Prefer derived state (React Compiler is enabled), event handlers, query libraries, `key` remounts, or `useMountEffect()` for one-time external sync. See `no-use-effect` skill for more.
+
+No animations and transitions for now.
+
+Only change `AGENTS.md` and prompt files with human permission.
+
+A question with '??' means you should just answer quickly without doing any work.
 
 # Workflow
 
@@ -36,18 +46,20 @@
 
 # Starting points
 
-- shared/types.ts
-- shared/project.ts
-- api/src/worker.ts
-- api/src/turn.ts
-- api/src/tools.ts
-- api/src/schema.ts
-- api/prompt.md
-- api/wrangler.jsonc
-- api/package.json
-- web/wrangler.jsonc
-- web/package.json
-- web/app/*
+```
+shared/types.ts
+shared/project.ts
+api/src/worker.ts
+api/src/turn.ts
+api/src/tools.ts
+api/src/schema.ts
+api/prompt.md
+api/wrangler.jsonc
+api/package.json
+web/wrangler.jsonc
+web/package.json
+web/app/*
+```
 
 # Concepts
 
@@ -66,7 +78,10 @@
 
 # Database
 
-- Planetscale Postgres `verse` db is hosted on AWS in us-east-2.
-- The database schema lives in `api/src/schema.ts`. Change it only through `drizzle-kit` migrations.
-- Generated UUID primary keys default to Postgres `uuidv7()`.
-- Bulk data changes are committed scripts in `api/scripts/` (Drizzle, batched, in one transaction), never hand-run SQL.
+Planetscale Postgres `verse` db is hosted on AWS in us-east-2.
+
+The database schema lives in `api/src/schema.ts`. Change it only through `drizzle-kit` migrations.
+
+Generated UUID primary keys default to Postgres `uuidv7()`.
+
+Bulk data changes are committed scripts in `api/scripts/` (Drizzle, batched, in one transaction), never hand-run SQL.

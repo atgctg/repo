@@ -2,6 +2,7 @@ import { beforeAll, expect, test } from 'bun:test'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { RouterContractClient } from '@orpc/contract'
+import { createFrameClient } from 'shared'
 import type { Contract } from 'shared/contract'
 import { listEvalWorlds } from '../scripts/eval'
 import { adminOk } from './auth'
@@ -115,10 +116,23 @@ test('rpc procedures answer over the fetch handler', async () => {
     .catch((error: unknown) => error)
   expect(missing).toBeInstanceOf(ORPCError)
   expect((missing as ORPCError<string, unknown>).code).toBe('NOT_FOUND')
-  const invalid = await api.stories
-    .turn({ id: story.id, text: '  ' })
-    .catch((error: unknown) => error)
-  expect((invalid as ORPCError<string, unknown>).code).toBe('BAD_REQUEST')
+})
+
+test('turn frames reject bad input and unknown stories before streaming', async () => {
+  const frames = createFrameClient({
+    url: 'http://verse.test/api',
+    fetch: (request) => handle(request),
+  })
+  const story = await forkWorld('noir')
+  await expect(frames.turn({ id: story.id, text: '  ' }).next()).rejects.toThrow(
+    'text is required',
+  )
+  await expect(frames.turn({ id: 'missing', text: 'Hi' }).next()).rejects.toThrow(
+    'Story not found',
+  )
+  await expect(frames.evalRun({ name: 'missing' }).next()).rejects.toThrow(
+    'Eval not found',
+  )
 })
 
 test('eval runs list their case and keep a verdict', async () => {

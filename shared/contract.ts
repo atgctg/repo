@@ -1,6 +1,5 @@
-import { eventIterator, oc, type } from '@orpc/contract'
+import { oc, type } from '@orpc/contract'
 import * as z from 'zod'
-import type { TurnMessage } from './turn'
 import type {
   EvalRun,
   RawMessage,
@@ -12,7 +11,20 @@ import type {
 
 const id = z.string().min(1)
 const byId = z.object({ id })
-const turnStream = eventIterator(type<TurnMessage>())
+
+export const frames = {
+  turn: z.object({
+    id,
+    text: z.string().trim().min(1, 'text is required'),
+    at: z.int().min(0).optional(),
+    selected: z.array(z.int()).optional(),
+    pasted: z.string().optional(),
+    voice: z.object({ audio: z.string(), transcript: z.string() }).optional(),
+  }),
+  evalRun: z.object({ name: id }),
+}
+
+export type FrameInputs = { [K in keyof typeof frames]: z.input<(typeof frames)[K]> }
 
 export const contract = {
   worlds: {
@@ -26,18 +38,6 @@ export const contract = {
     list: oc.output(type<StorySummary[]>()),
     get: oc.input(byId).output(type<Story>()),
     messages: oc.input(byId).output(type<RawMessage[]>()),
-    turn: oc
-      .input(
-        z.object({
-          id,
-          text: z.string().trim().min(1, 'text is required'),
-          at: z.int().min(0).optional(),
-          selected: z.array(z.int()).optional(),
-          pasted: z.string().optional(),
-          voice: z.object({ audio: z.string(), transcript: z.string() }).optional(),
-        }),
-      )
-      .output(turnStream),
     generateImage: oc
       .input(z.object({ id, name: z.string().trim().min(1) }))
       .output(type<Story>()),
@@ -56,7 +56,6 @@ export const contract = {
   },
   evals: {
     list: oc.output(type<EvalRun[]>()),
-    run: oc.input(z.object({ name: id })).output(turnStream),
   },
 }
 

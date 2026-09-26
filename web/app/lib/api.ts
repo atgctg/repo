@@ -1,6 +1,7 @@
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { RouterContractClient } from '@orpc/contract'
+import { createFrameClient } from 'shared'
 import type {
   EvalRun,
   EvalVerdict,
@@ -14,6 +15,7 @@ import type {
 import type { Contract } from 'shared/contract'
 
 const api: RouterContractClient<Contract> = createORPCClient(new RPCLink({ url: '/api' }))
+const frames = createFrameClient({ url: '/api' })
 
 async function found<T>(call: Promise<T>): Promise<T | undefined> {
   try {
@@ -52,8 +54,8 @@ export async function streamTurn(
   onMessage: (message: TurnMessage) => void,
   signal: AbortSignal,
 ): Promise<void> {
-  const events = await api.stories.turn({ id, text, at, selected }, { signal })
-  for await (const message of events) onMessage(message)
+  for await (const message of frames.turn({ id, text, at, selected }, { signal }))
+    onMessage(message)
 }
 
 export function postGenerate(

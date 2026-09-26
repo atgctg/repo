@@ -2,6 +2,7 @@ import { RPCHandler } from '@orpc/server/fetch'
 import { hasBody, storyKey, worldKey } from './assets'
 import { app } from './context'
 import { assetContentType, safeAssetFile, safeStoryId } from './files'
+import { handleFrames } from './frames'
 import { router, toRpcError } from './router'
 import { storyWorld } from './stories'
 
@@ -44,6 +45,8 @@ async function assetResponse(
 }
 
 export async function handle(request: Request): Promise<Response> {
+  const framed = await handleFrames(request)
+  if (framed) return framed
   const { matched, response } = await rpc.handle(request, { prefix: '/api' })
   if (matched) return response
   const url = new URL(request.url)

@@ -1,3 +1,4 @@
+export * from './frame'
 export * from './id'
 export * from './project'
 export * from './records'

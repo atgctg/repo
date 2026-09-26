@@ -8,7 +8,8 @@
     "drizzle-orm": "^0.45.3",
     "pg": "^8.23.0",
     "shared": "workspace:*",
-    "yaml": "^2.9.1"
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

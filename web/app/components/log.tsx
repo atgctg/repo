@@ -56,7 +56,7 @@ const styles = stylex.create({
     minWidth: 0,
     overflow: 'hidden',
     boxSizing: 'border-box',
-    padding: '0.5rem 1.25rem',
+    padding: '0.5rem 0',
     borderRadius: tokens.radiusCard,
     fontSize: tokens.textSm,
     lineHeight: 1.4,
@@ -145,7 +145,7 @@ const styles = stylex.create({
   },
   stats: {
     alignSelf: 'flex-start',
-    margin: '0.35rem 0 0 1.25rem',
+    margin: '0.35rem 0 0',
     borderCollapse: 'collapse',
     color: tokens.muted,
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',

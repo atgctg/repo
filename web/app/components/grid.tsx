@@ -79,12 +79,12 @@ const styles = stylex.create({
     height: '100%',
     minHeight: 0,
     overflow: 'auto',
-    padding: '3.25rem 0.15rem 0.25rem',
+    padding: '3.75rem 0.75rem 0.75rem',
   },
   size: {
     position: 'absolute',
     top: '0.75rem',
-    left: '0.15rem',
+    left: '0.75rem',
     zIndex: 6,
     display: 'flex',
     alignItems: 'center',
@@ -141,16 +141,30 @@ const styles = stylex.create({
     backgroundColor: tokens.chip,
     cursor: 'inherit',
   },
-  thumb: {
-    width: '2px',
-    height: '1.25rem',
-    padding: 0,
-    borderWidth: 0,
-    borderRadius: 0,
-    boxShadow: 'none',
-    backgroundColor: tokens.text,
-    zIndex: 1,
+  indicator: {
+    height: '100%',
+    backgroundColor: `color-mix(in srgb, ${tokens.text} 16%, ${tokens.chip})`,
     cursor: 'inherit',
+  },
+  thumb: {
+    width: 0,
+    height: '100%',
+    padding: 0,
+    opacity: 0,
+    cursor: 'inherit',
+  },
+  label: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 1rem',
+    color: tokens.text,
+    fontSize: tokens.textSm,
+    lineHeight: 1,
+    pointerEvents: 'none',
+    userSelect: 'none',
   },
 })
 
@@ -256,6 +270,8 @@ export function Storyboard({ story }: { story: Story }): ReactNode {
         >
           <Slider.Control {...stylex.props(styles.control)}>
             <Slider.Track {...stylex.props(styles.track)}>
+              <Slider.Indicator {...stylex.props(styles.indicator)} />
+              <span {...stylex.props(styles.label)}>Tile size</span>
               <Slider.Thumb
                 aria-label="Storyboard size"
                 {...stylex.props(styles.thumb)}

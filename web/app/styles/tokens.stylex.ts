@@ -30,7 +30,7 @@ export const tokens = stylex.defineVars({
   scrimBottom: 'linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 70%)',
   font: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   radiusCard: '0.75rem',
-  radiusScene: '0.25rem',
+  radiusScene: '0px',
   radiusPill: '999px',
   radiusPillow: '1.75rem',
   textXs: '0.75rem',

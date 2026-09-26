@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./contract": "./contract.ts"
+  },
+  "dependencies": {
+    "@orpc/contract": "^2.0.0-beta.40",
+    "zod": "^4.6.5"
   }
 }

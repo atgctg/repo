@@ -1,4 +1,4 @@
-import type { TurnTiming } from 'shared'
+import type { TurnTiming, TurnUsage } from 'shared'
 
 export function timingRows(timing: TurnTiming): [string, string][] {
   const seconds = (value: number) => `${value.toFixed(2)}s`
@@ -10,6 +10,19 @@ export function timingRows(timing: TurnTiming): [string, string][] {
       timing.images.length > 1 ? `img ${index + 1}` : 'img',
       seconds(value),
     ]),
+    ...(timing.usage ? usageRows(timing.usage) : []),
+  ]
+}
+
+function usageRows(usage: TurnUsage): [string, string][] {
+  const tokens = (value: number) => value.toLocaleString('en-US')
+  const hit = usage.input > 0 ? (usage.cached / usage.input) * 100 : 0
+  return [
+    ['input', tokens(usage.input)],
+    ['output', tokens(usage.output)],
+    ['tokens', tokens(usage.total)],
+    ['cached', tokens(usage.cached)],
+    ['cache hit', `${hit.toFixed(1)}%`],
   ]
 }
 

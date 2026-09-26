@@ -1,4 +1,8 @@
 import { beforeAll, expect, test } from 'bun:test'
+import { createORPCClient, ORPCError } from '@orpc/client'
+import { RPCLink } from '@orpc/client/fetch'
+import type { RouterContractClient } from '@orpc/contract'
+import type { Contract } from 'shared/contract'
 import { listEvalWorlds } from '../scripts/eval'
 import { adminOk } from './auth'
 import { resolveAssetKey, storyKey, worldKey } from './assets'
@@ -91,10 +95,30 @@ test('asset routes fall back from the story to its world', async () => {
   )
   expect(response.status).toBe(200)
   expect(await response.text()).toBe('cover')
-  const worlds = await handle(new Request('http://verse.test/api/worlds'))
-  expect(worlds.status).toBe(200)
-  const listed = (await worlds.json()) as { id: string }[]
+})
+
+const api: RouterContractClient<Contract> = createORPCClient(
+  new RPCLink({
+    origin: 'http://verse.test',
+    url: '/api',
+    fetch: (url, init) => handle(new Request(url, init)),
+  }),
+)
+
+test('rpc procedures answer over the fetch handler', async () => {
+  const listed = await api.worlds.list()
   expect(listed.map((world) => world.id)).toEqual(seededIds)
+  const story = await api.worlds.fork({ world: 'noir' })
+  expect((await api.stories.get({ id: story.id })).world).toBe('noir')
+  const missing = await api.stories
+    .get({ id: 'missing' })
+    .catch((error: unknown) => error)
+  expect(missing).toBeInstanceOf(ORPCError)
+  expect((missing as ORPCError<string, unknown>).code).toBe('NOT_FOUND')
+  const invalid = await api.stories
+    .turn({ id: story.id, text: '  ' })
+    .catch((error: unknown) => error)
+  expect((invalid as ORPCError<string, unknown>).code).toBe('BAD_REQUEST')
 })
 
 test('eval runs list their case and keep a verdict', async () => {

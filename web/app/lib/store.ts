@@ -488,7 +488,7 @@ export function useGenerateAsset(): (
   type: 'image' | 'video',
 ) => void {
   const mutation = useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       id,
       name,
       type,
@@ -496,13 +496,7 @@ export function useGenerateAsset(): (
       id: string
       name: string
       type: 'image' | 'video'
-    }) => {
-      const story = await postGenerate(id, name, type)
-      if (story) return story
-      const loaded = await fetchStory(id)
-      if (!loaded) throw new Error('Generate failed')
-      return loaded
-    },
+    }) => postGenerate(id, name, type),
     onMutate: ({ id, name, type }) => {
       patchActivity(id, (current) => ({
         ...current,

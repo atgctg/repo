@@ -122,11 +122,19 @@ export type VideoScene = { type: 'video'; name: string; event: number }
 
 export type Scene = MessageScene | ImageScene | DialogueScene | VideoScene
 
+export type TurnUsage = {
+  input: number
+  output: number
+  total: number
+  cached: number
+}
+
 export type TurnTiming = {
   ttft: number
   total: number
   tps: number
   images: number[]
+  usage?: TurnUsage
 }
 
 export type Story = {
@@ -163,3 +171,20 @@ export type StorySummary = {
 }
 
 export type TurnPhase = 'model' | 'image' | 'video' | 'voice'
+
+export type RawMessage = {
+  role: string
+  content?: string
+  name?: string
+  tool_calls?: unknown
+  tool_call_id?: string
+}
+
+export type EvalVerdict = 'pass' | 'fail'
+
+export type EvalRun = {
+  id: string
+  caseName: string
+  description: string
+  verdict: EvalVerdict | null
+}

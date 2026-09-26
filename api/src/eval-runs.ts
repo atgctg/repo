@@ -1,20 +1,11 @@
 import { and, asc, eq, isNotNull } from 'drizzle-orm'
-import type { TurnMessage } from 'shared'
+import type { EvalRun, EvalVerdict, TurnMessage } from 'shared'
 import { database } from './db'
 import { parseEvents } from './events'
 import { evals, stories as storyTable } from './schema'
 import { saveEvalStory, StoryError } from './stories'
 import { reply } from './turn'
 import { findWorld } from './worlds'
-
-export type EvalVerdict = 'pass' | 'fail'
-
-export type EvalRun = {
-  id: string
-  caseName: string
-  description: string
-  verdict: EvalVerdict | null
-}
 
 function verdictOf(passed: boolean | null): EvalVerdict | null {
   if (passed === true) return 'pass'

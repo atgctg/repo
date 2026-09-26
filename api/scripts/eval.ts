@@ -1,10 +1,8 @@
-import {
-  readTurn,
-  type TurnMessage,
-  project,
-  type InputEvent,
-  type StoryEvent,
-} from 'shared'
+import { createORPCClient } from '@orpc/client'
+import { RPCLink } from '@orpc/client/fetch'
+import type { RouterContractClient } from '@orpc/contract'
+import { project, type InputEvent, type StoryEvent } from 'shared'
+import type { Contract } from 'shared/contract'
 import { parse, stringify } from 'yaml'
 import { memoryAssets } from '../src/assets'
 import { useApp } from '../src/context'
@@ -208,21 +206,25 @@ async function runCase(name: string): Promise<void> {
   console.log(`${name} done`)
 }
 
+function apiClient(origin: string, password: string): RouterContractClient<Contract> {
+  return createORPCClient(
+    new RPCLink({
+      origin: origin.replace(/\/$/, ''),
+      url: '/api',
+      headers: { authorization: `Bearer ${password}` },
+    }),
+  )
+}
+
 async function runCaseOnApi(
-  origin: string,
-  password: string,
+  api: RouterContractClient<Contract>,
   name: string,
 ): Promise<void> {
   console.log(`\n${name}`)
-  const response = await fetch(
-    `${origin.replace(/\/$/, '')}/api/evals/${encodeURIComponent(name)}/run`,
-    { method: 'POST', headers: { Authorization: `Bearer ${password}` } },
-  )
-  if (!response.ok || !response.body) throw new Error(await response.text())
-  await readTurn(response.body, (message: TurnMessage) => {
+  for await (const message of await api.evals.run({ name })) {
     if (message.type === 'error') console.error(`  error: ${message.error}`)
     if (message.type === 'done') console.log(`${name} done`)
-  })
+  }
 }
 
 async function main(): Promise<void> {
@@ -240,7 +242,8 @@ async function main(): Promise<void> {
       console.error('ADMIN_PASSWORD is required')
       process.exit(1)
     }
-    for (const name of picked) await runCaseOnApi(origin, password, name)
+    const api = apiClient(origin, password)
+    for (const name of picked) await runCaseOnApi(api, name)
     return
   }
   const connectionString = process.env.DATABASE_URL

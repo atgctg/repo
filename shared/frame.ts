@@ -46,9 +46,7 @@ export function decodeFrames(bytes: Uint8Array): {
     }
     offset = end
   }
-  const rest = new Uint8Array(bytes.byteLength - offset)
-  rest.set(bytes.subarray(offset))
-  return { messages, rest }
+  return { messages, rest: bytes.subarray(offset) }
 }
 
 export function turnResponse(
@@ -97,14 +95,14 @@ export async function* readFrames(
   body: ReadableStream<Uint8Array>,
 ): AsyncGenerator<TurnMessage> {
   const reader = body.getReader()
-  let pending = new Uint8Array()
+  let pending: Uint8Array = new Uint8Array()
   try {
     while (true) {
       const { done, value } = await reader.read()
       if (done) return
       if (!value || value.byteLength === 0) continue
       const decoded = decodeFrames(concatBytes([pending, value]))
-      pending = new Uint8Array(decoded.rest)
+      pending = decoded.rest
       yield* decoded.messages
     }
   } finally {

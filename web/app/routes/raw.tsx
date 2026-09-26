@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { data } from 'react-router'
 import * as stylex from '@stylexjs/stylex'
 import { isPlainObject, type RawMessage } from 'shared'
-import { fetchMessages } from '~/lib/api'
+import { api, found } from '~/lib/api'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 import type { Route } from './+types/raw'
@@ -51,7 +51,9 @@ const styles = stylex.create({
 export async function clientLoader({
   params,
 }: Route.ClientLoaderArgs): Promise<RawMessage[]> {
-  const messages = params.id ? await fetchMessages(params.id) : undefined
+  const messages = params.id
+    ? await found(api.stories.messages({ id: params.id }))
+    : undefined
   if (!messages) throw data(null, { status: 404 })
   return messages
 }

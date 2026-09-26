@@ -1,5 +1,5 @@
 import { QueryClient, queryOptions } from '@tanstack/react-query'
-import { fetchEvalRuns } from './api'
+import { api } from './api'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +21,6 @@ export const storyKey = (id: string) => ['story', id] as const
 export function evalsQuery() {
   return queryOptions({
     queryKey: evalsKey,
-    queryFn: fetchEvalRuns,
+    queryFn: () => api.evals.list(),
   })
 }

@@ -3,30 +3,28 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: ci-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: ${{ github.event.action != 'closed' }}
 
 env:
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   PREVIEW: pr-${{ github.event.pull_request.number }}
 
 jobs:
   check:
     if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: 24
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: bun run fmt:check
       - run: bun run lint
       - run: bun run typecheck
       - run: bun test
@@ -34,18 +32,24 @@ jobs:
   preview:
     needs: check
     if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    environment:
+      name: preview
+      url: ${{ steps.web.outputs.url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
+          persist-credentials: false
+      - uses: ./.github/actions/setup
       - id: api
         working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -o pipefail
           bunx wrangler preview --name "$PREVIEW" --json | sed -n '/^{/,$p' > preview.json
@@ -54,37 +58,52 @@ jobs:
         working-directory: web
       - id: web
         working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_URL: ${{ steps.api.outputs.url }}
         run: |
           set -o pipefail
-          bunx wrangler preview --name "$PREVIEW" --var "API_URL:${{ steps.api.outputs.url }}" --json | sed -n '/^{/,$p' > preview.json
+          bunx wrangler preview --name "$PREVIEW" --var "API_URL:$API_URL" --json | sed -n '/^{/,$p' > preview.json
           echo "url=$(jq -er '.preview.urls[0]' preview.json)" >> "$GITHUB_OUTPUT"
           echo "deployment=$(jq -er '.deployment.urls[0]' preview.json)" >> "$GITHUB_OUTPUT"
-      - run: curl --fail --silent --show-error --output /dev/null "${{ steps.web.outputs.url }}"
+      - run: curl --fail --silent --show-error --retry 5 --retry-all-errors --output /dev/null "$URL"
+        env:
+          URL: ${{ steps.web.outputs.url }}
       - name: Comment preview URLs
         env:
           GH_TOKEN: ${{ github.token }}
-          BASE: ${{ github.event.pull_request.base.sha }}
-        run: |
-          body="Preview: ${{ steps.web.outputs.url }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          WEB: ${{ steps.web.outputs.url }}
           API: ${{ steps.api.outputs.url }}
-          This deploy: ${{ steps.web.outputs.deployment }} (${{ github.event.pull_request.head.sha }})"
-          if ! git diff --quiet "$BASE" HEAD -- api/drizzle api/src/schema.ts; then
+          DEPLOYMENT: ${{ steps.web.outputs.deployment }}
+        run: |
+          body="Preview: $WEB
+          API: $API
+          This deploy: $DEPLOYMENT ($SHA)"
+          if gh pr diff "$PR" --name-only | grep -qE '^api/(drizzle/|src/schema\.ts$)'; then
             body="$body
 
           This branch changes the database schema. Previews share the production database and never run migrations; they run on \`main\` after merge."
           fi
-          gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none --body "$body"
+          gh pr comment "$PR" --edit-last --create-if-none --body "$body"
 
   cleanup:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: 24
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
+          persist-credentials: false
+      - uses: ./.github/actions/setup
       - run: bunx wrangler preview delete --name "$PREVIEW" --skip-confirmation || true
         working-directory: web
       - run: bunx wrangler preview delete --name "$PREVIEW" --skip-confirmation || true

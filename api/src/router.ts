@@ -1,4 +1,5 @@
 import { implement, ORPCError } from '@orpc/server'
+import { RPCHandler } from '@orpc/server/fetch'
 import { contract } from 'shared/contract'
 import { listEvalRuns, setVerdict } from './eval-runs'
 import { saveFeedback } from './feedback'
@@ -20,7 +21,7 @@ const CODES: Record<number, string> = {
   409: 'CONFLICT',
 }
 
-export function toRpcError(error: unknown): unknown {
+function toRpcError(error: unknown): unknown {
   if (error instanceof ORPCError) return error
   if (error instanceof StoryError) {
     return new ORPCError(CODES[error.status] ?? 'INTERNAL_SERVER_ERROR', {
@@ -32,7 +33,7 @@ export function toRpcError(error: unknown): unknown {
 
 const os = implement(contract)
 
-export const router = os.router({
+const router = os.router({
   worlds: {
     list: os.worlds.list.handler(() => listWorlds()),
     get: os.worlds.get.handler(async ({ input }) => {
@@ -49,11 +50,11 @@ export const router = os.router({
       const story = await loadStory(input.id)
       return llmMessages(story.events, story.title)
     }),
-    generateImage: os.stories.generateImage.handler(
-      async ({ input }) => (await generateImage(input.id, { name: input.name })).story,
+    generateImage: os.stories.generateImage.handler(({ input }) =>
+      generateImage(input.id, input),
     ),
-    generateVideo: os.stories.generateVideo.handler(
-      async ({ input }) => (await generateVideo(input.id, input)).story,
+    generateVideo: os.stories.generateVideo.handler(({ input }) =>
+      generateVideo(input.id, input),
     ),
     setVerdict: os.stories.setVerdict.handler(({ input }) =>
       setVerdict(input.id, input.verdict),
@@ -67,4 +68,16 @@ export const router = os.router({
       saveFeedback(input.story, input.text),
     ),
   },
+})
+
+export const rpc = new RPCHandler(router, {
+  clientInterceptors: [
+    async ({ next }) => {
+      try {
+        return await next()
+      } catch (error) {
+        throw toRpcError(error)
+      }
+    },
+  ],
 })

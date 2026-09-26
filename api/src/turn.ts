@@ -11,6 +11,7 @@ import {
   type TurnMessage,
   type TurnPhase,
   type TurnTiming,
+  type TurnUsage,
   type VideoEvent,
 } from 'shared'
 import { app } from './context'
@@ -100,7 +101,7 @@ export function turnTiming(input: {
   endedAt: number
   firstTokenAt?: number
   modelMs: number
-  completionTokens: number
+  usage: TurnUsage
   images: number[]
 }): TurnTiming {
   const seconds = (ms: number) => Math.round((ms / 1000) * 100) / 100
@@ -114,10 +115,9 @@ export function turnTiming(input: {
     ttft: seconds(ttftMs),
     total: seconds(totalMs),
     tps:
-      modelSeconds > 0
-        ? Math.round((input.completionTokens / modelSeconds) * 100) / 100
-        : 0,
+      modelSeconds > 0 ? Math.round((input.usage.output / modelSeconds) * 100) / 100 : 0,
     images: input.images.map((value) => Math.round(value * 100) / 100),
+    ...(input.usage.total > 0 ? { usage: input.usage } : {}),
   }
 }
 
@@ -162,7 +162,7 @@ export async function reply(
   options?: { dry?: boolean },
 ): Promise<void> {
   const startedAt = Date.now()
-  const clock: Clock = { modelMs: 0, completionTokens: 0, images: [] }
+  const clock = newClock()
   let length = 0
   try {
     await changeStory(storyId, async (current) => {
@@ -243,7 +243,7 @@ export async function replayEvents(
     startedAt: Date.now(),
     emit: () => {},
     trace,
-    clock: { modelMs: 0, completionTokens: 0, images: [] },
+    clock: newClock(),
     waitUntil() {},
   })
   return { events: story.events.slice(start), trace }
@@ -252,8 +252,19 @@ export async function replayEvents(
 type Clock = {
   firstTokenAt?: number
   modelMs: number
-  completionTokens: number
+  usage: TurnUsage
   images: number[]
+}
+
+function newClock(): Clock {
+  return { modelMs: 0, usage: { input: 0, output: 0, total: 0, cached: 0 }, images: [] }
+}
+
+function addUsage(into: TurnUsage, usage: TurnUsage): void {
+  into.input += usage.input
+  into.output += usage.output
+  into.total += usage.total
+  into.cached += usage.cached
 }
 
 type RunOptions = {
@@ -343,12 +354,12 @@ async function run(story: Story, options: RunOptions): Promise<void> {
     const results: { id: string; content: string }[] = []
     let chain = Promise.resolve()
     let draft: OutputEvent | undefined
-    let requestTokens = 0
+    let requestUsage: TurnUsage | undefined
     let stopped = false
     const modelStarted = Date.now()
     try {
-      for await (const part of streamCompletion(messages, signal, (tokens) => {
-        requestTokens = tokens
+      for await (const part of streamCompletion(messages, signal, (usage) => {
+        requestUsage = usage
       })) {
         if (clock.firstTokenAt === undefined) clock.firstTokenAt = Date.now()
         if (part.type === 'text') {
@@ -402,7 +413,7 @@ async function run(story: Story, options: RunOptions): Promise<void> {
       stopped = true
     } finally {
       clock.modelMs += Date.now() - modelStarted
-      clock.completionTokens += requestTokens
+      if (requestUsage) addUsage(clock.usage, requestUsage)
     }
     await chain
     const spoken = draft?.text.trim() ?? ''

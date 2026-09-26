@@ -32,10 +32,17 @@ test('turn timing is seconds to two decimals', () => {
       endedAt: 9_414,
       firstTokenAt: 1_424,
       modelMs: 2_200,
-      completionTokens: 84,
+      usage: { input: 0, output: 84, total: 0, cached: 0 },
       images: [6.123, 5.804],
     }),
   ).toEqual({ ttft: 0.42, total: 8.41, tps: 38.18, images: [6.12, 5.8] })
+})
+
+test('turn timing keeps the summed token usage', () => {
+  const usage = { input: 1_714, output: 40, total: 1_754, cached: 857 }
+  expect(
+    turnTiming({ startedAt: 0, endedAt: 1_000, modelMs: 1_000, usage, images: [] }).usage,
+  ).toEqual(usage)
 })
 
 test('a delete-only reply calls the model again', () => {

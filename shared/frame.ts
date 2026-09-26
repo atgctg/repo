@@ -1,3 +1,5 @@
+import type { FrameInputs } from './contract'
+import { isPlainObject } from './records'
 import { isTurnMessage, type TurnMessage } from './turn'
 
 const HEADER = 5
@@ -50,11 +52,15 @@ export function decodeFrames(bytes: Uint8Array): {
 }
 
 export function turnResponse(
-  run: (send: (message: TurnMessage) => void) => Promise<void>,
+  run: (send: (message: TurnMessage) => void, signal: AbortSignal) => Promise<void>,
+  signal?: AbortSignal,
 ): Response {
+  const stop = new AbortController()
+  const abort = () => stop.abort()
+  signal?.addEventListener('abort', abort, { once: true })
+  let open = true
   const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      let open = true
+    start(controller) {
       const send = (message: TurnMessage) => {
         if (!open) return
         try {
@@ -63,16 +69,23 @@ export function turnResponse(
           open = false
         }
       }
-      try {
-        await run(send)
-      } finally {
-        open = false
-        try {
-          controller.close()
-        } catch {
+      void run(send, stop.signal)
+        .then(
+          () => {
+            if (open) controller.close()
+          },
+          (error: unknown) => {
+            if (open) controller.error(error)
+          },
+        )
+        .finally(() => {
           open = false
-        }
-      }
+          signal?.removeEventListener('abort', abort)
+        })
+    },
+    cancel() {
+      open = false
+      abort()
     },
   })
   return new Response(stream, {
@@ -80,18 +93,63 @@ export function turnResponse(
   })
 }
 
-export async function readTurn(
+export async function* readFrames(
   body: ReadableStream<Uint8Array>,
-  onMessage: (message: TurnMessage) => void,
-): Promise<void> {
+): AsyncGenerator<TurnMessage> {
   const reader = body.getReader()
   let pending = new Uint8Array()
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    if (!value || value.byteLength === 0) continue
-    const decoded = decodeFrames(concatBytes([pending, value]))
-    pending = new Uint8Array(decoded.rest)
-    for (const message of decoded.messages) onMessage(message)
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) return
+      if (!value || value.byteLength === 0) continue
+      const decoded = decodeFrames(concatBytes([pending, value]))
+      pending = new Uint8Array(decoded.rest)
+      yield* decoded.messages
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined)
   }
+}
+
+export const FRAME_ROUTES = {
+  turn: 'stories/turn',
+  evalRun: 'evals/run',
+} as const satisfies Record<keyof FrameInputs, string>
+
+type FrameCall<K extends keyof FrameInputs> = (
+  input: FrameInputs[K],
+  options?: { signal?: AbortSignal },
+) => AsyncGenerator<TurnMessage>
+
+export type FrameClient = { [K in keyof FrameInputs]: FrameCall<K> }
+
+async function errorText(response: Response): Promise<string> {
+  const body: unknown = await response.json().catch(() => null)
+  if (isPlainObject(body) && typeof body.error === 'string' && body.error)
+    return body.error
+  return `Request failed (${response.status})`
+}
+
+export function createFrameClient(options: {
+  url: string
+  headers?: Record<string, string>
+  fetch?: (request: Request) => Promise<Response>
+}): FrameClient {
+  const send = options.fetch ?? ((request: Request) => fetch(request))
+  const call = <K extends keyof FrameInputs>(key: K): FrameCall<K> =>
+    async function* (input, { signal } = {}) {
+      const response = await send(
+        new Request(`${options.url.replace(/\/$/, '')}/${FRAME_ROUTES[key]}`, {
+          method: 'POST',
+          headers: { ...options.headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+          signal,
+        }),
+      )
+      if (!response.ok) throw new Error(await errorText(response))
+      if (!response.body) throw new Error('Stream failed')
+      yield* readFrames(response.body)
+    }
+  return { turn: call('turn'), evalRun: call('evalRun') }
 }

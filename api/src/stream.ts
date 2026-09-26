@@ -1,4 +1,4 @@
-import { isPlainObject } from 'shared'
+import { isPlainObject, type TurnUsage } from 'shared'
 import { app } from './context'
 import type { ChatMessage, ToolCall } from './messages'
 import { STORY_TOOLS } from './tools'
@@ -80,7 +80,7 @@ type StreamPart = { type: 'text'; text: string } | { type: 'tool'; call: ToolCal
 export async function* streamCompletion(
   messages: ChatMessage[],
   signal: AbortSignal | undefined,
-  onUsage: (tokens: number) => void,
+  onUsage: (usage: TurnUsage) => void,
 ): AsyncGenerator<StreamPart> {
   const apiKey = app().env.FIREWORKS_API_KEY?.trim()
   if (!apiKey) throw new Error('FIREWORKS_API_KEY is required')
@@ -116,8 +116,8 @@ export async function* streamCompletion(
     } catch {
       continue
     }
-    const tokens = completionTokens(parsed)
-    if (tokens !== undefined) onUsage(tokens)
+    const usage = readUsage(parsed)
+    if (usage) onUsage(usage)
     const delta = parsed.choices?.[0]?.delta
     if (!delta) continue
     if (typeof delta.content === 'string' && delta.content)
@@ -154,8 +154,22 @@ export async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator
   }
 }
 
-function completionTokens(value: unknown): number | undefined {
+function count(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+export function readUsage(value: unknown): TurnUsage | undefined {
   if (!isPlainObject(value) || !isPlainObject(value.usage)) return undefined
-  const tokens = value.usage.completion_tokens ?? value.usage.output_tokens
-  return typeof tokens === 'number' && Number.isFinite(tokens) ? tokens : undefined
+  const usage = value.usage
+  const details = isPlainObject(usage.prompt_tokens_details)
+    ? usage.prompt_tokens_details
+    : {}
+  const input = count(usage.prompt_tokens ?? usage.input_tokens)
+  const output = count(usage.completion_tokens ?? usage.output_tokens)
+  return {
+    input,
+    output,
+    total: count(usage.total_tokens) || input + output,
+    cached: count(details.cached_tokens),
+  }
 }

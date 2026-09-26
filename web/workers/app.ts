@@ -88,7 +88,8 @@ async function login(request: Request, env: Env): Promise<Response> {
   const form = await request.formData()
   const password = form.get('password')
   if (typeof password !== 'string' || !password) return loginPage('Password is required')
-  const check = new Request(new URL('/api/worlds', request.url), {
+  const check = new Request(new URL('/api/worlds/list', request.url), {
+    method: 'POST',
     headers: { Authorization: `Bearer ${password}` },
   })
   let response: Response

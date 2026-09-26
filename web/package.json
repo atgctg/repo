@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@orpc/client": "^2.0.0-beta.40",
+    "@orpc/contract": "^2.0.0-beta.40",
     "@tanstack/react-query": "^5.103.2",
     "isbot": "^5.1.32",
     "lucide-react": "^1.48.0",

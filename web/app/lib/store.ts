@@ -12,16 +12,7 @@ import type {
   World,
   WorldSource,
 } from 'shared'
-import {
-  fetchStories,
-  fetchStory,
-  fetchWorld,
-  fetchWorlds,
-  postFeedback,
-  postFork,
-  postGenerate,
-  streamTurn,
-} from './api'
+import { api, found, frames } from './api'
 import { queryClient, storiesKey, storyKey, worldKey, worldsKey } from './query'
 import { filesFrom, speechFrom, toStory } from './view'
 
@@ -180,18 +171,18 @@ function publishStory(story: Story, version?: number): void {
 }
 
 async function fetchStoryCache(id: string): Promise<StoryCache | null> {
-  const story = await fetchStory(id)
+  const story = await found(api.stories.get({ id }))
   if (!story) return null
   return { entry: entryFrom(story), version: 0 }
 }
 
 export function useWorlds(): World[] {
-  const { data } = useQuery({ queryKey: worldsKey, queryFn: fetchWorlds })
+  const { data } = useQuery({ queryKey: worldsKey, queryFn: () => api.worlds.list() })
   return data ?? []
 }
 
 export function useStoryList(): StorySummary[] {
-  const { data } = useQuery({ queryKey: storiesKey, queryFn: fetchStories })
+  const { data } = useQuery({ queryKey: storiesKey, queryFn: () => api.stories.list() })
   return data ?? []
 }
 
@@ -226,13 +217,19 @@ export function ensureStory(id: string): Promise<StoryCache | null> {
 
 export async function ensureIndex(): Promise<void> {
   const [worlds] = await Promise.all([
-    queryClient.ensureQueryData({ queryKey: worldsKey, queryFn: fetchWorlds }),
-    queryClient.ensureQueryData({ queryKey: storiesKey, queryFn: fetchStories }),
+    queryClient.ensureQueryData({
+      queryKey: worldsKey,
+      queryFn: () => api.worlds.list(),
+    }),
+    queryClient.ensureQueryData({
+      queryKey: storiesKey,
+      queryFn: () => api.stories.list(),
+    }),
   ])
   for (const world of worlds) {
     void queryClient.prefetchQuery({
       queryKey: worldKey(world.id),
-      queryFn: async () => (await fetchWorld(world.id)) ?? null,
+      queryFn: async () => (await found(api.worlds.get({ id: world.id }))) ?? null,
     })
   }
 }
@@ -241,7 +238,7 @@ export function prefetchIndex(): void {
   void ensureIndex().catch(() => undefined)
 }
 
-function messageOf(error: unknown): string {
+export function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
@@ -263,7 +260,7 @@ function unusedStoryId(worldId: string): string {
 export function useForkWorld(): (worldId: string) => string | undefined {
   const mutation = useMutation({
     mutationFn: ({ worldId, id }: { worldId: string; id: string }) =>
-      postFork(worldId, id),
+      api.worlds.fork({ world: worldId, id }),
     onSuccess: (story) => {
       publishStory(story)
     },
@@ -456,14 +453,11 @@ export async function sendTurn(
   const controller = new AbortController()
   turns.set(id, controller)
   try {
-    await streamTurn(
-      id,
-      text,
-      at,
-      selected,
-      (message) => applyTurn(id, message),
-      controller.signal,
-    )
+    for await (const message of frames.turn(
+      { id, text, at, selected },
+      { signal: controller.signal },
+    ))
+      applyTurn(id, message)
     const activity = snapshot.activity[id]
     if (activity?.turnStartedAt && !activity.error) patchActivity(id, () => ({}))
     return true
@@ -481,7 +475,7 @@ export async function sendTurn(
 
 export async function sendFeedback(id: string, text: string): Promise<void> {
   if (!(await waitForFork(id))) throw new Error('Story is not saved yet')
-  await postFeedback(id, text)
+  await api.feedback.create({ story: id, text })
 }
 
 export function stopTurn(id: string): void {
@@ -502,7 +496,10 @@ export function useGenerateAsset(): (
       id: string
       name: string
       type: 'image' | 'video'
-    }) => postGenerate(id, name, type),
+    }) =>
+      type === 'video'
+        ? api.stories.generateVideo({ id, name })
+        : api.stories.generateImage({ id, name }),
     onMutate: ({ id, name, type }) => {
       patchActivity(id, (current) => ({
         ...current,

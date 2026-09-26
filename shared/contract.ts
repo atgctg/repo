@@ -12,11 +12,13 @@ import type {
 
 const id = z.string().min(1)
 const byId = z.object({ id })
+const text = z.string().trim().min(1, 'text is required')
+const name = z.string().trim().min(1)
 
 export const frames = {
   turn: z.object({
     id,
-    text: z.string().trim().min(1, 'text is required'),
+    text,
     at: z.int().min(0).optional(),
     selected: z.array(z.int()).optional(),
     pasted: z.string().optional(),
@@ -39,14 +41,12 @@ export const contract = {
     list: oc.output(type<StorySummary[]>()),
     get: oc.input(byId).output(type<Story>()),
     messages: oc.input(byId).output(type<RawMessage[]>()),
-    generateImage: oc
-      .input(z.object({ id, name: z.string().trim().min(1) }))
-      .output(type<Story>()),
+    generateImage: oc.input(z.object({ id, name })).output(type<Story>()),
     generateVideo: oc
       .input(
         z.object({
           id,
-          name: z.string().trim().min(1),
+          name,
           duration: z.int().min(5).max(15).default(5),
         }),
       )
@@ -59,9 +59,7 @@ export const contract = {
     list: oc.output(type<EvalRun[]>()),
   },
   feedback: {
-    create: oc
-      .input(z.object({ story: id, text: z.string().trim().min(1, 'text is required') }))
-      .output(type<FeedbackReceipt>()),
+    create: oc.input(z.object({ story: id, text })).output(type<FeedbackReceipt>()),
   },
 }
 

@@ -223,7 +223,7 @@ function assetByName(story: Story, name: string): Asset | undefined {
 export async function generateImage(
   storyId: string,
   params: { name: string },
-): Promise<{ story: Story; asset: Asset; url: string }> {
+): Promise<Story> {
   const story = await loadStory(storyId)
   const asset = assetByName(story, params.name)
   if (
@@ -241,13 +241,13 @@ export async function generateImage(
     asset.references ?? [],
   )
   asset.url = url
-  return { story, asset, url }
+  return story
 }
 
 export async function generateVideo(
   storyId: string,
   params: { name: string; duration?: number },
-): Promise<{ story: Story; asset: Asset; url: string }> {
+): Promise<Story> {
   const story = await loadStory(storyId)
   const asset = assetByName(story, params.name)
   if (!asset || asset.type !== 'video') throw new Error(`No video "${params.name}"`)
@@ -260,7 +260,7 @@ export async function generateVideo(
     duration: params.duration ?? asset.duration,
   })
   asset.url = url
-  return { story, asset, url }
+  return story
 }
 
 export function readSceneLines(

@@ -5,7 +5,7 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import * as stylex from '@stylexjs/stylex'
 import type { EvalRun, EvalVerdict, Story, StoryEvent } from 'shared'
 import { useMountEffect } from '~/hooks/use-mount-effect'
-import { writeVerdict } from '~/lib/api'
+import { api } from '~/lib/api'
 import { isTyping } from '~/lib/keys'
 import { evalsKey, evalsQuery, queryClient } from '~/lib/query'
 import { ensureStory, selectScenes } from '~/lib/store'
@@ -213,8 +213,8 @@ export function EvalBar({ storyId }: { storyId: string }): ReactNode {
   const { data: runs } = useQuery(evalsQuery())
   const verdictMutation = useMutation({
     scope: { id: 'verdicts' },
-    mutationFn: ({ id, verdict }: { id: string; verdict: EvalVerdict | null }) =>
-      writeVerdict(id, verdict),
+    mutationFn: (input: { id: string; verdict: EvalVerdict | null }) =>
+      api.stories.setVerdict(input),
     onMutate: async ({ id, verdict }, context) => {
       const previous = context.client.getQueryData<EvalRun[]>(evalsKey)
       context.client.setQueryData<EvalRun[]>(evalsKey, (current) =>

@@ -1,24 +1,11 @@
-import { RPCHandler } from '@orpc/server/fetch'
 import { hasBody, storyKey, worldKey } from './assets'
 import { app } from './context'
 import { assetContentType, safeAssetFile, safeStoryId } from './files'
 import { handleFrames } from './frames'
-import { router, toRpcError } from './router'
+import { rpc } from './router'
 import { storyWorld } from './stories'
 
 const notFound = () => new Response('Not found', { status: 404 })
-
-const rpc = new RPCHandler(router, {
-  clientInterceptors: [
-    async ({ next }) => {
-      try {
-        return await next()
-      } catch (error) {
-        throw toRpcError(error)
-      }
-    },
-  ],
-})
 
 function segment(value: string): string {
   try {

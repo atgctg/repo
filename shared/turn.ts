@@ -1,3 +1,4 @@
+import { isPlainObject } from './records'
 import type { StoryEvent, TurnPhase, TurnTiming, TurnUsage } from './types'
 
 export type TurnMessage =
@@ -9,64 +10,58 @@ export type TurnMessage =
   | { type: 'error'; error: string; length: number }
 
 function isTurnUsage(value: unknown): value is TurnUsage {
-  if (value === null || typeof value !== 'object') return false
-  const usage = value as Record<string, unknown>
   return (
-    typeof usage.input === 'number' &&
-    typeof usage.output === 'number' &&
-    typeof usage.total === 'number' &&
-    typeof usage.cached === 'number'
+    isPlainObject(value) &&
+    typeof value.input === 'number' &&
+    typeof value.output === 'number' &&
+    typeof value.total === 'number' &&
+    typeof value.cached === 'number'
   )
 }
 
 export function isTurnTiming(value: unknown): value is TurnTiming {
-  if (value === null || typeof value !== 'object') return false
-  const timing = value as Record<string, unknown>
   return (
-    typeof timing.ttft === 'number' &&
-    typeof timing.total === 'number' &&
-    typeof timing.tps === 'number' &&
-    Array.isArray(timing.images) &&
-    timing.images.every((item) => typeof item === 'number') &&
-    (timing.usage === undefined || isTurnUsage(timing.usage))
+    isPlainObject(value) &&
+    typeof value.ttft === 'number' &&
+    typeof value.total === 'number' &&
+    typeof value.tps === 'number' &&
+    Array.isArray(value.images) &&
+    value.images.every((item) => typeof item === 'number') &&
+    (value.usage === undefined || isTurnUsage(value.usage))
   )
 }
 
 export function isTurnMessage(value: unknown): value is TurnMessage {
-  if (value === null || typeof value !== 'object') return false
-  const message = value as Record<string, unknown>
-  switch (message.type) {
+  if (!isPlainObject(value)) return false
+  switch (value.type) {
     case 'start':
-      return typeof message.turn === 'number' && typeof message.keep === 'number'
+      return typeof value.turn === 'number' && typeof value.keep === 'number'
     case 'event':
       return (
-        typeof message.at === 'number' &&
-        message.event !== null &&
-        typeof message.event === 'object' &&
-        typeof (message.event as { type?: unknown }).type === 'string'
+        typeof value.at === 'number' &&
+        isPlainObject(value.event) &&
+        typeof value.event.type === 'string'
       )
     case 'status':
       return (
-        message.phase === 'model' ||
-        message.phase === 'image' ||
-        message.phase === 'video' ||
-        message.phase === 'voice'
+        value.phase === 'model' ||
+        value.phase === 'image' ||
+        value.phase === 'video' ||
+        value.phase === 'voice'
       )
     case 'asset':
       return (
-        typeof message.name === 'string' &&
-        (message.kind === 'image' ||
-          message.kind === 'video' ||
-          message.kind === 'voice') &&
-        typeof message.url === 'string'
+        typeof value.name === 'string' &&
+        (value.kind === 'image' || value.kind === 'video' || value.kind === 'voice') &&
+        typeof value.url === 'string'
       )
     case 'done':
       return (
-        typeof message.ms === 'number' &&
-        (message.timing === undefined || isTurnTiming(message.timing))
+        typeof value.ms === 'number' &&
+        (value.timing === undefined || isTurnTiming(value.timing))
       )
     case 'error':
-      return typeof message.error === 'string' && typeof message.length === 'number'
+      return typeof value.error === 'string' && typeof value.length === 'number'
     default:
       return false
   }

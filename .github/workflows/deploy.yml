@@ -26,10 +26,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - run: bun run fmt:check
-      - run: bun run lint
-      - run: bun run typecheck
-      - run: bun test
+      - run: bun run check
       - run: bun run db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

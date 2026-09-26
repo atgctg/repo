@@ -1,34 +1,29 @@
-Be concise.
+# Verse (by Omni Interactive Inc.)
 
-Read files fully once from beginning to end, not many small partial reads.
+- Interactive visual storytelling app.
+- Currently focusing on playtesting & evaluations to increase the quality of the generations, improving storytelling, and figuring out the right architecture.
 
-App code runs on Cloudflare Workers: use Web and Workers APIs, no Bun or node:* in `api/src` or `web/`. Bun is only the package manager and script runner.
+## UI (eventually)
 
-Before touching Hyperdrive, R2, placement, or wrangler config, read the current Cloudflare docs.
+- Fullscreen background with caption on top, timeline at the bottom
+- Pinch out: grid view of the scenes
+- Similar to Slideshow in Photos, have a mode that auto plays the images/videos
+- For speech we do a Apple Music/Podcasts/TikTok style caption overlay
 
-The database schema lives in `api/src/schema.ts` (Drizzle). Change it only through `drizzle-kit` migrations.
+# Instructions
 
-Database access:
+- Be concise.
+- Do not write comments.
+- Use Bun as the package manager and script runner. In scripts use `Bun.$` APIs instead of Node.js.
+- Look up the latest docs & best practices when integrating an API.
+- Greenfield project, no backwards compatibility needed.
+- After code changes, run `bun run fix` and resolve any errors.
+- Never call `useEffect` directly. Prefer derived state (React Compiler is enabled), event handlers, query libraries, `key` remounts, or `useMountEffect()` for one-time external sync. See `no-use-effect` skill for more.
+- No animations and transitions for now.
+- Only change `AGENTS.md` and prompt files with human permission.
+- A question with '??' means you should just answer quickly without doing any work.
 
-- App code reads and writes only through Drizzle in `api/src`.
-- Bulk or one-off data changes are committed scripts in `api/scripts/` (Drizzle, batched, in one transaction), never hand-run SQL.
-- Ad hoc inspection (MCP, `pscale shell`) is read-only.
-
-Do not write comments.
-
-Greenfield project, no backwards compatibility needed.
-
-1k+ lines are fine if they make sense (e.g. styles.css).
-
-After code changes, run `bun run fix` and resolve any errors.
-
-Never call `useEffect` directly. Prefer derived state (React Compiler is enabled), event handlers, query libraries, `key` remounts, or `useMountEffect()` for one-time external sync. See `no-use-effect` skill for more.
-
-No animations and transitions for now.
-
-Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
-
-## Workflow
+# Workflow
 
 - Work on short-lived branches off `main`.
 - Never `wrangler deploy` from a branch. Use the preview URL that CI posts on the PR.
@@ -37,7 +32,7 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 - A batched thermo-nuclear review runs on `main` after a chunk of work.
 - Schema migrations run only on `main`.
 - Previews share the prod DB for now.
-- PR descriptions are a decision log, not a summary: a few short bullet points in plain sentences, noting only what the diff doesn't show (why a choice was made, rejected alternatives, known gaps, follow-ups). No headers, file lists, test counts, or restated changes. Leave it empty when there is nothing to note.
+- PR description should be short decision log, focus only on what the diff doesn't show.
 
 # Starting points
 
@@ -48,8 +43,9 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 - api/src/tools.ts
 - api/src/schema.ts
 - api/prompt.md
-- api/wrangler.jsonc, web/wrangler.jsonc
-- web/app
+- api/wrangler.jsonc
+- web/wrangler.jsonc
+- web/app/*
 
 # Concepts
 
@@ -59,23 +55,16 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 - Template: the events before the first input
 - Event: one log entry (input, output, image, dialogue, video, card, delete)
 - Input: what the user did (text, selected scenes, pasted text, voice)
-- Output: the model's plain text
+- Output: the model's markdown text
 - Projection: state derived from events (`project()`): scenes, cards, assets
 - Scene: one timeline item, an image, video, dialogue, or message
 - Storyboard: the grid view of a story's scenes
-- Card: creator-defined persistent state the LLM or user keeps updated
+- Card: used for defining and keeping track of characters, lore, rules, instructions, etc. A bit like Skill + Memory files in one.
 - Turn: one input plus the events the model adds in response
-- Eval: a small world plus one input, judged by Marton
 
-# Overview
+# Database
 
-Interactive visual storytelling app.
-
-Currently focusing on the studio, playtesting/evaluation, improving storytelling, coming up with data structures, coming up with the architecture design.
-
-## Interface (eventually)
-
-- Fullscreen background with caption on top, timeline at the bottom
-- Pinch out: grid view of the scenes
-- Similar to Slideshow in Photos, have a mode that auto plays the images/videos
-- For speech we do a Apple Music/Podcasts/TikTok style caption overlay
+- Planetscale Postgres `verse` db is hosted on AWS in us-east-2.
+- The database schema lives in `api/src/schema.ts`. Change it only through `drizzle-kit` migrations.
+- Generated UUID primary keys default to Postgres `uuidv7()`.
+- Bulk data changes are committed scripts in `api/scripts/` (Drizzle, batched, in one transaction), never hand-run SQL.

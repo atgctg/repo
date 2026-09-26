@@ -14,11 +14,7 @@ type Env = {
 }
 
 function isApiPath(pathname: string): boolean {
-  return (
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/assets/') ||
-    pathname === '/favicon.ico'
-  )
+  return pathname.startsWith('/api/') || pathname.startsWith('/assets/')
 }
 
 function readPassword(request: Request): string | undefined {

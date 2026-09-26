@@ -143,7 +143,7 @@ const styles = stylex.create({
   },
   indicator: {
     height: '100%',
-    backgroundColor: `color-mix(in srgb, ${tokens.text} 16%, ${tokens.chip})`,
+    backgroundColor: `color-mix(in srgb, ${tokens.text} 24%, ${tokens.chip})`,
     cursor: 'inherit',
   },
   thumb: {
@@ -263,7 +263,6 @@ export function Storyboard({ story }: { story: Story }): ReactNode {
           min={0}
           max={100}
           step={1}
-          thumbAlignment="edge"
           onValueChange={onSize}
           onValueCommitted={finishDrag}
           {...stylex.props(styles.slider, !wide && styles.sliderHidden)}

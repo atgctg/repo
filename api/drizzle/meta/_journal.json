@@ -15,6 +15,13 @@
       "when": 1790414871295,
       "tag": "0001_playtest_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790419928900,
+      "tag": "0002_feedback_uuidv7",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "feedback" ALTER COLUMN "id" SET DEFAULT uuidv7();

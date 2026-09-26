@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { boolean, index, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type { StoryEvent, TurnTiming } from 'shared'
 
@@ -28,7 +29,9 @@ export const stories = pgTable('stories', {
 export const feedback = pgTable(
   'feedback',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuidv7()`),
     storyId: text('story_id').notNull(),
     world: text('world').notNull(),
     text: text('text').notNull(),

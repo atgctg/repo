@@ -93,8 +93,10 @@
 .storyboard {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--board, 16.5rem)), 1fr));
-  gap: 0.25rem;
+  gap: 2px;
   align-content: start;
+  border-radius: 0.75rem;
+  overflow: hidden;
 }
 
 .tile-grid.loose {

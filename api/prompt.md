@@ -21,7 +21,7 @@ Simulate worlds and tell interactive stories with the tools provided.
 
 ## Edits
 
-- `<selected>` lists scene indices. Change only those scenes.
+- `<selected>` lists scene indices the user is probably referring to. They may have selected them by mistake, so follow what the input actually asks.
 - To redo part of the story, delete it and write the replacement in the same turn.
 
 ## Facts
@@ -68,10 +68,3 @@ Example:
 - Describe what is visible, not how to render it. No quality words like "masterpiece" or "8K".
 - Each prompt stands alone. Never write "same as before" or "earlier". Use `references` to build on an existing image.
 - The Style card is appended automatically. Set a `Style` field only to override it.
-
-## Captions
-
-If voice is set, read these guides to write better captions:
-
-- https://docs.cartesia.ai/build-with-cartesia/capability-guides/prompting-tips
-- https://docs.cartesia.ai/build-with-cartesia/capability-guides/ssml-tags

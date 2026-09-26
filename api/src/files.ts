@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto'
-
 export function safeStoryId(id: string): string {
   return id.replace(/[^a-zA-Z0-9_-]/g, '_')
 }
@@ -35,12 +33,15 @@ export function assetUrl(
   return storyAssetUrl(storyId, assetFileName(name, type))
 }
 
-export function speechFileName(voice: string, caption: string): string {
-  const hex = createHash('sha256')
-    .update(`${voice.trim()}\n${caption}`)
-    .digest('hex')
-    .slice(0, 16)
-  return `${hex}.wav`
+export async function speechFileName(voice: string, caption: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(`${voice.trim()}\n${caption}`),
+  )
+  const bytes = new Uint8Array(digest)
+  let hex = ''
+  for (const byte of bytes) hex += byte.toString(16).padStart(2, '0')
+  return `${hex.slice(0, 16)}.wav`
 }
 
 export function safeAssetFile(file: string): boolean {

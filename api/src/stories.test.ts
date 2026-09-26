@@ -200,13 +200,13 @@ test('eval runs list their case and keep a verdict', async () => {
   await expect(setVerdict(story.id, 'fail')).rejects.toBeInstanceOf(StoryError)
 })
 
-test('admin password is a bearer token', () => {
+test('admin password is a bearer token', async () => {
   const request = (authorization?: string) =>
     new Request('http://verse.test/api/worlds', {
       headers: authorization ? { Authorization: authorization } : {},
     })
-  expect(adminOk(request(), 'secret')).toBe(false)
-  expect(adminOk(request('Bearer no'), 'secret')).toBe(false)
-  expect(adminOk(request('Bearer secret'), undefined)).toBe(false)
-  expect(adminOk(request('Bearer secret'), 'secret')).toBe(true)
+  expect(await adminOk(request(), 'secret')).toBe(false)
+  expect(await adminOk(request('Bearer no'), 'secret')).toBe(false)
+  expect(await adminOk(request('Bearer secret'), undefined)).toBe(false)
+  expect(await adminOk(request('Bearer secret'), 'secret')).toBe(true)
 })

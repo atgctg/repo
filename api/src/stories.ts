@@ -124,19 +124,21 @@ export async function listStories(): Promise<StorySummary[]> {
     database().select().from(storyTable).orderBy(desc(storyTable.updatedAt)),
     listAssetKeys(app().assets, ['stories/', 'worlds/']),
   ])
-  return rows.map((row) => {
-    const story = hydrateWith(row, keys)
-    const cover = coverUrl(story)
-    return {
-      id: story.id,
-      world: story.world,
-      title: story.title,
-      updatedAt: story.updatedAt,
-      preview: historyPreview(story.events),
-      ...(cover ? { cover } : {}),
-      ...(row.caseName ? { case: row.caseName } : {}),
-    }
-  })
+  return Promise.all(
+    rows.map(async (row) => {
+      const story = await hydrateWith(row, keys)
+      const cover = coverUrl(story)
+      return {
+        id: story.id,
+        world: story.world,
+        title: story.title,
+        updatedAt: story.updatedAt,
+        preview: historyPreview(story.events),
+        ...(cover ? { cover } : {}),
+        ...(row.caseName ? { case: row.caseName } : {}),
+      }
+    }),
+  )
 }
 
 export async function loadStory(id: string): Promise<Story> {
@@ -158,7 +160,7 @@ async function hydrate(row: StoryRow): Promise<Story> {
   return hydrateWith(row, await storyAssetKeys(app().assets, row.id, row.world))
 }
 
-function hydrateWith(row: StoryRow, keys: Set<string>): Story {
+async function hydrateWith(row: StoryRow, keys: Set<string>): Promise<Story> {
   const story: Story = {
     id: row.id,
     world: row.world,
@@ -172,7 +174,7 @@ function hydrateWith(row: StoryRow, keys: Set<string>): Story {
     ...timingOf(row.timing),
   }
   reproject(story)
-  attachFiles(story, keys)
+  await attachFiles(story, keys)
   return story
 }
 
@@ -180,21 +182,23 @@ function readEvents(raw: unknown): StoryEvent[] {
   return leadCards(parseEvents(raw))
 }
 
-function attachFiles(story: Story, keys: Set<string>): void {
+async function attachFiles(story: Story, keys: Set<string>): Promise<void> {
   story.assets = story.assets.map((asset) => {
     const file = assetFileName(asset.name, asset.type)
     const url = pickAssetUrl(keys, story.id, story.world, file)
     return url ? { ...asset, url } : asset
   })
-  for (const scene of story.scenes) {
-    if (scene.type !== 'dialogue' || !scene.caption || !scene.speaker) continue
-    const voice = story.cards.find(
-      (card) => card.name.toLowerCase() === scene.speaker?.toLowerCase(),
-    )?.voice
-    if (!voice) continue
-    const key = speechFileName(voice, scene.caption)
-    if (pickAssetUrl(keys, story.id, story.world, key)) scene.speech = { key }
-  }
+  await Promise.all(
+    story.scenes.map(async (scene) => {
+      if (scene.type !== 'dialogue' || !scene.caption || !scene.speaker) return
+      const voice = story.cards.find(
+        (card) => card.name.toLowerCase() === scene.speaker?.toLowerCase(),
+      )?.voice
+      if (!voice) return
+      const key = await speechFileName(voice, scene.caption)
+      if (pickAssetUrl(keys, story.id, story.world, key)) scene.speech = { key }
+    }),
+  )
 }
 
 export async function saveTiming(id: string, timing: TurnTiming): Promise<void> {

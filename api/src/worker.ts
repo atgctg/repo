@@ -76,7 +76,7 @@ export function holdDatabase(
 
 export default {
   async fetch(request: Request, env: Env, ctx: WaitCtx): Promise<Response> {
-    if (!adminOk(request, env.ADMIN_PASSWORD)) {
+    if (!(await adminOk(request, env.ADMIN_PASSWORD))) {
       return new Response('Unauthorized', { status: 401 })
     }
     const opened = await openDatabase(env.HYPERDRIVE.connectionString)

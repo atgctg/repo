@@ -534,7 +534,7 @@ export async function generateStoryVoice(
   voice: string,
   caption: string,
 ): Promise<Speech> {
-  const key = speechFileName(voice, caption)
+  const key = await speechFileName(voice, caption)
   const started = performance.now()
   const voiceId = resolveVoiceId(voice)
   if (!voiceId)

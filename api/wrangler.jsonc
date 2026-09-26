@@ -23,6 +23,9 @@
     },
   ],
   "previews": {
+    "placement": {
+      "region": "aws:us-east-2",
+    },
     "hyperdrive": [
       {
         "binding": "HYPERDRIVE",

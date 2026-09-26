@@ -47,7 +47,7 @@ export const contract = {
         z.object({
           id,
           name,
-          duration: z.int().min(5).max(15).default(5),
+          duration: z.int().min(5).max(15).optional(),
         }),
       )
       .output(type<Story>()),

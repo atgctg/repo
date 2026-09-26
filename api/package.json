@@ -4,13 +4,17 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@orpc/server": "^2.0.0-beta.40",
     "drizzle-orm": "^0.45.3",
     "pg": "^8.23.0",
     "shared": "workspace:*",
-    "yaml": "^2.9.1"
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@orpc/client": "^2.0.0-beta.40",
+    "@orpc/contract": "^2.0.0-beta.40",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.11",
     "wrangler": "^4.140.0"

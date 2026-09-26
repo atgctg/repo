@@ -1,7 +1,7 @@
 import {
-  readTurn,
-  type TurnMessage,
+  createFrameClient,
   project,
+  type FrameClient,
   type InputEvent,
   type StoryEvent,
 } from 'shared'
@@ -208,21 +208,12 @@ async function runCase(name: string): Promise<void> {
   console.log(`${name} done`)
 }
 
-async function runCaseOnApi(
-  origin: string,
-  password: string,
-  name: string,
-): Promise<void> {
+async function runCaseOnApi(frames: FrameClient, name: string): Promise<void> {
   console.log(`\n${name}`)
-  const response = await fetch(
-    `${origin.replace(/\/$/, '')}/api/evals/${encodeURIComponent(name)}/run`,
-    { method: 'POST', headers: { Authorization: `Bearer ${password}` } },
-  )
-  if (!response.ok || !response.body) throw new Error(await response.text())
-  await readTurn(response.body, (message: TurnMessage) => {
+  for await (const message of frames.evalRun({ name })) {
     if (message.type === 'error') console.error(`  error: ${message.error}`)
     if (message.type === 'done') console.log(`${name} done`)
-  })
+  }
 }
 
 async function main(): Promise<void> {
@@ -240,7 +231,11 @@ async function main(): Promise<void> {
       console.error('ADMIN_PASSWORD is required')
       process.exit(1)
     }
-    for (const name of picked) await runCaseOnApi(origin, password, name)
+    const frames = createFrameClient({
+      url: `${origin.replace(/\/$/, '')}/api`,
+      headers: { Authorization: `Bearer ${password}` },
+    })
+    for (const name of picked) await runCaseOnApi(frames, name)
     return
   }
   const connectionString = process.env.DATABASE_URL

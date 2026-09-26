@@ -1,5 +1,12 @@
 import { expect, test } from 'bun:test'
-import { concatBytes, decodeFrames, encodeFrame, readTurn, turnResponse } from './frame'
+import {
+  concatBytes,
+  createFrameClient,
+  decodeFrames,
+  encodeFrame,
+  readFrames,
+  turnResponse,
+} from './frame'
 import type { TurnMessage } from './turn'
 
 const messages: TurnMessage[] = [
@@ -30,7 +37,7 @@ test('a response body decodes one event per frame', async () => {
   expect(response.headers.get('Content-Type')).toBe('application/octet-stream')
   const got: TurnMessage[] = []
   if (!response.body) throw new Error('missing body')
-  await readTurn(response.body, (message) => got.push(message))
+  for await (const message of readFrames(response.body)) got.push(message)
   expect(got).toEqual([messages[0], messages[1], { type: 'done', ms: 3 }])
 })
 
@@ -45,4 +52,55 @@ test('a reserved byte frame is skipped', () => {
   const split = decodeFrames(bytes.subarray(0, 7))
   const rest = decodeFrames(concatBytes([split.rest, bytes.subarray(7)]))
   expect([...split.messages, ...rest.messages]).toEqual([messages[0], messages[1]])
+})
+
+test('each frame is readable before the next one is sent', async () => {
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  const response = turnResponse(async (send) => {
+    send(messages[0]!)
+    await gate
+    send(messages[3]!)
+  })
+  if (!response.body) throw new Error('missing body')
+  const frames = readFrames(response.body)
+  expect((await frames.next()).value).toEqual(messages[0])
+  const pending = frames.next()
+  release()
+  expect((await pending).value).toEqual(messages[3])
+  expect((await frames.next()).done).toBe(true)
+})
+
+test('a client that stops reading aborts the turn', async () => {
+  let stopped: AbortSignal | undefined
+  const client = createFrameClient({
+    url: 'http://verse.test/api',
+    fetch: async (request) => {
+      expect(new URL(request.url).pathname).toBe('/api/stories/turn')
+      expect(await request.json()).toEqual({ id: 'a', text: 'Hi' })
+      return turnResponse(async (send, signal) => {
+        stopped = signal
+        send(messages[2]!)
+        await new Promise((resolve) => signal.addEventListener('abort', resolve))
+      })
+    },
+  })
+  for await (const message of client.turn({ id: 'a', text: 'Hi' })) {
+    expect(message).toEqual(messages[2])
+    break
+  }
+  expect(stopped?.aborted).toBe(true)
+})
+
+test('an aborted request aborts the turn', async () => {
+  const controller = new AbortController()
+  let stopped: AbortSignal | undefined
+  const response = turnResponse(async (_send, signal) => {
+    stopped = signal
+  }, controller.signal)
+  controller.abort()
+  await response.text()
+  expect(stopped?.aborted).toBe(true)
 })

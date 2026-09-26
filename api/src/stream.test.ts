@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { finishTools, noteToolDelta, type OpenTool } from './stream'
+import { finishTools, noteToolDelta, readUsage, type OpenTool } from './stream'
 
 test('the first tool is ready as soon as its arguments close', () => {
   const calls: OpenTool[] = []
@@ -51,4 +51,19 @@ test('a truncated tool is still returned when the stream ends', () => {
   expect(ready).toEqual([
     { id: 'a', type: 'function', function: { name: 'Delete', arguments: '{"indices":' } },
   ])
+})
+
+test('fireworks usage reads input, output, total, and cached tokens', () => {
+  expect(
+    readUsage({
+      choices: [],
+      usage: {
+        prompt_tokens: 857,
+        total_tokens: 877,
+        completion_tokens: 20,
+        prompt_tokens_details: { cached_tokens: 640 },
+      },
+    }),
+  ).toEqual({ input: 857, output: 20, total: 877, cached: 640 })
+  expect(readUsage({ choices: [] })).toBeUndefined()
 })

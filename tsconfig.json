@@ -8,7 +8,8 @@
     "noEmit": true,
     "types": ["bun-types"],
     "paths": {
-      "shared": ["./shared/index.ts"]
+      "shared": ["./shared/index.ts"],
+      "shared/contract": ["./shared/contract.ts"]
     }
   },
   "include": ["shared/**/*.ts", "api/**/*.ts", "api/**/*.d.ts"]

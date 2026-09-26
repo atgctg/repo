@@ -16,8 +16,8 @@ import {
 } from 'shared'
 import { app } from './context'
 import { assetUrl, storyAssetUrl } from './files'
-import systemPrompt from '../prompt.md' with { type: 'text' }
-import voicePrompt from '../voice.md' with { type: 'text' }
+import systemPrompt from '~/prompt.md' with { type: 'text' }
+import voicePrompt from '~/voice.md' with { type: 'text' }
 import {
   errorMessage,
   generateStoryImage,

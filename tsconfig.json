@@ -9,7 +9,8 @@
     "types": ["bun-types"],
     "paths": {
       "shared": ["./shared/index.ts"],
-      "shared/contract": ["./shared/contract.ts"]
+      "shared/contract": ["./shared/contract.ts"],
+      "~/*": ["./api/*"]
     }
   },
   "include": ["shared/**/*.ts", "api/**/*.ts", "api/**/*.d.ts"]

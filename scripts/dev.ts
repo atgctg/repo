@@ -1,4 +1,4 @@
-import { nodeDatabaseUrl } from '../api/scripts/database-url'
+import { nodeDatabaseUrl } from '~/scripts/database-url'
 
 const root = `${import.meta.dir}/..`
 

@@ -44,7 +44,9 @@
 - api/src/schema.ts
 - api/prompt.md
 - api/wrangler.jsonc
+- api/package.json
 - web/wrangler.jsonc
+- web/package.json
 - web/app/*
 
 # Concepts

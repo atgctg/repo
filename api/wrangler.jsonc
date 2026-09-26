@@ -2,6 +2,9 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "verse-api",
   "main": "./src/worker.ts",
+  "alias": {
+    "~": ".",
+  },
   "compatibility_date": "2026-09-25",
   "compatibility_flags": ["nodejs_compat", "enable_request_signal"],
   "placement": {

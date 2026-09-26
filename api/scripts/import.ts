@@ -3,8 +3,8 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Client } from 'pg'
 import { listCases, listEvalWorlds, loadCase } from './eval'
-import * as schema from '../src/schema'
-import { evals, worlds } from '../src/schema'
+import * as schema from '~/src/schema'
+import { evals, worlds } from '~/src/schema'
 import { nodeDatabaseUrl } from './database-url'
 
 const connectionString = process.env.DATABASE_URL

@@ -6,12 +6,12 @@ import {
   type StoryEvent,
 } from 'shared'
 import { parse, stringify } from 'yaml'
-import { memoryAssets } from '../src/assets'
-import { useApp } from '../src/context'
-import { openDatabase } from '../src/db'
-import { parseEvents } from '../src/events'
-import { replayEvents } from '../src/turn'
-import { saveEvalStory } from '../src/stories'
+import { memoryAssets } from '~/src/assets'
+import { useApp } from '~/src/context'
+import { openDatabase } from '~/src/db'
+import { parseEvents } from '~/src/events'
+import { replayEvents } from '~/src/turn'
+import { saveEvalStory } from '~/src/stories'
 import { nodeDatabaseUrl } from './database-url'
 
 const DIR = `${import.meta.dir}/../evals`

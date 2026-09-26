@@ -1,7 +1,7 @@
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
-import { listEvalWorlds } from '../scripts/eval'
+import { listEvalWorlds } from '~/scripts/eval'
 import { memoryAssets } from './assets'
 import { useApp } from './context'
 import type { VerseDb } from './db'

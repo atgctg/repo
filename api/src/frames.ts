@@ -2,7 +2,7 @@ import { FRAME_ROUTES, turnResponse, type TurnMessage } from 'shared'
 import { frames } from 'shared/contract'
 import type * as z from 'zod'
 import { app } from './context'
-import { runEvalCase } from './eval-runs'
+import { prepareEvalCase } from './eval-runs'
 import { errorMessage } from './media'
 import { storyExists, StoryError } from './stories'
 import { reply } from './turn'
@@ -26,7 +26,7 @@ const routes: Record<string, (request: Request) => Promise<Run>> = {
   },
   [`/api/${FRAME_ROUTES.evalRun}`]: async (request) => {
     const { name } = await readInput(request, frames.evalRun)
-    return (send, signal) => runEvalCase(name, send, signal)
+    return prepareEvalCase(name)
   },
 }
 

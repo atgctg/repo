@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
-import { clearSelection, sendTurn, stopTurn, useActivity, useStoryUi } from '~/lib/store'
+import {
+  clearSelection,
+  sendFeedback,
+  sendTurn,
+  stopTurn,
+  useActivity,
+  useStoryUi,
+} from '~/lib/store'
 import { tokens } from '~/styles/tokens.stylex'
 import { ui } from '~/styles/ui'
 import { Icon } from './icons'
@@ -19,6 +26,22 @@ const styles = stylex.create({
     fontSize: tokens.textXs,
     lineHeight: 1,
     whiteSpace: 'nowrap',
+  },
+  notice: {
+    position: 'absolute',
+    bottom: '100%',
+    left: 0,
+    right: 0,
+    padding: '0 1.25rem 0.375rem',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: tokens.danger,
+    fontSize: tokens.textXs,
+    lineHeight: 1.4,
+  },
+  saved: {
+    color: tokens.muted,
   },
   stop: {
     alignSelf: 'center',
@@ -86,16 +109,50 @@ const styles = stylex.create({
   },
 })
 
+type Notice = { text: string; error: boolean }
+
+const FEEDBACK = /^\/f\s([\s\S]*)$/
+
 export function Composer({ storyId }: { storyId: string }): ReactNode {
   const [draft, setDraft] = useState('')
+  const [notice, setNotice] = useState<Notice>()
   const activity = useActivity(storyId)
   const [chip, setChip] = useState(false)
   const selected = useStoryUi(storyId).selected
   const turn = Boolean(activity.turnStartedAt)
   const busy = turn || Boolean(activity.phase && activity.phaseMs === undefined)
 
+  function submitFeedback(text: string): void {
+    const previous = draft
+    setDraft('')
+    setNotice(undefined)
+    sendFeedback(storyId, text).then(
+      () => {
+        const saved = { text: 'Feedback saved', error: false }
+        setNotice(saved)
+        setTimeout(
+          () => setNotice((current) => (current === saved ? undefined : current)),
+          3000,
+        )
+      },
+      (error: unknown) => {
+        setDraft((current) => current || previous)
+        setNotice({
+          text: error instanceof Error ? error.message : String(error),
+          error: true,
+        })
+      },
+    )
+  }
+
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
+    const feedback = FEEDBACK.exec(draft.trimStart())
+    if (feedback) {
+      const text = feedback[1]?.trim()
+      if (text) submitFeedback(text)
+      return
+    }
     if (busy) return
     const text = draft.trim()
     if (!text) return
@@ -121,6 +178,16 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
 
   return (
     <form {...stylex.props(styles.wrap)} onSubmit={onSubmit}>
+      {notice ? (
+        <div
+          role="status"
+          aria-live="polite"
+          title={notice.text}
+          {...stylex.props(styles.notice, !notice.error && styles.saved)}
+        >
+          {notice.text}
+        </div>
+      ) : null}
       <div {...stylex.props(ui.pillow, selected.length > 0 && styles.tight)}>
         <textarea
           data-composer=""
@@ -129,7 +196,10 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
           placeholder="Message..."
           autoComplete="off"
           {...stylex.props(ui.field)}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            if (notice?.error) setNotice(undefined)
+          }}
           onKeyDown={onKeyDown}
         />
         {selected.length > 0 ? (

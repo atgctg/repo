@@ -1,4 +1,5 @@
 import { beforeAll, expect, test } from 'bun:test'
+import { eq } from 'drizzle-orm'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { RouterContractClient } from '@orpc/contract'
@@ -13,7 +14,7 @@ import { useMemoryDatabase } from './memory-db'
 import { handle } from './server'
 import { database } from './db'
 import { listEvalRuns, setVerdict } from './eval-runs'
-import { evals } from './schema'
+import { evals, feedback } from './schema'
 import { forkWorld, loadStory, saveEvalStory, saveTiming, StoryError } from './stories'
 import { listWorlds, loadWorld } from './worlds'
 
@@ -116,6 +117,23 @@ test('rpc procedures answer over the fetch handler', async () => {
     .catch((error: unknown) => error)
   expect(missing).toBeInstanceOf(ORPCError)
   expect((missing as ORPCError<string, unknown>).code).toBe('NOT_FOUND')
+})
+
+test('feedback snapshots the story events', async () => {
+  const story = await forkWorld('noir')
+  const receipt = await api.feedback.create({ story: story.id, text: '  too slow  ' })
+  const rows = await database().select().from(feedback).where(eq(feedback.id, receipt.id))
+  expect(rows).toHaveLength(1)
+  expect(rows[0]?.storyId).toBe(story.id)
+  expect(rows[0]?.world).toBe('noir')
+  expect(rows[0]?.text).toBe('too slow')
+  expect(rows[0]?.events).toEqual(story.events)
+  expect(rows[0]?.createdAt.toISOString()).toBe(receipt.createdAt)
+  const missing = await api.feedback
+    .create({ story: 'missing', text: 'hi' })
+    .catch((error: unknown) => error)
+  expect((missing as ORPCError<string, unknown>).code).toBe('NOT_FOUND')
+  await expect(api.feedback.create({ story: story.id, text: ' ' })).rejects.toThrow()
 })
 
 test('turn frames reject bad input and unknown stories before streaming', async () => {

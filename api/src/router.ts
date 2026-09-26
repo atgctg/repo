@@ -1,6 +1,7 @@
 import { implement, ORPCError } from '@orpc/server'
 import { contract } from 'shared/contract'
 import { listEvalRuns, setVerdict } from './eval-runs'
+import { saveFeedback } from './feedback'
 import { errorMessage } from './media'
 import {
   forkWorld,
@@ -60,5 +61,10 @@ export const router = os.router({
   },
   evals: {
     list: os.evals.list.handler(() => listEvalRuns()),
+  },
+  feedback: {
+    create: os.feedback.create.handler(({ input }) =>
+      saveFeedback(input.story, input.text),
+    ),
   },
 })

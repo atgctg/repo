@@ -1,4 +1,4 @@
-import { boolean, json, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, index, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type { StoryEvent, TurnTiming } from 'shared'
 
 export type EvalInput = {
@@ -24,6 +24,21 @@ export const stories = pgTable('stories', {
   caseName: text('case_name'),
   passed: boolean('passed'),
 })
+
+export const feedback = pgTable(
+  'feedback',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    storyId: text('story_id').notNull(),
+    world: text('world').notNull(),
+    text: text('text').notNull(),
+    events: json('events').$type<StoryEvent[]>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index('feedback_created_at_idx').on(table.createdAt)],
+)
 
 export const evals = pgTable('evals', {
   name: text('name').primaryKey(),

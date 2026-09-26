@@ -188,3 +188,8 @@ export type EvalRun = {
   description: string
   verdict: EvalVerdict | null
 }
+
+export type FeedbackReceipt = {
+  id: string
+  createdAt: string
+}

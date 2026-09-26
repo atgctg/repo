@@ -5,6 +5,7 @@ import { createFrameClient } from 'shared'
 import type {
   EvalRun,
   EvalVerdict,
+  FeedbackReceipt,
   RawMessage,
   Story,
   StorySummary,
@@ -74,6 +75,10 @@ export function fetchMessages(id: string): Promise<RawMessage[] | undefined> {
 
 export function fetchEvalRuns(): Promise<EvalRun[]> {
   return api.evals.list()
+}
+
+export function postFeedback(story: string, text: string): Promise<FeedbackReceipt> {
+  return api.feedback.create({ story, text })
 }
 
 export function writeVerdict(id: string, verdict: EvalVerdict | null): Promise<void> {

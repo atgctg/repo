@@ -209,29 +209,34 @@ export function useActivity(id: string): Activity {
 }
 
 export function ensureStory(id: string): Promise<StoryCache | null> {
-  return queryClient.ensureQueryData({
+  return queryClient.query({
     queryKey: storyKey(id),
     queryFn: () => fetchStoryCache(id),
+    staleTime: 'static',
   })
 }
 
 export async function ensureIndex(): Promise<void> {
   const [worlds] = await Promise.all([
-    queryClient.ensureQueryData({
+    queryClient.query({
       queryKey: worldsKey,
       queryFn: () => api.worlds.list(),
+      staleTime: 'static',
     }),
-    queryClient.ensureQueryData({
+    queryClient.query({
       queryKey: storiesKey,
       queryFn: () => api.stories.list(),
+      staleTime: 'static',
     }),
   ])
-  for (const world of worlds) {
-    void queryClient.prefetchQuery({
-      queryKey: worldKey(world.id),
-      queryFn: async () => (await found(api.worlds.get({ id: world.id }))) ?? null,
-    })
-  }
+  await Promise.all(
+    worlds.map((world) =>
+      queryClient.query({
+        queryKey: worldKey(world.id),
+        queryFn: async () => (await found(api.worlds.get({ id: world.id }))) ?? null,
+      }),
+    ),
+  )
 }
 
 export function prefetchIndex(): void {

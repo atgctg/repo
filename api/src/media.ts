@@ -1,5 +1,5 @@
 import { stringify } from 'yaml'
-import type { Speech, Story } from 'shared'
+import { concatBytes, type Speech, type Story } from 'shared'
 import { readAssetBytes, resolveAssetKey, storyKey, writeAsset } from './assets'
 import { app } from './context'
 import { assetFileName, assetUrl, speechFileName } from './files'
@@ -570,14 +570,4 @@ async function fetchAssetBytes(url: string, headers: HeadersInit): Promise<Array
     throw new Error(`Pruna download error: ${response.status} ${body}`)
   }
   return response.arrayBuffer()
-}
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  const out = new Uint8Array(parts.reduce((sum, part) => sum + part.byteLength, 0))
-  let offset = 0
-  for (const part of parts) {
-    out.set(part, offset)
-    offset += part.byteLength
-  }
-  return out
 }

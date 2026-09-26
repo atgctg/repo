@@ -1,5 +1,18 @@
 import { expect, test } from 'bun:test'
-import { followUp, turnTiming } from './turn'
+import { followUp, llmMessages, turnTiming } from './turn'
+
+test('the voice prompt is appended only when a card has a voice', () => {
+  const system = (events: Parameters<typeof llmMessages>[0]) =>
+    llmMessages(events, 'Test')[0]?.content ?? ''
+  expect(system([{ type: 'card', name: 'Mimi' }])).not.toContain('## Voice')
+  expect(system([{ type: 'card', name: 'Mimi', voice: 'Skylar' }])).toContain('## Voice')
+  expect(
+    system([
+      { type: 'card', name: 'Mimi', voice: 'Skylar' },
+      { type: 'card', name: 'Mimi', voice: null },
+    ]),
+  ).not.toContain('## Voice')
+})
 
 test('turn timing is seconds to two decimals', () => {
   expect(

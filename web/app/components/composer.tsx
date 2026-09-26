@@ -27,6 +27,19 @@ const styles = stylex.create({
     lineHeight: 1,
     whiteSpace: 'nowrap',
   },
+  notice: {
+    position: 'absolute',
+    bottom: '100%',
+    left: 0,
+    right: 0,
+    padding: '0 1.25rem 0.375rem',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    color: tokens.danger,
+    fontSize: tokens.textXs,
+    lineHeight: 1.4,
+  },
   saved: {
     color: tokens.muted,
   },
@@ -165,6 +178,16 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
 
   return (
     <form {...stylex.props(styles.wrap)} onSubmit={onSubmit}>
+      {notice ? (
+        <div
+          role="status"
+          aria-live="polite"
+          title={notice.text}
+          {...stylex.props(styles.notice, !notice.error && styles.saved)}
+        >
+          {notice.text}
+        </div>
+      ) : null}
       <div {...stylex.props(ui.pillow, selected.length > 0 && styles.tight)}>
         <textarea
           data-composer=""
@@ -202,15 +225,6 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
             <span>{selected.length}</span>
           </span>
         ) : null}
-        {notice ? (
-          <span
-            role="status"
-            aria-live="polite"
-            {...stylex.props(styles.status, !notice.error && styles.saved)}
-          >
-            <span {...stylex.props(styles.clip)}>{notice.text}</span>
-          </span>
-        ) : null}
         {turn ? (
           <button
             type="button"
@@ -220,7 +234,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
           >
             <Icon name="stop" />
           </button>
-        ) : activity.error && !notice ? (
+        ) : activity.error ? (
           <span aria-live="polite" {...stylex.props(styles.status)}>
             <span {...stylex.props(styles.clip)}>{activity.error}</span>
           </span>

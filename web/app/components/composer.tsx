@@ -157,7 +157,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
     const previous = draft
     setDraft('')
     void sendTurn(storyId, text, undefined, selected).then((ok) => {
-      if (!ok) setDraft(previous)
+      if (!ok) setDraft((current) => current || previous)
     })
   }
 

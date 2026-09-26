@@ -49,25 +49,27 @@ export async function setVerdict(id: string, verdict: EvalVerdict | null): Promi
   if (updated.length === 0) throw new StoryError('Eval not found', 404)
 }
 
-export async function runEvalCase(
+export async function prepareEvalCase(
   name: string,
-  emit: (message: TurnMessage) => void,
-  signal?: AbortSignal,
-): Promise<void> {
+): Promise<
+  (emit: (message: TurnMessage) => void, signal?: AbortSignal) => Promise<void>
+> {
   const rows = await database().select().from(evals).where(eq(evals.name, name)).limit(1)
   const evalCase = rows[0]
   if (!evalCase) throw new StoryError('Eval not found', 404)
   const world = await findWorld(evalCase.world)
   if (!world) throw new StoryError('World not found', 404)
-  const id = await saveEvalStory(name, world.id, [
-    ...world.events,
-    ...parseEvents(evalCase.events),
-  ])
-  await reply(
-    id,
-    { text: evalCase.input.text, selected: evalCase.input.selected },
-    emit,
-    signal,
-    { dry: true },
-  )
+  return async (emit, signal) => {
+    const id = await saveEvalStory(name, world.id, [
+      ...world.events,
+      ...parseEvents(evalCase.events),
+    ])
+    await reply(
+      id,
+      { text: evalCase.input.text, selected: evalCase.input.selected },
+      emit,
+      signal,
+      { dry: true },
+    )
+  }
 }

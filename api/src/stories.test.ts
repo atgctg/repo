@@ -3,8 +3,8 @@ import { eq } from 'drizzle-orm'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { RouterContractClient } from '@orpc/contract'
-import { createFrameClient } from 'shared'
-import type { Contract } from 'shared/contract'
+import { createFrameClient, FRAME_ROUTES } from 'shared'
+import { contract, type Contract } from 'shared/contract'
 import { listEvalWorlds } from '../scripts/eval'
 import { adminOk } from './auth'
 import { resolveAssetKey, storyKey, worldKey } from './assets'
@@ -151,6 +151,29 @@ test('turn frames reject bad input and unknown stories before streaming', async 
   await expect(frames.evalRun({ name: 'missing' }).next()).rejects.toThrow(
     'Eval not found',
   )
+  const post = (route: string, body: unknown) =>
+    handle(
+      new Request(`http://verse.test/api/${route}`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    )
+  const turn = await post(FRAME_ROUTES.turn, { id: 'missing', text: 'Hi' })
+  expect(turn.status).toBe(404)
+  const evalRun = await post(FRAME_ROUTES.evalRun, { name: 'missing' })
+  expect(evalRun.status).toBe(404)
+  expect(await evalRun.json()).toEqual({ error: 'Eval not found' })
+})
+
+test('video duration is left to the asset when omitted', async () => {
+  const [schema] = contract.stories.generateVideo['~orpc'].inputSchemas ?? []
+  const parse = async (value: unknown) => schema?.['~standard'].validate(value)
+  expect(await parse({ id: 'story', name: 'Clip' })).toEqual({
+    value: { id: 'story', name: 'Clip' },
+  })
+  expect(await parse({ id: 'story', name: 'Clip', duration: 8 })).toEqual({
+    value: { id: 'story', name: 'Clip', duration: 8 },
+  })
 })
 
 test('eval runs list their case and keep a verdict', async () => {

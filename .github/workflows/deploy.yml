@@ -6,7 +6,7 @@ on:
 permissions: {}
 
 env:
-  URL: https://verse-web.ml-cf4.workers.dev
+  URL: https://alpha.verse.withomni.com
 
 concurrency:
   group: deploy-production

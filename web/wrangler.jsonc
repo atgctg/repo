@@ -7,6 +7,12 @@
   "observability": {
     "enabled": true,
   },
+  "routes": [
+    {
+      "pattern": "alpha.verse.withomni.com",
+      "custom_domain": true,
+    },
+  ],
   "services": [
     {
       "binding": "API",

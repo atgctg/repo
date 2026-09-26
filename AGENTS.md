@@ -37,6 +37,7 @@ Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 - A batched thermo-nuclear review runs on `main` after a chunk of work.
 - Schema migrations run only on `main`.
 - Previews share the prod DB for now.
+- PR descriptions are a decision log, not a summary: a few short bullet points in plain sentences, noting only what the diff doesn't show (why a choice was made, rejected alternatives, known gaps, follow-ups). No headers, file lists, test counts, or restated changes. Leave it empty when there is nothing to note.
 
 # Starting points
 

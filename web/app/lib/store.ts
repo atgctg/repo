@@ -17,6 +17,7 @@ import {
   fetchStory,
   fetchWorld,
   fetchWorlds,
+  postFeedback,
   postFork,
   postGenerate,
   streamTurn,
@@ -476,6 +477,11 @@ export async function sendTurn(
   } finally {
     turns.delete(id)
   }
+}
+
+export async function sendFeedback(id: string, text: string): Promise<void> {
+  if (!(await waitForFork(id))) throw new Error('Story is not saved yet')
+  await postFeedback(id, text)
 }
 
 export function stopTurn(id: string): void {

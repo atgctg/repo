@@ -2,6 +2,7 @@ import { oc, type } from '@orpc/contract'
 import * as z from 'zod'
 import type {
   EvalRun,
+  FeedbackReceipt,
   RawMessage,
   Story,
   StorySummary,
@@ -56,6 +57,11 @@ export const contract = {
   },
   evals: {
     list: oc.output(type<EvalRun[]>()),
+  },
+  feedback: {
+    create: oc
+      .input(z.object({ story: id, text: z.string().trim().min(1, 'text is required') }))
+      .output(type<FeedbackReceipt>()),
   },
 }
 

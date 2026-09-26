@@ -45,9 +45,7 @@ export function followUp(toolNames: string[]): boolean {
 }
 
 export function llmMessages(events: StoryEvent[], title: string): ChatMessage[] {
-  const voiced = project(events).cards.some(
-    (card) => card.voice && resolveVoiceId(card.voice),
-  )
+  const voiced = events.some((event) => event.type === 'card' && event.voice)
   return [
     {
       role: 'system',

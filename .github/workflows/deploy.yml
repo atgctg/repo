@@ -1,0 +1,42 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: https://verse-web.ml-cf4.workers.dev
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: bun run fmt:check
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: bunx wrangler deploy
+        working-directory: api
+      - run: bun run build
+        working-directory: web
+      - run: bunx wrangler deploy
+        working-directory: web
+      - run: curl --fail --silent --show-error --retry 5 --retry-all-errors --output /dev/null https://verse-web.ml-cf4.workers.dev

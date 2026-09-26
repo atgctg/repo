@@ -28,6 +28,16 @@ No animations and transitions for now.
 
 Only change `AGENTS.md` and `api/prompt.md` when explicitly asked.
 
+## Workflow
+
+- Work on short-lived branches off `main`.
+- Never `wrangler deploy` from a branch. Use the preview URL that CI posts on the PR.
+- The coordinator merges into `main` when CI is green.
+- Production deploys only from `main`.
+- A batched thermo-nuclear review runs on `main` after a chunk of work.
+- Schema migrations run only on `main`.
+- Previews share the prod DB for now.
+
 # Starting points
 
 - shared/types.ts

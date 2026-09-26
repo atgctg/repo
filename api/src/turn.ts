@@ -16,6 +16,7 @@ import {
 import { app } from './context'
 import { assetUrl, storyAssetUrl } from './files'
 import systemPrompt from '../prompt.md' with { type: 'text' }
+import voicePrompt from '../voice.md' with { type: 'text' }
 import {
   errorMessage,
   generateStoryImage,
@@ -44,8 +45,12 @@ export function followUp(toolNames: string[]): boolean {
 }
 
 export function llmMessages(events: StoryEvent[], title: string): ChatMessage[] {
+  const voiced = events.some((event) => event.type === 'card' && event.voice)
   return [
-    { role: 'system', content: systemPrompt },
+    {
+      role: 'system',
+      content: voiced ? `${systemPrompt}\n${voicePrompt}` : systemPrompt,
+    },
     ...eventsToMessages(events, undefined, title),
   ]
 }

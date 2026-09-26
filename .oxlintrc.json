@@ -3,5 +3,5 @@
   "categories": {
     "correctness": "error"
   },
-  "ignorePatterns": ["node_modules", "dist", "data/assets"]
+  "ignorePatterns": ["node_modules", "dist"]
 }

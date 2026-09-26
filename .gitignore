@@ -8,13 +8,4 @@ dist/
 *.log
 .DS_Store
 
-data/assets/
-data/studio.db
-data/studio.db-*
-
-stories/assets/
-
 api/evals/*.out.yaml
-api/evals/*.before.yaml
-evals/*.out.yaml
-evals/*.before.yaml

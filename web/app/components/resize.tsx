@@ -1,0 +1,138 @@
+import {
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
+import * as stylex from '@stylexjs/stylex'
+import { useMountEffect } from '~/hooks/use-mount-effect'
+
+const line = 'color-mix(in srgb, currentColor 14%, transparent)'
+
+const styles = stylex.create({
+  edge: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: '12px',
+    zIndex: 5,
+    touchAction: 'none',
+    '::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      left: '50%',
+      width: '2px',
+      transform: 'translateX(-50%)',
+      backgroundColor: 'transparent',
+    },
+    ':hover': {
+      cursor: 'col-resize',
+    },
+    ':hover::before': {
+      backgroundColor: line,
+    },
+  },
+  hot: {
+    cursor: 'col-resize',
+    '::before': {
+      backgroundColor: line,
+    },
+  },
+})
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
+}
+
+export function usePaneWidth(
+  key: string,
+  fallback: number,
+  min: number,
+  max: number,
+): {
+  width: number
+  setWidth: (width: number) => void
+  commit: () => void
+} {
+  const [width, setWidthState] = useState(fallback)
+  const widthRef = useRef(fallback)
+  useMountEffect(() => {
+    const raw = localStorage.getItem(key)
+    if (raw === null || raw === '') return
+    const saved = Number(raw)
+    if (!Number.isFinite(saved)) return
+    const next = clamp(saved, min, max)
+    widthRef.current = next
+    setWidthState(next)
+  })
+  return {
+    width,
+    setWidth(next: number) {
+      const clamped = clamp(next, min, max)
+      widthRef.current = clamped
+      setWidthState(clamped)
+    },
+    commit() {
+      localStorage.setItem(key, String(widthRef.current))
+    },
+  }
+}
+
+export function ResizeEdge({
+  side,
+  width,
+  sign,
+  min,
+  max,
+  onWidth,
+  onCommit,
+}: {
+  side: 'left' | 'right'
+  width: number
+  sign: 1 | -1
+  min: number
+  max: number
+  onWidth: (width: number) => void
+  onCommit: () => void
+}): ReactNode {
+  const [hot, setHot] = useState(false)
+  const drag = useRef<{ x: number; width: number } | null>(null)
+  function down(event: ReactPointerEvent<HTMLDivElement>): void {
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    drag.current = { x: event.clientX, width }
+    document.body.style.cursor = 'col-resize'
+    setHot(true)
+  }
+  function move(event: ReactPointerEvent<HTMLDivElement>): void {
+    const start = drag.current
+    if (!start) return
+    onWidth(clamp(start.width + sign * (event.clientX - start.x), min, max))
+  }
+  function up(): void {
+    if (!drag.current) return
+    drag.current = null
+    document.body.style.cursor = ''
+    setHot(false)
+    onCommit()
+  }
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-valuenow={Math.round(width)}
+      {...stylex.props(styles.edge, hot && styles.hot)}
+      style={
+        side === 'left'
+          ? { left: width, transform: 'translateX(-50%)' }
+          : { right: width, transform: 'translateX(50%)' }
+      }
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={up}
+    />
+  )
+}

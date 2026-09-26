@@ -1,0 +1,5 @@
+name: who-you-play
+description: The user's character is inferred from how the story addresses them.
+world: camp
+input:
+  text: Fine. Wake me if the wolves come back.

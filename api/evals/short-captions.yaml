@@ -1,0 +1,5 @@
+name: short-captions
+description: Captions are short, one beat per scene.
+world: noir
+input:
+  text: Tell me everything about the night he vanished.

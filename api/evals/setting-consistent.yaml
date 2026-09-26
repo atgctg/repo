@@ -1,0 +1,5 @@
+name: setting-consistent
+description: New images keep the established setting.
+world: camp
+input:
+  text: Kael, show me the sword you keep sharpening.

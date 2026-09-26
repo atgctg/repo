@@ -1,0 +1,12 @@
+name: knowledge
+description: Characters only know what they saw or were told.
+world: ship
+events:
+  - type: input
+    text: Juno, a word in private.
+  - type: dialogue
+    background: Bridge Wide
+    speaker: Juno
+    caption: Captain... this is my last run. I'm leaving the crew at Kessler. Don't tell Tal yet.
+input:
+  text: I walk down to engineering. Tal, did you hear Juno's news?

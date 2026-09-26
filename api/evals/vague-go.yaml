@@ -1,0 +1,5 @@
+name: vague-go
+description: Vague input moves the story forward.
+world: camp
+input:
+  text: go

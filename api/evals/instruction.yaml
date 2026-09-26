@@ -1,0 +1,5 @@
+name: instruction
+description: An instruction becomes scenes, not an echo of the instruction.
+world: ship
+input:
+  text: Ides slams the alarm and orders everyone to the escape pods.

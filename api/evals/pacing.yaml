@@ -1,0 +1,5 @@
+name: pacing
+description: A turn is a few scenes, not a whole chapter.
+world: ship
+input:
+  text: We reach Kessler Station and dock.

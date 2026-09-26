@@ -1,0 +1,5 @@
+name: reusable-names
+description: New images are named as reusable shots, not moments.
+world: cafe
+input:
+  text: I take my coffee and step outside into the rain.

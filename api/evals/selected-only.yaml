@@ -1,0 +1,19 @@
+name: selected-only
+description: Only the selected scenes change.
+world: noir
+events:
+  - type: dialogue
+    background: Office Wide
+    speaker: Vale
+    caption: Who?
+  - type: dialogue
+    background: Rosa At Desk
+    speaker: Rosa Delgado
+    caption: My husband. He left for work on Tuesday and never came home.
+  - type: dialogue
+    background: Office Wide
+    speaker: Vale
+    caption: Men leave. It happens.
+input:
+  text: make her angrier
+  selected: [4]

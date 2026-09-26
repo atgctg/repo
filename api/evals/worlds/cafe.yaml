@@ -1,0 +1,30 @@
+title: Corner Café
+events:
+  - type: card
+    name: Style
+    attributes:
+      Style: Soft watercolor slice-of-life
+      Palette: Cream, honey wood, soft morning light
+  - type: card
+    name: Mei
+    cover: Mei
+    attributes:
+      Role: Barista and owner
+      Age: 24
+      Look: Long black ponytail, round glasses, mustard apron over white shirt
+  - type: image
+    name: Café Counter
+    prompt:
+      Shot: A wide shot at eye level of a small café counter.
+      Setting: A cozy corner café in the morning, with honey-colored wood counters, a chrome espresso machine, a glass case of pastries, and soft light from a front window on the left.
+  - type: image
+    name: Mei Behind Counter
+    prompt:
+      Shot: A medium shot at eye level of the barista behind the counter.
+      Setting: The same café counter in soft morning light, with the espresso machine behind her.
+      Subjects:
+        Mei: A young woman with a long black ponytail and round glasses, wearing a mustard apron over a white shirt, standing center and facing the camera, smiling while steaming milk in a steel pitcher.
+  - type: dialogue
+    background: Mei Behind Counter
+    speaker: Mei
+    caption: Morning! The usual?

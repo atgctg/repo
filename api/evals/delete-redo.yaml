@@ -1,0 +1,15 @@
+name: delete-redo
+description: Deleting and redoing happens in one turn.
+world: noir
+events:
+  - type: dialogue
+    background: Office Wide
+    speaker: Vale
+    caption: Find someone else.
+  - type: dialogue
+    background: Rosa At Desk
+    speaker: Rosa Delgado
+    caption: Then I'll go. Goodbye, Mr. Vale.
+input:
+  text: delete from here and redo it, Vale takes the case instead
+  selected: [3]

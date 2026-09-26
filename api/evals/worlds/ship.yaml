@@ -1,0 +1,37 @@
+title: Long Haul
+events:
+  - type: card
+    name: Style
+    attributes:
+      Style: Clean sci-fi concept art
+      Palette: Cold white panels, amber warning lights
+  - type: card
+    name: Ides
+    cover: Ides
+    attributes:
+      Role: Captain of the freighter Marrow
+      Look: 50s, close-cropped white hair, navy flight jacket
+  - type: card
+    name: Juno
+    cover: Juno
+    attributes:
+      Role: Pilot
+      Look: 20s, dark curls tied up, orange jumpsuit, headset
+  - type: card
+    name: Tal
+    cover: Tal
+    attributes:
+      Role: Engineer
+      Look: 40s, bald, thick beard, grease-stained grey coveralls
+  - type: image
+    name: Bridge Wide
+    prompt:
+      Shot: A wide shot from the back of a small freighter bridge.
+      Setting: A cramped bridge with cold white panels, three worn seats facing a wide front window full of stars, and amber status lights along the consoles.
+  - type: image
+    name: Engine Room
+    prompt:
+      Shot: A medium wide shot at eye level of a cramped engine room.
+      Setting: A narrow engine room packed with pipes and cables, lit by flickering amber warning lights.
+      Subjects:
+        Tal: A bald man in his forties with a thick beard and grease-stained grey coveralls, standing at a console screen-right and facing left.

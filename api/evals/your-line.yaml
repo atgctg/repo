@@ -1,0 +1,5 @@
+name: your-line
+description: The user's typed line is not repeated as dialogue.
+world: noir
+input:
+  text: I don't find people anymore, Rosa.

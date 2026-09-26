@@ -3,6 +3,7 @@ import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import {
   clearSelection,
+  messageOf,
   sendFeedback,
   sendTurn,
   stopTurn,
@@ -137,10 +138,7 @@ export function Composer({ storyId }: { storyId: string }): ReactNode {
       },
       (error: unknown) => {
         setDraft((current) => current || previous)
-        setNotice({
-          text: error instanceof Error ? error.message : String(error),
-          error: true,
-        })
+        setNotice({ text: messageOf(error), error: true })
       },
     )
   }

@@ -9,7 +9,8 @@ const API_ORIGIN = 'http://127.0.0.1:3000'
 const COOKIE = 'verse_admin'
 
 type Env = {
-  API: { fetch: (request: Request) => Promise<Response> }
+  API?: { fetch: (request: Request) => Promise<Response> }
+  API_URL?: string
 }
 
 function isApiPath(pathname: string): boolean {
@@ -67,9 +68,13 @@ function loginPage(message?: string): Response {
 }
 
 function callApi(request: Request, env: Env): Promise<Response> {
-  if (!import.meta.env.DEV) return env.API.fetch(request)
+  const origin = import.meta.env.DEV ? API_ORIGIN : env.API_URL
+  if (!origin) {
+    if (!env.API) throw new Error('API binding or API_URL is required')
+    return env.API.fetch(request)
+  }
   const url = new URL(request.url)
-  return fetch(new Request(new URL(`${url.pathname}${url.search}`, API_ORIGIN), request))
+  return fetch(new Request(new URL(`${url.pathname}${url.search}`, origin), request))
 }
 
 function proxyApi(request: Request, env: Env, password: string): Promise<Response> {

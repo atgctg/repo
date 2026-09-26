@@ -22,6 +22,20 @@
       "bucket_name": "verse-assets",
     },
   ],
+  "previews": {
+    "hyperdrive": [
+      {
+        "binding": "HYPERDRIVE",
+        "id": "5101227e042e4f7a8f4c4af7ec6252df",
+      },
+    ],
+    "r2_buckets": [
+      {
+        "binding": "ASSETS",
+        "bucket_name": "verse-assets",
+      },
+    ],
+  },
   "rules": [
     {
       "type": "Text",
